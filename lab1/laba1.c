@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
         printf("Correct usage: WordCount.exe [option] filename");
         return 1;
     }
-    int cwords = 0, cbytes = 0, clines = 1;
+    int cwords = 0, cbytes = 0, clines = 0;
     FILE* fp;
     for (int i = 1; i < argc; i++)
     {
@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    int words = 0, bytes = 0, lines = 0, reading_word = 0;
+    int words = 0, bytes = 0, lines = 1, reading_word = 0;
     int c;
     while ((c = fgetc(fp)) != EOF)
     {
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
         if (c == '\n') lines++;
     }
     if (cwords) printf("words: %d\n", words+reading_word);
-    if (clines) printf("lines: %d\n", lines+(bytes>0));
+    if (clines) printf("lines: %d\n", lines);
     if (cbytes) printf("bytes: %d\n", bytes);
 
     return 0;
