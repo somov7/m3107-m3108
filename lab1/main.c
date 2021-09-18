@@ -18,7 +18,7 @@ typedef struct CliArgs {
 
 Counts count_data(FILE *fp) {
     Counts data = {0, 0, 0};
-    int words_count = 0, lines_count = 0, characters_count = 0, n = 256, ch, reading_word = 0;
+    int words_count = 0, lines_count = 0, characters_count = 0, ch, reading_word = 0;
     while ((ch = fgetc(fp)) != EOF) {
         if (ch == '\n') {
             lines_count++;
@@ -54,11 +54,13 @@ CliArgs parse_cli(int argc, char *argv[]) {
             if (strcmp(argv[i], "--lines") == 0 || strcmp(argv[i], "-l") == 0) {
                 cli_args.show_lines = true;
             }
-            if (strcmp(argv[i], "--bytes") == 0 || strcmp(argv[i], "-c") == 0) {
+            else if (strcmp(argv[i], "--bytes") == 0 || strcmp(argv[i], "-c") == 0) {
                 cli_args.show_bytes = true;
             }
-            if (strcmp(argv[i], "--words") == 0 || strcmp(argv[i], "-w") == 0) {
+            else if (strcmp(argv[i], "--words") == 0 || strcmp(argv[i], "-w") == 0) {
                 cli_args.show_words = true;
+            } else {
+                perror("Undefined argument");
             }
         }
     }
@@ -93,5 +95,5 @@ int main(int argc, char *argv[]) {
 
     print_data(args, counts);
 
-    return 1;
+    return 0;
 }
