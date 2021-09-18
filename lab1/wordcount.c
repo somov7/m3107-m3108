@@ -22,9 +22,8 @@ int select_option(char *arg) {
 
 int count_lines(FILE *file) {
 	int c, lines = 1;
-	while ((c = fgetc(file)) != EOF) {
-		if (c == '\n')
-			lines++;
+	while ((c = fgetc(file)) != EOF and c == '\n') {
+		lines++;
 	}
 	return lines;
 }
