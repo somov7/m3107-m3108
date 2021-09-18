@@ -21,7 +21,7 @@ int select_option(char *arg) {
 }
 
 int count_lines(FILE *file) {
-	int c, lines = 0;
+	int c, lines = 1;
 	while ((c = fgetc(file)) != EOF) {
 		if (c == '\n')
 			lines++;
@@ -30,7 +30,7 @@ int count_lines(FILE *file) {
 }
 
 int count_not_empty_lines(FILE *file) {
-	int c, lines = 1, prev;
+	int c, lines = 1, prev = 0;
 	c = fgetc(file);
 	if (c == EOF)
 		return 0;
