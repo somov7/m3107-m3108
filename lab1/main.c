@@ -23,6 +23,9 @@ int main(int argc, char *argv[]) {
             printf("Words: %d\n", getWords(fptr));
         } else if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--bytes") == 0) {
             printf("Bytes: %ld\n", getBytes(fptr));
+        } else {
+            printf("Undefined arg\n");
+            exit(1);
         }
         rewind(fptr);
     }
