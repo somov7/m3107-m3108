@@ -61,9 +61,7 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(cmd, "-w") == 0 || strcmp(cmd, "--words") == 0) {
             printf("%d", words+(words == 0? 0: 1));
         } else{
-            printf("Error: This command does not exist\n");
             ShowUsage(argv[0]);
-            return 3;
         }
     }
     return 0;
