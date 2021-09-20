@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 
 typedef struct Counts {
@@ -18,7 +19,7 @@ typedef struct CliArgs {
 
 Counts count_data(FILE *fp) {
     Counts data = {0, 0, 0};
-    int words_count = 0, lines_count = 0, characters_count = 0, ch, reading_word = 0;
+    int words_count = 0, lines_count = 1, characters_count = 0, ch, reading_word = 0;
     while ((ch = fgetc(fp)) != EOF) {
         if (ch == '\n') {
             lines_count++;
@@ -60,7 +61,8 @@ CliArgs parse_cli(int argc, char *argv[]) {
             else if (strcmp(argv[i], "--words") == 0 || strcmp(argv[i], "-w") == 0) {
                 cli_args.show_words = true;
             } else {
-                perror("Undefined argument");
+                printf("Undefined argument\n");
+                exit(1);
             }
         }
     }
