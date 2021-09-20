@@ -7,7 +7,7 @@
 int main(int argc, char *argv[]) {
     FILE *fptr;
     char *filename = argv[argc - 1];
-    char *filenamePath = malloc(strlen(filename) + 1 + 2);
+    char *filenamePath = malloc(strlen(filename) + 3);
     strcpy(filenamePath, "./");
     strcat(filenamePath, filename);
 
