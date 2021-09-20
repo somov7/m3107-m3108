@@ -9,33 +9,23 @@ FILE *open_file(char *filename, int bin)
 		file = fopen(filename, "rb");
 	else
 		file = fopen(filename, "r");
-
-	if (file == NULL)
-	{
-		printf("Error: can't open the file\n");
-		return;
-	}
 	return file;
 }
 
 int count_lines(FILE* file)
 {
-	int res = 0, flag = -1;
+	int res = 0;
 	char c;
 
 	while ((c = fgetc(file)) != EOF)
 		if (c == '\n')
-			++res, flag = 1;
-		else
-			flag = 0;
-	if (flag == 0)
-		++res;
-	return res;
+			++res;
+	return ++res;
 }
 
-unsigned long int count_bytes(FILE* file)
+int count_bytes(FILE* file)
 {
-	unsigned long int res = 0;
+	int res = 0;
 
 	while (fgetc(file) != EOF)
 		++res;
