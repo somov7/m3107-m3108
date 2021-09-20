@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    for (int i = 1; i < argc; i++) {
+    for (int i = 1; i < argc - 1; i++) {
         if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--lines") == 0) {
             printf("Lines: %d\n", getLines(fptr));
         } else if (strcmp(argv[i], "-w") == 0 || strcmp(argv[i], "--words") == 0) {
