@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 
 void ShowUsage(char *arg) {
     printf("Usage: %s <option(s)>\n", arg);
@@ -8,7 +7,6 @@ void ShowUsage(char *arg) {
     printf("\t-c, --bytes\t\tOutput of the file size in bytes\n");
     printf("\t-l, --lines\t\tOutput the number of rows\n");
     printf("\t-w, --words\t\tOutput of the number of words\n");
-
 }
 
 int main(int argc, char *argv[]) {
