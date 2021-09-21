@@ -12,7 +12,7 @@ void ShowUsage(char *arg) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 3) {
+    if (argc != 3) {
         printf("Error: Invalid number of arguments\n");
         ShowUsage(argv[0]);
         return 2;
@@ -31,35 +31,41 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        int chars = 0, lines = 1, words = 0;
-        char TempStr = {0};
-        bool WFlag = true, LFlag = true;
+        int lines = 1, chars = 0, words = 0;
+        int TempChar = fgetc(TextFile), LastChar;
+        int WFlag = 1;
 
-        while (fgets(&TempStr, 2, TextFile)) {
-            if (!((strcmp(&TempStr, " ") == 0) || (strcmp(&TempStr, "\t") == 0) || (strcmp(&TempStr, "\n") == 0)))
-                WFlag = true;
-            else{
-                if (WFlag){
+        if (!((TempChar == ' ') || (TempChar == '\t') || (TempChar == '\n')))
+            words = 1;
+        if (TempChar == EOF)
+            words = 0;
+
+        while (TempChar != EOF){
+
+            if ((TempChar == ' ') || (TempChar == '\t') || (TempChar == '\n')) {
+                if (WFlag) {
                     words++;
-                    WFlag = false;
+                    WFlag = 0;
                 }
-                if (strcmp(&TempStr, "\n") == 0)
+                if (TempChar == '\n')
                     lines++;
             }
+            else WFlag = 1;
+
             chars++;
+            LastChar = TempChar;
+            TempChar = fgetc(TextFile);
         }
 
-        if (strcmp(&TempStr, "\t") == 0 || strcmp(&TempStr, "\n") == 0 ||
-                strcmp(&TempStr, " ") == 0){
+        if ((LastChar == ' ') || (LastChar == '\t') || (LastChar == '\n'))
             words--;
-        }
 
         if (strcmp(cmd, "-l") == 0 || strcmp(cmd, "--lines") == 0) {
             printf("%d", lines);
         } else if (strcmp(cmd, "-c") == 0 || strcmp(cmd, "--bytes") == 0) {
             printf("%d", chars);
         } else if (strcmp(cmd, "-w") == 0 || strcmp(cmd, "--words") == 0) {
-            printf("%d", words+(words == 0? 0: 1));
+            printf("%d", words);
         } else{
             printf("Error: This command does not exist\n");
             ShowUsage(argv[0]);
