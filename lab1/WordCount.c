@@ -10,13 +10,20 @@ int main(int argc, char *argv[]) {
 
     char ch;
     FILE* file;
-    file = fopen(argv[2], "r");
+    if (argc == 3) {
+        file = fopen(argv[2], "r");
+    }
+    else {
+        printf("Error");
+        return 1;
+    }
 
     if (argc > 3 || file == NULL || argc == 1)
     {
+        printf("Error");
         return 1;
     }
-    else if (strcmp(argv[1], "-w") == 0 || strcmp(argv[1], "-words") == 0) 
+    else if (strcmp(argv[1], "-w") == 0 || strcmp(argv[1], "--words") == 0) 
     {
         char start = ' ';
         while ( (ch = getc(file)) != EOF )
@@ -33,27 +40,27 @@ int main(int argc, char *argv[]) {
             word_count++;
         printf("%d", word_count);
     }
-    else if (strcmp(argv[1], "-l") == 0 || strcmp(argv[1], "-lines") == 0)
+    else if (strcmp(argv[1], "-l") == 0 || strcmp(argv[1], "--lines") == 0)
     {
         while ((ch = getc(file)) != EOF) {
             if (ch == '\n') {
                 string_count++;
             }
         }
-        if (ch == EOF)
-            string_count++;
+        string_count++;
         printf("%d", string_count);
     }
-    else if (strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "-bytes") == 0)
+    else if (strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--bytes") == 0)
     {
         while ((ch = getc(file)) != EOF){
             bytes_count++;
         }
-        bytes_count++;
+
         printf("%d", bytes_count);
     }
     else
     {
+        printf("Error");
         fclose(file);
         return 1;
     }
