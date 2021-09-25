@@ -193,13 +193,10 @@ int main(int argc, char* argv[])
             fwrite(prop_value, 1, strlen(prop_value), t); //пишем новое значение фрейма
             free(buf);
             
-            fseek(f, 0, SEEK_END);
-            long long end = ftell(f);
             fseek(f, pos, 0);
-            buf = (char*)malloc(end-pos);
-            fread(buf, 1, end-pos, f); //прочитаем и запишем оставшееся содержимое файла
-            fwrite(buf, 1, end-pos, t);
-            free(buf);
+            char buff[1000];
+            while (fread(buff, 1, 1000, f)) //пишем оставшееся содержимое файла после нашего фрейма (?)
+                fwrite(buff, 1, 1000, t);
             break;
         }
     }
@@ -231,14 +228,9 @@ int main(int argc, char* argv[])
         fwrite(&tmp, 1, 11, t); //добавляем новый фрейм в конец
         fwrite(prop_value, 1, strlen(prop_value), t); //добавляем значение фрейма
 
-        long long pos = ftell(f);
-        fseek(f, 0, SEEK_END);
-        long long read_sz = ftell(f)-pos;
-        fseek(f, 0, pos);
-        buf = malloc(read_sz);
-        fread(buf, 1, read_sz, f);
-        fwrite(buf, 1, read_sz, t);
-        free(buf);
+        char buff[1000];
+        while (fread(buff, 1, 1000, f)) //пишем оставшееся содержимое файла после нашего фрейма (?)
+            fwrite(buff, 1, 1000, t);
     }
     if (set) fclose(t);
     fclose(f);
