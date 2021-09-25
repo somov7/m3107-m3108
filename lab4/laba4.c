@@ -151,11 +151,11 @@ int main(int argc, char* argv[])
     }
     fread(&header, 1, 10, f); //читаем хедер 10 байтов
     int k = btoi(header.size); //размер всей структуры ID3 включая хедер
-    printf("size struct: %d\n", k);
+    //printf("size struct: %d\n", k);
     int found_prop = 0;
     int pos;
     int prop_sz_diff = 0;
-    char * buf;
+    char* buf;
     while (fread(&frame, 1, 11, f)) //читаем фрейм 10 байтов + 1 байт перед строкой юникода
     {
         if (frame.frameid[0] == 0) break; //больше нечего читать, т.к. первый символ в названии ид фрейма не может быть равен нулю
@@ -186,18 +186,20 @@ int main(int argc, char* argv[])
             
             fwrite(&header, 1, 10, t); //запишем новый хедер
             fseek(f, 10, 0); //читаем фреймы до нашего
-            char* buf = (char*)malloc(pos-21-(oldframesz-1));
+            buf = (char*)malloc(pos-21-(oldframesz-1));
             fread(buf, 1, pos-21-(oldframesz-1), f);
             fwrite(buf, 1, pos-21-(oldframesz-1), t); //пишем фреймы до нашего в новый файл
             fwrite(&frame, 1, 11, t); //пишем новый фрейм
             fwrite(prop_value, 1, strlen(prop_value), t); //пишем новое значение фрейма
-
+            free(buf);
+            
+            fseek(f, 0, SEEK_END);
+            long long end = ftell(f);
             fseek(f, pos, 0);
-            char buff[1000];
-            while (fread(buff, 1, 1000, f)) //пишем оставшееся содержимое файла после нашего фрейма (?)
-                fwrite(buff, 1, 1000, t);
-
-
+            buf = (char*)malloc(end-pos);
+            fread(buf, 1, end-pos, f); //прочитаем и запишем оставшееся содержимое файла
+            fwrite(buf, 1, end-pos, t);
+            free(buf);
             break;
         }
     }
@@ -220,6 +222,7 @@ int main(int argc, char* argv[])
             buf = (char*)malloc(sz); //размер строки включает 1 байт для юникода в начале, поэтому все ок
             fgets(buf, sz, f); //прочитали структуру фрейма включая 1 байт юникода, теперь читаем значение
             fwrite(buf, 1, sz-1, t); //пишем старые значения фреймов минус нулевой байт в строке, который добавляет fgets
+            free(buf);
         }
         ID3FRAME tmp;
         itob(strlen(prop_value)+1, sz);
@@ -228,9 +231,14 @@ int main(int argc, char* argv[])
         fwrite(&tmp, 1, 11, t); //добавляем новый фрейм в конец
         fwrite(prop_value, 1, strlen(prop_value), t); //добавляем значение фрейма
 
-        char buff[1000];
-        while (fread(buff, 1, 1000, f)) //пишем оставшееся содержимое файла после нашего фрейма (?)
-            fwrite(buff, 1, 1000, t);
+        long long pos = ftell(f);
+        fseek(f, 0, SEEK_END);
+        long long read_sz = ftell(f)-pos;
+        fseek(f, 0, pos);
+        buf = malloc(read_sz);
+        fread(buf, 1, read_sz, f);
+        fwrite(buf, 1, read_sz, t);
+        free(buf);
     }
     if (set) fclose(t);
     fclose(f);
