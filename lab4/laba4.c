@@ -71,6 +71,17 @@ void itob(int x, char* ch)
     ch[3] = (t >> 0) & ((1 << 8) - 1);
 }
 
+char* getval(char* str)
+{
+    char* split = strtok(str,"=");
+    if (split == NULL) return NULL;
+    split = strtok(NULL, "=");
+    if (split == NULL) return NULL;
+    char* val = (char*)malloc(strlen(split));
+    strcpy(val, split);
+    return val;
+}
+
 int main(int argc, char* argv[])
 {
     char* filepath = NULL;
@@ -86,49 +97,47 @@ int main(int argc, char* argv[])
     {
         if (strstr(argv[i], "--filepath")) //ищем подстроку т.к. аргумент и значение идет как одна строка --filepath=path.mp3
         {
-            char* split = strtok(argv[i],"="); //разделим на две токенайзером
-            if (split == NULL) {printf("Wrong format"); return 1;}
-            split = strtok(NULL, "=");
-            if (split == NULL) {printf("Wrong format"); return 1;}
-            filepath = (char*)malloc(strlen(split));
-            strcpy(filepath, split);
+            if (!(filepath = getval(argv[i])))
+            {
+                printf("Wrong format");
+                return 1;
+            }
             printf("filepath: %s\n", filepath);
         }
         else if (strstr(argv[i], "--set"))
         {
             set = 1;
-            char* split = strtok(argv[i],"=");
-            if (split == NULL) {printf("Wrong format"); return 1;}
-            split = strtok(NULL, "=");
-            if (split == NULL) {printf("Wrong format"); return 1;}
-            prop_name = (char*)malloc(strlen(split));
-            strcpy(prop_name, split);
-            printf("prop name: %s\n", prop_name);
+            if (!(prop_name = getval(argv[i])))
+            {
+                printf("Wrong format");
+                return 1;
+            }
         }
         else if (strstr(argv[i], "--get"))
         {
             get = 1;
-            char* split = strtok(argv[i],"=");
-            if (split == NULL) {printf("Wrong format"); return 1;}
-            split = strtok(NULL, "=");
-            if (split == NULL) {printf("Wrong format"); return 1;}
-            prop_name = (char*)malloc(strlen(split));
-            strcpy(prop_name, split);
-            printf("prop name: %s\n", prop_name);
+            if (!(prop_name = getval(argv[i])))
+            {
+                printf("Wrong format");
+                return 1;
+            }
         }
         else if (strstr(argv[i], "--value"))
         {
-            char* split = strtok(argv[i],"=");
-            if (split == NULL) {printf("Wrong format"); return 1;}
-            split = strtok(NULL, "=");
-            if (split == NULL) {printf("Wrong format"); return 1;}
-            prop_value = (char*)malloc(strlen(split));
-            strcpy(prop_value, split);
-            printf("prop value: %s\n", prop_value);
+           if (!(prop_value = getval(argv[i])))
+           {
+               printf("Wrong format");
+               return 1;
+           }
         }
         else if (!strcmp(argv[i], "--show"))
         {
             show = 1;
+        }
+        else
+        {
+            printf("Wrong format");
+            return 1;
         }
     }
 
@@ -219,19 +228,11 @@ int main(int argc, char* argv[])
         fwrite(&tmp, 1, 11, t); //добавляем новый фрейм в конец
         fwrite(prop_value, 1, strlen(prop_value), t); //добавляем значение фрейма
 
-    /* //не робит
-        int oldpos = ftell(f);
-        fseek(f, 0L, SEEK_END);
-        int remaining_size = ftell(f) - oldpos;
-        char* bigbuf = (char*)malloc(remaining_size);
-        fread(bigbuf, 1, remaining_size, f);
-        fwrite(bigbuf, 1, remaining_size, t);
-        */
         char buff[1000];
         while (fread(buff, 1, 1000, f)) //пишем оставшееся содержимое файла после нашего фрейма (?)
             fwrite(buff, 1, 1000, t);
     }
-    fclose(t);
+    if (set) fclose(t);
     fclose(f);
     if (set) //если изменяем фреймы, т.к. записывали во временный файл, удалим старый и переименуем временный в название нашего файла
     {
