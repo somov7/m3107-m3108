@@ -48,7 +48,7 @@ typedef struct tagFRAME //(фрейм 10 байтов, но после идет 
 {
     char frameid[4]; //frame ID, ALBM, COMM etc
     char size[4]; //size of tag without frame header
-    char flag; //flags
+    char flag[2]; //flags
     char unicode; //unicode flag right after the frame
 } ID3FRAME;
 //#pragma pack(pop)
