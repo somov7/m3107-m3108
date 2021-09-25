@@ -36,7 +36,7 @@ uint1024_t add_op(uint1024_t x, uint1024_t y)
     {
         if (i == sz) 
         {
-            realloc(res.t, (sz+1)*sizeof(int32_t));
+            res.t = realloc(res.t, (sz+1)*sizeof(int32_t));
             res.t[sz] = 0;
             res.size++;
         }
@@ -58,7 +58,7 @@ uint1024_t subtr_op(uint1024_t x, uint1024_t y)
     {
         if (i == sz)
         {
-            realloc(res.t, (sz+1)*sizeof(int32_t));
+            res.t = realloc(res.t, (sz+1)*sizeof(int32_t));
             res.t[sz] = 0;
             res.size++;
         }
@@ -67,7 +67,7 @@ uint1024_t subtr_op(uint1024_t x, uint1024_t y)
         else over = 0;
     }
     while (res.t[sz-1] == 0) sz--;
-    realloc(res.t, sz*sizeof(int32_t));
+    res.t = realloc(res.t, sz*sizeof(int32_t));
     res.size = sz;
     return res;
 }
@@ -87,7 +87,7 @@ uint1024_t mult_op(uint1024_t x, uint1024_t y)
         }
     
     while (res.t[sz-1] == 0 && sz > 1) sz--;
-    realloc(res.t, sz*sizeof(int32_t));
+    res.t = realloc(res.t, sz*sizeof(int32_t));
     res.size = sz;
     return res;
 }
