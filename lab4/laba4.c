@@ -87,7 +87,9 @@ int main(int argc, char* argv[])
         if (strstr(argv[i], "--filepath")) //ищем подстроку т.к. аргумент и значение идет как одна строка --filepath=path.mp3
         {
             char* split = strtok(argv[i],"="); //разделим на две токенайзером
+            if (split == NULL) {printf("Wrong format"); return 1;}
             split = strtok(NULL, "=");
+            if (split == NULL) {printf("Wrong format"); return 1;}
             filepath = (char*)malloc(strlen(split));
             strcpy(filepath, split);
             printf("filepath: %s\n", filepath);
@@ -96,7 +98,9 @@ int main(int argc, char* argv[])
         {
             set = 1;
             char* split = strtok(argv[i],"=");
+            if (split == NULL) {printf("Wrong format"); return 1;}
             split = strtok(NULL, "=");
+            if (split == NULL) {printf("Wrong format"); return 1;}
             prop_name = (char*)malloc(strlen(split));
             strcpy(prop_name, split);
             printf("prop name: %s\n", prop_name);
@@ -105,7 +109,9 @@ int main(int argc, char* argv[])
         {
             get = 1;
             char* split = strtok(argv[i],"=");
+            if (split == NULL) {printf("Wrong format"); return 1;}
             split = strtok(NULL, "=");
+            if (split == NULL) {printf("Wrong format"); return 1;}
             prop_name = (char*)malloc(strlen(split));
             strcpy(prop_name, split);
             printf("prop name: %s\n", prop_name);
@@ -113,7 +119,9 @@ int main(int argc, char* argv[])
         else if (strstr(argv[i], "--value"))
         {
             char* split = strtok(argv[i],"=");
+            if (split == NULL) {printf("Wrong format"); return 1;}
             split = strtok(NULL, "=");
+            if (split == NULL) {printf("Wrong format"); return 1;}
             prop_value = (char*)malloc(strlen(split));
             strcpy(prop_value, split);
             printf("prop value: %s\n", prop_value);
