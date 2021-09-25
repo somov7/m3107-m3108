@@ -72,31 +72,16 @@ int bmp_to_arr(char* imgpath) //читаем 1-битовую bmp в масси�
     if (!img)
     {
         printf("Can't open file");
-        exit(0);
+        exit(1);
     }
     fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER),1,img); //читаем файл хедер бмп
     if (bitmapFileHeader.bfType != 0x4D42) //проверим если тип файла бмп
     {
         fclose(img);
-        return 1;
+        exit(1);
     }
 
     fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER),1,img); //читаем инфо хедер
-
-    /*
-    printf("size in bytes: %d\n", bitmapFileHeader.bfSize);
-    printf("file type: %d\n", bitmapFileHeader.bfType);
-    printf("offset bytes: %d\n", bitmapFileHeader.bfOffBits);
-
-    printf("bytes required by struct: %d\n", bitmapInfoHeader.biSize);
-    printf("width: %d\n", bitmapInfoHeader.biWidth);
-    printf("height: %d\n", bitmapInfoHeader.biHeight);
-    printf("bits per color: %d\n", bitmapInfoHeader.biBitCount);
-    printf("number of colors used: %d\n", bitmapInfoHeader.biClrUsed);
-    printf("img size: %d\n", bitmapInfoHeader.biSizeImage);
-    printf("biXPelsPerMeter: %d\n", bitmapInfoHeader.biXPelsPerMeter);
-    printf("biYPelsPerMeter: %d\n", bitmapInfoHeader.biYPelsPerMeter);
-    */
 
     h = bitmapInfoHeader.biHeight;
     w = bitmapInfoHeader.biWidth;
@@ -120,14 +105,14 @@ int bmp_to_arr(char* imgpath) //читаем 1-битовую bmp в масси�
             v[y * h + x] = vx; //v[y][x] = vx;
         }
     }
-    
+    /*
     for (int i = h-1; i >= 0; i--)
     {
         for (int j = 0; j < w; j++)
             printf("%d ", v[i*h + j]);
         printf("\n");
     }
-
+    */
     free(data);
 
     return 0;
@@ -145,15 +130,14 @@ void arr_to_bmp(char* folderpath, int count)
     if (resimg == NULL)
     {
         printf("Failed to open file");
-        exit(0);
+        exit(1);
     }
     fwrite(buf, 1, bitmapFileHeader.bfOffBits, resimg);
     free(path);
     free(buf);
     for(int y = 0; y < h; y++)
     {
-        char* scan = (char*)malloc(linesize); //строки байтов размера linesize что мы будем писать в файл
-        memset(scan, 0, linesize); //обнулим байты, чтобы не записать фигню вместо padding байтов
+        char* scan = calloc(linesize, 1); //строки байтов размера linesize что мы будем писать в файл
         for(int x = 0; x < w; x++)
         {
             int pos = x / 8; //скипаем паддинг байты в строке байтов. если ширина 20 пикселей, будет от 0 до 2, всего 3 байта, в которых и есть все нужны биты
