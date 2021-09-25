@@ -2,34 +2,57 @@
 #include <string.h>
 #include <stdlib.h>
 
+int precount_days[13]; //получить время в секундах марта это сумма дней до марта * 24 * 60 * 60
+int days_in_months[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+#define LL long long
+
 int tosec(char* str, char* t)
 {
     if (!strcmp(t, "sec")) return atoi(str);
     else if (!strcmp(t, "min")) return 60*atoi(str);
     else if (!strcmp(t, "hour")) return 60*60*atoi(str);
-    else if (!strcmp(t, "day")) return 24*60*60*(atoi(str)-1);
+    else if (!strcmp(t, "day")) return 24*60*60*(atoi(str)-1); //первый день это ноль сек, не будет ситуации что январь 31 > февраля 1
+    else
+    {
+        if (!strcmp(t, "Jan")) return precount_days[0]*24*60*60;
+        else if (!strcmp(t, "Feb")) return precount_days[1]*24*60*60;
+        else if (!strcmp(t, "Mar")) return precount_days[2]*24*60*60;
+        else if (!strcmp(t, "Apr")) return precount_days[3]*24*60*60;
+        else if (!strcmp(t, "May")) return precount_days[4]*24*60*60;
+        else if (!strcmp(t, "Jun")) return precount_days[5]*24*60*60;
+        else if (!strcmp(t, "Jul")) return precount_days[6]*24*60*60;
+        else if (!strcmp(t, "Aug")) return precount_days[7]*24*60*60;
+        else if (!strcmp(t, "Sep")) return precount_days[8]*24*60*60;
+        else if (!strcmp(t, "Oct")) return precount_days[9]*24*60*60;
+        else if (!strcmp(t, "Nov")) return precount_days[10]*24*60*60;
+        else if (!strcmp(t, "Dec")) return precount_days[11]*24*60*60;
+    }
 }
 
 int main(int argc, char* argv[])
 {
+    precount_days[0] = 0;
+    for (int i = 1; i < 13; i++)
+        precount_days[i] = precount_days[i-1] + days_in_months[i-1];
+
     FILE* fp = fopen("test.txt", "r"); //название файла
     if (!fp)
     {
         printf("Can't open file, check name/path\n");
         return 1;
     }
-    char buf[1000];
+    int ans_size = 1000;
+    char buf[4096]; //с запасом
     int c = 0;
-    char* ans[100]; //неудачных запросов 5хх в файле менее 100
+    char** ans = (char**)malloc(ans_size); //выделим сначала массив на 1000 строк, если надо будет, сделаем realloc *= 2
     char* buf2[3];
     int error_count = 0;
-    //int window = argv[1];
-    int window;
+    LL window;
     printf("Enter time window length in seconds.\n");
     scanf("%d", &window);
-    const int lines = 1891714; //всего строк в файле
-    int* times = malloc(lines*sizeof(int)); //массив для хранения времени запроса в секундах для подсчета максимального количества запросов в промежутке [a; a+t]
-    int n = 0;
+    int lines = 2e6; //выделим на два миллиона, если надо будет, увеличим
+    LL* times = malloc(lines*sizeof(LL)); //массив для хранения времени запроса в секундах для подсчета максимального количества запросов в промежутке [a; a+t]
+    int n = 0; //реальное количество строк
     while (fgets(buf, sizeof(buf), fp) != NULL) //читаем построчно 
     {
         c = 0;
@@ -45,6 +68,7 @@ int main(int argc, char* argv[])
         split = strtok(buf2[2], " ");
         if (split[0] == '5') //неудачный запрос 5хх
         {
+            if (error_count == ans_size) realloc(ans, ans_size*2), ans_size *= 2;
             ans[error_count] = malloc(strlen(buf2[1])+1); //список неудачных запросов
             strcpy(ans[error_count++], buf2[1]);
         }
@@ -52,18 +76,21 @@ int main(int argc, char* argv[])
         split = strtok(NULL, "[]");
         char* temp = split;
         split = strtok(temp, "/: ");
-        int t = 0;
+        LL t = 0;
         t += tosec(split, "day");
+        split = strtok(NULL, "/: "); //месяц
+        t += tosec(split, split);
         c = 0;
         while (split != NULL) //для вычленения времени используем токенайзер strtok, переводим все в секунды, годы и месяцы в файле совпадают
         {
             c++;
             //printf("c: %d str: %s\n", c, split);
-            if (c == 4) t += tosec(split, "hour");
-            else if (c == 5) t += tosec(split, "min");
-            else if (c == 6) t += tosec(split, "sec");
+            if (c == 3) t += tosec(split, "hour");
+            else if (c == 4) t += tosec(split, "min");
+            else if (c == 5) t += tosec(split, "sec");
             split = strtok(NULL, "/: ");
         }
+        if (n == lines) realloc(times, lines*2*sizeof(LL)), lines *= 2;
         times[n++] = t;
         //printf("time: %d\n", t);
         for (int i = 0; i < 3; i++)
@@ -71,15 +98,15 @@ int main(int argc, char* argv[])
 
     }
     int lp = 0, rp = 0;
-    int t = times[0], mx = 0;
-    int lt = times[0], rt = times[0];
+    LL t = 0, mx = 0;
+    LL lt = times[0], rt = times[0];
     c = 1;
     int tl = 0, tr = 0;
-    for (int i = 1; i < lines; i++) //метод двух указателей, sliding window 
+    for (int i = 1; i < n; i++) //метод двух указателей, sliding window 
     {
         t += times[i] - times[i-1];
         c++;
-        while (t > window)
+        while (t > window && lp+1 < n)
         {
             t -= times[lp+1] - times[lp];
             lp++;
@@ -97,7 +124,14 @@ int main(int argc, char* argv[])
     }
     fclose(fp);
     free(times);
-    printf("max window of length %d in secs:\n%d to %d\nMax requests in window: %d at lines: %d-%d\n", window, lt, rt, mx, tl+1, tr+1);
-    printf("5xx count: %d", error_count);
+    printf("max window of length %d [t; t+%d] in secs:\n%d to %d\nMax requests in window: %d at lines: %d-%d\n", window, window, lt, rt, mx, tl+1, tr+1);
+    printf("5xx count: %d\n", error_count);
+    /* список запросов (именно запросов, т.е. GET POST) закамментил, чтобы было не унесло строчки выше
+    if (error_count)
+    {
+        for (int i = 0; i < error_count; i++)
+            printf("%s\n", ans[i]);
+    }
+    */
     return 0;
 }
