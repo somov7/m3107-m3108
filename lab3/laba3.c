@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     int error_count = 0;
     LL window;
     printf("Enter time window length in seconds.\n");
-    scanf("%d", &window);
+    scanf("%lld", &window);
     int lines = 1000; //выделим на 1000, если надо будет, увеличим
     LL* times = malloc(lines*sizeof(LL)); //массив для хранения времени запроса в секундах для подсчета максимального количества запросов в промежутке [a; a+t]
     int n = 0; //реальное количество строк
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     }
     fclose(fp);
     free(times);
-    printf("max window of length %d [t; t+%d] in secs:\n%d to %d\nMax requests in window: %d at lines: %d-%d\n", window, window, lt, rt, mx, tl+1, tr+1);
+    printf("max window of length %lld [t; t+%lld] in secs:\n%lld to %lld\nMax requests in window: %lld at lines: %d-%d\n", window, window, lt, rt, mx, tl+1, tr+1);
     printf("5xx count: %d\n", error_count);
     /* список запросов (именно запросов, т.е. GET POST) закамментил, чтобы было не унесло строчки выше
     if (error_count)
