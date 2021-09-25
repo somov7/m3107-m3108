@@ -41,16 +41,16 @@ int main(int argc, char* argv[])
         printf("Can't open file, check name/path\n");
         return 1;
     }
-    int ans_size = 1000;
+    int ans_size = 50;
     char buf[4096]; //с запасом
     int c = 0;
-    char** ans = (char**)malloc(ans_size); //выделим сначала массив на 1000 строк, если надо будет, сделаем realloc *= 2
+    char** ans = (char**)malloc(ans_size*sizeof(char*)); //выделим сначала массив на 50 строк, если надо будет, сделаем realloc *= 2
     char* buf2[3];
     int error_count = 0;
     LL window;
     printf("Enter time window length in seconds.\n");
     scanf("%d", &window);
-    int lines = 2e6; //выделим на два миллиона, если надо будет, увеличим
+    int lines = 1000; //выделим на 1000, если надо будет, увеличим
     LL* times = malloc(lines*sizeof(LL)); //массив для хранения времени запроса в секундах для подсчета максимального количества запросов в промежутке [a; a+t]
     int n = 0; //реальное количество строк
     while (fgets(buf, sizeof(buf), fp) != NULL) //читаем построчно 
@@ -68,7 +68,12 @@ int main(int argc, char* argv[])
         split = strtok(buf2[2], " ");
         if (split[0] == '5') //неудачный запрос 5хх
         {
-            if (error_count == ans_size) realloc(ans, ans_size*2), ans_size *= 2;
+            if (error_count == ans_size) 
+            {
+                ans = realloc(ans, 2*ans_size*sizeof(char*));
+                ans_size *= 2;
+            }
+            
             ans[error_count] = malloc(strlen(buf2[1])+1); //список неудачных запросов
             strcpy(ans[error_count++], buf2[1]);
         }
@@ -90,7 +95,11 @@ int main(int argc, char* argv[])
             else if (c == 5) t += tosec(split, "sec");
             split = strtok(NULL, "/: ");
         }
-        if (n == lines) realloc(times, lines*2*sizeof(LL)), lines *= 2;
+        if (n == lines) 
+        {
+            times = realloc(times, lines*2*sizeof(LL));
+            lines *= 2;
+        }
         times[n++] = t;
         //printf("time: %d\n", t);
         for (int i = 0; i < 3; i++)
