@@ -2,9 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-int precount_days[13]; //получить время в секундах марта это сумма дней до марта * 24 * 60 * 60
-int days_in_months[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; //надеюсь, учитывать високосный год не нужно
 #define LL long long
+LL precount_days[13]; //получить время в секундах марта это сумма дней до марта * 24 * 60 * 60
+LL days_in_months[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; //надеюсь, учитывать високосный год не нужно
 
 LL tosec(char* str, char* t)
 {
@@ -12,7 +12,7 @@ LL tosec(char* str, char* t)
     else if (!strcmp(t, "min")) return 60*atoi(str);
     else if (!strcmp(t, "hour")) return 60*60*atoi(str);
     else if (!strcmp(t, "day")) return 24*60*60*(atoi(str)-1); //первый день это ноль сек, не будет ситуации что январь 31 > февраля 1
-    else if (!strcmp(t, "year")) return 365*24*60*60*1LL*(atoi(str)%101); //надеюсь нам не дадут лог за последний 101 год.
+    else if (!strcmp(t, "year")) return 365*24*60*60*1LL*(atoi(str)); //отсчет От Рождества Христова
     else
     {
         if (!strcmp(t, "Jan")) return precount_days[0]*24*60*60;
