@@ -232,10 +232,10 @@ int main(int argc, char* argv[])
         while (fread(buff, 1, 1000, f)) //пишем оставшееся содержимое файла после нашего фрейма (?)
             fwrite(buff, 1, 1000, t);
     }
-    if (set) fclose(t);
     fclose(f);
     if (set) //если изменяем фреймы, т.к. записывали во временный файл, удалим старый и переименуем временный в название нашего файла
     {
+        fclose(t);
         remove(filepath);
         rename("temp.mp3", filepath);
     }
