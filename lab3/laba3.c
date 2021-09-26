@@ -3,15 +3,16 @@
 #include <stdlib.h>
 
 int precount_days[13]; //получить время в секундах марта это сумма дней до марта * 24 * 60 * 60
-int days_in_months[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+int days_in_months[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; //надеюсь, учитывать високосный год не нужно
 #define LL long long
 
-int tosec(char* str, char* t)
+LL tosec(char* str, char* t)
 {
     if (!strcmp(t, "sec")) return atoi(str);
     else if (!strcmp(t, "min")) return 60*atoi(str);
     else if (!strcmp(t, "hour")) return 60*60*atoi(str);
     else if (!strcmp(t, "day")) return 24*60*60*(atoi(str)-1); //первый день это ноль сек, не будет ситуации что январь 31 > февраля 1
+    else if (!strcmp(t, "year")) return 365*24*60*60*1LL*(atoi(str)%101); //надеюсь нам не дадут лог за последний 101 год.
     else
     {
         if (!strcmp(t, "Jan")) return precount_days[0]*24*60*60;
@@ -43,7 +44,7 @@ int main(int argc, char* argv[])
     }
     int ans_size = 50;
     char buf[4096]; //с запасом
-    int c = 0;
+    LL c = 0;
     char** ans = (char**)malloc(ans_size*sizeof(char*)); //выделим сначала массив на 50 строк, если надо будет, сделаем realloc *= 2
     char* buf2[3];
     int error_count = 0;
@@ -85,14 +86,16 @@ int main(int argc, char* argv[])
         t += tosec(split, "day");
         split = strtok(NULL, "/: "); //месяц
         t += tosec(split, split);
+        split = strtok(NULL, "/: "); //год
+        t += tosec(split, "year");
         c = 0;
         while (split != NULL) //для вычленения времени используем токенайзер strtok, переводим все в секунды, годы и месяцы в файле совпадают
         {
             c++;
             //printf("c: %d str: %s\n", c, split);
-            if (c == 3) t += tosec(split, "hour");
-            else if (c == 4) t += tosec(split, "min");
-            else if (c == 5) t += tosec(split, "sec");
+            if (c == 2) t += tosec(split, "hour");
+            else if (c == 3) t += tosec(split, "min");
+            else if (c == 4) t += tosec(split, "sec");
             split = strtok(NULL, "/: ");
         }
         if (n == lines) 
