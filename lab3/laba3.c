@@ -3,8 +3,12 @@
 #include <stdlib.h>
 
 #define LL long long
-LL precount_days[13]; //получить время в секундах марта это сумма дней до марта * 24 * 60 * 60
-LL days_in_months[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; //надеюсь, учитывать високосный год не нужно
+LL precount_days[13]; //получить время в секундах марта это сумма дней до марта * 24 * 60 * 60 //LL тут как и далее для автоматических преобразований в long long
+LL days_in_months[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+LL precount_days_leap[13]; //получить время в секундах марта это сумма дней до марта * 24 * 60 * 60 //LL тут как и далее для автоматических преобразований в long long
+LL days_in_months_leap[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+LL years[2022];
+LL years_precount[2022]; //предпосчет дней в году в зависимости високосного года
 
 LL tosec(char* str, char* t)
 {
@@ -12,29 +16,102 @@ LL tosec(char* str, char* t)
     else if (!strcmp(t, "min")) return 60*atoi(str);
     else if (!strcmp(t, "hour")) return 60*60*atoi(str);
     else if (!strcmp(t, "day")) return 24*60*60*(atoi(str)-1); //первый день это ноль сек, не будет ситуации что январь 31 > февраля 1
-    else if (!strcmp(t, "year")) return 365*24*60*60*1LL*(atoi(str)); //отсчет От Рождества Христова
+    else if (!strcmp(t, "year")) return 24*60*60*1LL*years_precount[atoi(str)]; //отсчет От Рождества Христова
     else
     {
-        if (!strcmp(t, "Jan")) return precount_days[0]*24*60*60;
-        else if (!strcmp(t, "Feb")) return precount_days[1]*24*60*60;
-        else if (!strcmp(t, "Mar")) return precount_days[2]*24*60*60;
-        else if (!strcmp(t, "Apr")) return precount_days[3]*24*60*60;
-        else if (!strcmp(t, "May")) return precount_days[4]*24*60*60;
-        else if (!strcmp(t, "Jun")) return precount_days[5]*24*60*60;
-        else if (!strcmp(t, "Jul")) return precount_days[6]*24*60*60;
-        else if (!strcmp(t, "Aug")) return precount_days[7]*24*60*60;
-        else if (!strcmp(t, "Sep")) return precount_days[8]*24*60*60;
-        else if (!strcmp(t, "Oct")) return precount_days[9]*24*60*60;
-        else if (!strcmp(t, "Nov")) return precount_days[10]*24*60*60;
-        else if (!strcmp(t, "Dec")) return precount_days[11]*24*60*60;
+        int leap = isleap(atoi(str));
+        if (!strcmp(t, "Jan")) 
+        {
+            if (leap) return precount_days_leap[0]*24*60*60;
+            else return precount_days[0]*24*60*60;
+        }
+        else if (!strcmp(t, "Feb")) 
+        {
+            if (leap) return precount_days_leap[1]*24*60*60;
+            else return precount_days[1]*24*60*60;
+        }
+        else if (!strcmp(t, "Mar")) 
+        {
+            if (leap) return precount_days_leap[2]*24*60*60;
+            else return precount_days[2]*24*60*60;
+        }
+        else if (!strcmp(t, "Apr")) 
+        {
+            if (leap) return precount_days_leap[3]*24*60*60;
+            else return precount_days[3]*24*60*60;
+        }
+        else if (!strcmp(t, "May")) 
+        {
+            if (leap) return precount_days_leap[4]*24*60*60;
+            else return precount_days[4]*24*60*60;
+        }
+        else if (!strcmp(t, "Jun")) 
+        {
+            if (leap) return precount_days_leap[5]*24*60*60;
+            else return precount_days[5]*24*60*60;
+        }
+        else if (!strcmp(t, "Jul")) 
+        {
+            if (leap) return precount_days_leap[6]*24*60*60;
+            else return precount_days[6]*24*60*60;
+        }
+        else if (!strcmp(t, "Aug")) 
+        {
+            if (leap) return precount_days_leap[7]*24*60*60;
+            else return precount_days[7]*24*60*60;
+        }
+        else if (!strcmp(t, "Sep")) 
+        {
+            if (leap) return precount_days_leap[8]*24*60*60;
+            else return precount_days[8]*24*60*60;
+        }
+        else if (!strcmp(t, "Oct")) 
+        {
+            if (leap) return precount_days_leap[9]*24*60*60;
+            else return precount_days[9]*24*60*60;
+        }
+        else if (!strcmp(t, "Nov")) 
+        {
+            if (leap) return precount_days_leap[10]*24*60*60;
+            else return precount_days[10]*24*60*60;
+        }
+        else if (!strcmp(t, "Dec")) 
+        {
+            if (leap) return precount_days_leap[11]*24*60*60;
+            else return precount_days[11]*24*60*60;
+        }
     }
+}
+
+int isleap(int year)
+{
+    int leap = 0;
+    if (year % 4) leap = 0;
+    else if (year % 100) leap = 1;
+    else if (year % 400) leap = 0;
+    else leap = 1;
+    return leap;
 }
 
 int main(int argc, char* argv[])
 {
     precount_days[0] = 0;
+    precount_days_leap[0] = 0;
     for (int i = 1; i < 13; i++)
+    {
         precount_days[i] = precount_days[i-1] + days_in_months[i-1];
+        precount_days_leap[i] = precount_days_leap[i-1] + days_in_months_leap[i-1];
+    }
+    years_precount[0] = 0;
+    years[0] = 0;
+    for (int i = 1; i < 2022; i++)
+    {
+        int leap = isleap(i);
+        if (leap) years[i] = 366;
+        else years[i] = 365;
+    }
+    for (int i = 1; i < 2022; i++)
+        years_precount[i] = years_precount[i-1] + years[i-1];
 
     FILE* fp = fopen("test.txt", "r"); //название файла
     if (!fp)
@@ -85,9 +162,10 @@ int main(int argc, char* argv[])
         LL t = 0;
         t += tosec(split, "day");
         split = strtok(NULL, "/: "); //месяц
-        t += tosec(split, split);
+        char* month = split;
         split = strtok(NULL, "/: "); //год
         t += tosec(split, "year");
+        t += tosec(split, month);
         c = 0;
         while (split != NULL) //для вычленения времени используем токенайзер strtok, переводим все в секунды, годы и месяцы в файле совпадают
         {
