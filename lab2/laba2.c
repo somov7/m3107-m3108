@@ -66,7 +66,7 @@ uint1024_t subtr_op(uint1024_t x, uint1024_t y)
         if (res.t[i] < 0) over = 1, res.t[i] += base;
         else over = 0;
     }
-    while (res.t[sz-1] == 0) sz--;
+    while (res.t[sz-1] == 0 && sz > 1) sz--;
     res.t = realloc(res.t, sz*sizeof(int32_t));
     res.size = sz;
     return res;
@@ -102,7 +102,7 @@ void printf_value(uint1024_t x)
 
 void scanf_value(uint1024_t* x)
 {
-    char str[309]; // >1024 bits? undefined behavior (max 309, one more for null terminating)
+    char str[1024];
     scanf("%s", str);
     int len = strlen(str);
     int size = len % 9 == 0 ? len / 9 : len / 9 + 1;
