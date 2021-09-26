@@ -10,6 +10,16 @@ LL days_in_months_leap[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 LL years[2022];
 LL years_precount[2022]; //предпосчет дней в году в зависимости високосного года
 
+int isleap(int year)
+{
+    int leap = 0;
+    if (year % 4) leap = 0;
+    else if (year % 100) leap = 1;
+    else if (year % 400) leap = 0;
+    else leap = 1;
+    return leap;
+}
+
 LL tosec(char* str, char* t)
 {
     if (!strcmp(t, "sec")) return atoi(str);
@@ -81,16 +91,6 @@ LL tosec(char* str, char* t)
             else return precount_days[11]*24*60*60;
         }
     }
-}
-
-int isleap(int year)
-{
-    int leap = 0;
-    if (year % 4) leap = 0;
-    else if (year % 100) leap = 1;
-    else if (year % 400) leap = 0;
-    else leap = 1;
-    return leap;
 }
 
 int main(int argc, char* argv[])
