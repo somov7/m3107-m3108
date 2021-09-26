@@ -2,7 +2,7 @@
 #include "WordCount.h"
 int main(int argc, char* argv[])
 {
-	int n = 0;
+	int option = 0;
 	FILE* F;
 	if (argv[1] == NULL || argv[2] == NULL)
 	{
@@ -10,11 +10,11 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 	if (((strcmp(argv[1], "-l")) == 0) || ((strcmp(argv[1], "--lines")) == 0))
-		n = 1;
+		option = 1;
 	else if (((strcmp(argv[1], "-c")) == 0) || ((strcmp(argv[1], "--bytes")) == 0))
-		n = 2;
+		option = 2;
 	else if (((strcmp(argv[1], "-w")) == 0) || ((strcmp(argv[1], "--words")) == 0))
-		n = 3;
+		option = 3;
 	else
 	{
 		printf("No such option exists");
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 	
 	if (F = fopen(argv[2], "r"))
 	{
-		switch (n) {
+		switch (option) {
 		case 1:
 			printf("%i", LineCount(F));
 			break;

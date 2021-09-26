@@ -1,40 +1,54 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "WordCount.h"
 
+int isspace(char c)
+{
+	return (c == ' ' || c == '\n' || c == '\t');
+}
 int WordCount(FILE* F)
 {
-	int len, i, j, cntw = 0;
-	char* ch;
+	int cntw = 0;
+	char ch;
+	int len = SizeByte(F);
+	int flag = 0;
 
-	len = SizeByte(F);
 	rewind(F);
-	ch = (char*)malloc(len + 1);
 
-	if (ch != NULL)
-		for (i = 0; i < len; i++)
-			ch[i] = fgetc(F);
-	for (j = 1; j < len; j++)
-	{
-		if (ch[j] != ' ' && ch[j] != '\n' && ch[j] != '\t')
-			if (ch[j - 1] == ' ' || ch[j - 1] == '\n' || ch[j - 1] == '\t')
-				cntw++;
-	}
-	if (ch[0] == ' ' || ch[0] == '\n')
-		return cntw;
+	if (len == 0)
+		return 0;
 	else
-		return cntw + 1;
+	{
+		while ((ch = fgetc(F)) != EOF)
+		{
+			if (isspace(ch))
+				flag = 0;
+			else
+				if (flag == 0)
+				{
+					cntw++;
+					flag = 1;
+				}
+		}
+		return cntw;
+	}
 }
 int LineCount(FILE* F)
 {
 	int cntl = 0;
 	char ch;
+	int len = SizeByte(F);
 
-	while ((ch = fgetc(F)) != EOF)
-	{
-		if (ch == '\n')
-			cntl++;
-	}
-	return cntl + 1;
+	rewind(F);
+
+	if (len == 0)
+		return 0;
+	else
+		while ((ch = fgetc(F)) != EOF)
+		{
+			if (ch == '\n')
+				cntl++;
+		}
+		return cntl + 1;
 }
 int SizeByte(FILE* F)
 {
