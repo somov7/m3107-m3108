@@ -45,7 +45,6 @@ int main(int argc, char ** argv) {
 
 
     fclose(data);
-    size_f--;
 
     if (strcmp(cmn, "-l") == 0 || strcmp(cmn, "--lines") == 0){
         printf("%d",num_lines);
