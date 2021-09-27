@@ -2,14 +2,18 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define LINES_COUNT_OPTION 0
-#define FILE_SIZE_OPTION 1
-#define WORDS_COUNT_OPTION 2
+enum OptionsTypes {
+    LINES_COUNT_OPTION = 0,
+    FILE_SIZE_OPTION = 1,
+    WORDS_COUNT_OPTION = 2,
+};
 
-#define WRONG_QUERY_ERROR 3
-#define WRONG_FILENAME_ERROR 4
-#define WRONG_OPTIONS_ERROR 5
-#define ALLOCATION_ERROR 6
+enum ErrorsTypes {
+    WRONG_QUERY_ERROR = 3,
+    WRONG_FILENAME_ERROR = 4,
+    WRONG_OPTIONS_ERROR = 5,
+    ALLOCATION_ERROR = 6
+};
 
 void helpMessage() {
     printf("For correct program's work you need send similar query: ./WordCount <options> filename\n");
@@ -68,7 +72,7 @@ void parseOptions(char **argArray, int argSize, int optionsArray[]) {
                 break;
             }
         }
-        if (isOptionCorrect == 0) { // найдена некорректная опция
+        if (!isOptionCorrect) { // найдена некорректная опция
             unknownOptions[unkOptionsCnt] = i;
             unkOptionsCnt++;
         }
@@ -95,7 +99,14 @@ FILE* getFile(char* filename) {
     return file;
 }
 
-void findLinesCount(FILE *file) {
+char charIsWhitespace (char element) {
+    if (element == ' ' || element == '\n' || element == '\t'
+    || element == '\r' || element == '\v' || element == '\f' || element == EOF)
+        return 1;
+    return 0;
+}
+
+unsigned int findLinesCount(FILE *file) {
     fseek(file, 0, SEEK_SET); // перемещение курсора на начало файла
     unsigned int linesCount = 0;
     char currentChar;
@@ -104,16 +115,15 @@ void findLinesCount(FILE *file) {
         if (currentChar == '\n' || currentChar == EOF) // строку с длиной < UINT16_MAX,
             linesCount++;                 // что не позволит сделать точное вычисление если line > UINT16_MAX
     }
-    printf("File have %u lines\n", linesCount); // вывод результата
+    return linesCount;
 }
 
-void findFileSize(FILE *file) {
+unsigned long findFileSize(FILE *file) {
     fseek(file, 0, SEEK_END); // перемещение курсора на конец файла
-    unsigned long fileSize = ftell(file); // запись кол-ва байт от начала файла до положения курсора
-    printf("Size of file: %lu bytes\n", fileSize); // вывод результата
+    return ftell(file); // возврат кол-ва байт от начала файла до положения курсора
 }
 
-void findWordsCount(FILE *file) {
+unsigned int findWordsCount(FILE *file) {
     fseek(file, 0, SEEK_SET); // перемещение курсора на начало файла
     unsigned int wordsCount = 0;
     char currentChar = (char) fgetc(file);
@@ -121,20 +131,19 @@ void findWordsCount(FILE *file) {
     while (!feof(file)) {
         previousChar = currentChar;
         currentChar = (char) fgetc(file);
-        if ((currentChar == ' ' || currentChar == '\n' || currentChar == EOF)
-            && (previousChar != ' ' && previousChar != '\n'))
+        if (charIsWhitespace(currentChar) && !charIsWhitespace(previousChar))
             wordsCount++;
     }
-    printf("File have %u words\n", wordsCount); // вывод результата
+    return wordsCount;
 }
 
 void solve(FILE *file, const int options[]) {
-    if (options[LINES_COUNT_OPTION] == 1)
-        findLinesCount(file); // вычисление кол-ва строк
-    if (options[FILE_SIZE_OPTION] == 1)
-        findFileSize(file); // вычисление размера файла
-    if (options[WORDS_COUNT_OPTION] == 1)
-        findWordsCount(file); // вычисление кол-ва слов
+    if (options[LINES_COUNT_OPTION])
+        printf("File have %u lines\n", findLinesCount(file)); // вывод кол-ва строк
+    if (options[FILE_SIZE_OPTION])
+        printf("Size of file: %lu bytes\n", findFileSize(file)); // вывод размера файла
+    if (options[WORDS_COUNT_OPTION])
+        printf("File have %u words\n", findWordsCount(file)); // вывод кол-ва слов
 }
 
 int main(int argc, char **argv) {
