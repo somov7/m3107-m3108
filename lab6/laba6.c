@@ -5,7 +5,7 @@
 typedef struct Node
 {
     unsigned char byte;
-    int freqeq;
+    int freq;
     struct Node* left;
     struct Node* right;
 } Node;
@@ -17,11 +17,11 @@ typedef struct Vector
     int cap;
 } Vector;
 
-Node* Node_new(unsigned char byte, int freqeq)
+Node* Node_new(unsigned char byte, int freq)
 {
     Node* t = malloc(sizeof(Node));
     t->byte = byte;
-    t->freqeq = freqeq;
+    t->freq = freq;
     t->left = NULL;
     t->right = NULL;
     return t;
@@ -39,8 +39,8 @@ Vector* Vector_new()
 
 void Vector_free(Vector* v)
 {
-    v->sz = 0;
-    v->cap = 1000;
+    for (int i = 0; i < v->sz; i++)
+        free(v->arr[i]);
     free(v->arr);
     free(v);
 }
@@ -58,15 +58,15 @@ void Vector_push(Vector* v, Node* x)
 
 void Vector_pop(Vector* v)
 {
-    v->arr[v->sz] = NULL;
     v->sz--;
+    v->arr[v->sz] = NULL;
 }
 
 void Vector_print(Vector* v)
 {
     for (int i = 0; i < v->sz; i++)
     {
-        printf("Byte %d freqeq %d\n", v->arr[i]->byte, v->arr[i]->freqeq);
+        printf("Byte %d freq %d\n", v->arr[i]->byte, v->arr[i]->freq);
     }
 }
 
@@ -77,14 +77,25 @@ void Node_swap(Node** l, Node** r)
     *r = t;
 }
 
+void Node_free(Node* x)
+{
+    if (x->left == NULL && x->right == NULL)
+    {
+        free(x);
+        return;
+    }
+    if (x->left) Node_free(x->left);
+    if (x->right) Node_free(x->right);
+}
+
 
 void shiftdown(Vector* v, int i)
 {
     int l = i*2 + 1, r = i*2+2;
     int min = i;
-    if (l < v->sz && v->arr[l]->freqeq < v->arr[i]->freqeq)
+    if (l < v->sz && v->arr[l]->freq < v->arr[i]->freq)
         min = l;
-    if (r < v->sz && v->arr[r]->freqeq < v->arr[min]->freqeq)
+    if (r < v->sz && v->arr[r]->freq < v->arr[min]->freq)
         min = r;
     if (min != i)
     {
@@ -113,7 +124,7 @@ void Node_insert(Vector* v, Node* x)
     Vector_push(v, x);
     int i = v->sz - 1;
     int p = (i-1)/2;
-    while (i && v->arr[i]->freqeq < v->arr[p]->freqeq)
+    while (i && v->arr[i]->freq < v->arr[p]->freq)
     {
         v->arr[i] = v->arr[p];
         i = (i-1)/2;
@@ -129,7 +140,7 @@ Node* Build_Huffman(Vector* v)
     {
         left = extractmin(v);
         right = extractmin(v);
-        top = Node_new('$', left->freqeq + right->freqeq);
+        top = Node_new('$', left->freq + right->freq);
         top->left = left;
         top->right = right;
         Node_insert(v, top);
@@ -259,7 +270,7 @@ void BuildHeapAndHuffmanAndWrite(char* filename, int ind, FILE* wr)
 
     fclose(f);
     Vector_free(v);
-
+    Node_free(huff);
 }
 
 void CreateArc()
@@ -346,6 +357,7 @@ void ListAndExtractArc(int extract)
         Node* huff = Build_Huffman(v); //построим из кучи дерево Хаффмена
         ReadAndWrite(f, FILE_SIZES[i], w, huff, PADDING_BITS[i]);
         Vector_free(v);
+        Node_free(huff);
     }
 }
 
