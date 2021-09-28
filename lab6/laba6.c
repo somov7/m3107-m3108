@@ -233,7 +233,7 @@ void BuildHeapAndHuffmanAndWrite(char* filename, int ind, FILE* wr)
     fwrite(freq, sizeof(long long), 256, wr); //запишем частоты, чтобы при декодировании построить дерево Хаффмена
     int bit_count = 0;
     unsigned char write_byte = 0;
-    fseek(f, sizeof(long long) * 256, 0);
+    fseek(f, 0, 0);
     while((c = fgetc(f)) != EOF)
     {
         char* code = bytetobit[c];
