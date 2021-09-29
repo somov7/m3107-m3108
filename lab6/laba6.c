@@ -186,27 +186,27 @@ void printHuff(Node* x, int arr[], int top)
 
 }
 
-void ReadAndWrite(FILE* r, int filesize, FILE* w, Node* x, int padding)
+void ReadAndWrite(FILE* r, long long filesize, FILE* w, Node* x, int padding)
 {
     int c;
     Node* t = x;
     unsigned char ch = 0;
     int k = 0;
-    int bits = 0;
+    long long bits = 0;
     while(k < filesize)
     {
         c = fgetc(r);
         for (int count = 0; count < 8; count++)
         {
-            int bit = (c & (1 << 7-count));
-            if (bit) t = t->right;
-            else t = t->left;
             bits++;
             if (bits > 8 * filesize - padding) //прочитали все биты
             {
                 fwrite(&ch, 1, 1, w);
                 break;
             }
+            int bit = (c & (1 << 7-count));
+            if (bit) t = t->right;
+            else t = t->left;
             if (isLeaf(t))
             {
                 ch = t->byte;
@@ -335,7 +335,7 @@ void ListAndExtractArc(int extract)
     if (extract == 0)
     {
         for (int i = 0; i < FILE_COUNT; i++)
-            printf("File %d: Name: %s Size: %d\n", i+1, FILE_NAMES[i], FILE_SIZES[i]);
+            printf("File %d: Name: %s Size: %lld\n", i+1, FILE_NAMES[i], FILE_SIZES[i]);
         return;
     }
     fseek(f, 0, 0);
