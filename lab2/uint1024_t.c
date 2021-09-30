@@ -16,8 +16,13 @@ uint1024_t init(uint32_t size) {
 }
 
 uint1024_t extend(uint1024_t x, uint32_t size) {
+	uint32_t old_size = x.size;
 	x.size += size;
 	x.digit = realloc(x.digit, x.size);
+
+	/* zeroing new memory */
+	for (uint32_t i = old_size; i < x.size; ++i)
+		x.digit[i] = 0;
 }
 
 void destroy(uint1024_t x) {
@@ -101,7 +106,7 @@ uint1024_t add(uint1024_t x, uint1024_t y) {
 	
 	if (overflow) {
 		extend(result, UINT1024_MIN_SIZE);
-		result.digit[max_size + 1] = 1;
+		result.digit[max_size] = 1;
 	}
 
 	return result;
@@ -120,7 +125,7 @@ void ladd(uint1024_t x, uint1024_t y) {
 
 	if (overflow) {
 		extend(x, UINT1024_MIN_SIZE);
-		x.digit[max_size + 1] = 1;
+		x.digit[max_size] = 1;
 	}
 }
 
@@ -136,7 +141,7 @@ void inc(uint1024_t x) {
 	
 	if (overflow) {
 		extend(x, UINT1024_MIN_SIZE);
-		x.digit[x.size + 1] = 1;
+		x.digit[x.size] = 1;
 	}
 }
 
