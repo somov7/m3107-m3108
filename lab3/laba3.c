@@ -6,12 +6,10 @@
 
 int isleap(int year)
 {
-    int leap = 0;
-    if (year % 4) leap = 0;
-    else if (year % 100) leap = 1;
-    else if (year % 400) leap = 0;
-    else leap = 1;
-    return leap;
+    if (year % 4) return 0;
+    else if (year % 100) return 1;
+    else if (year % 400) return 0;
+    else return 1;
 }
 
 const char* months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
@@ -20,27 +18,49 @@ int days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 LL year_month_to_sec(int year, char* month)
 {
     LL sec = 0;
-    for (int i = 1; i < year; i++)
-    {
+    for (int i = 1; i < year; i++) {
         sec += isleap(i) ? 366*24*60*60 : 365*24*60*60;
     }
     int n = 0;
-    while(strcmp(month, months[n]))
+    while(strcmp(month, months[n])) {
         n++;
-    for (int i = 0; i < n; i++)
-    {
+    }
+    for (int i = 0; i < n; i++) {
         sec += days[i]*24*60*60;
         if (i == 1 && isleap(year)) sec += 24*60*60;
     }
     return sec;
 }
 
-LL tosec(char* str, char* t)
+#pragma pack(push,1)
+typedef struct time {
+    char day[3];
+    char month[4];
+    char year[5];
+    char hour[3];
+    char min[3];
+    char sec[3];
+} time;
+
+void null_terminate(time* T)
 {
-    if (!strcmp(t, "sec")) return atoi(str);
-    else if (!strcmp(t, "min")) return 60*atoi(str);
-    else if (!strcmp(t, "hour")) return 60*60*atoi(str);
-    return 24*60*60*(atoi(str)-1); //ничего другого больше не могли передать, кроме дня
+    T->day[2] = '\0';
+    T->month[3] = '\0';
+    T->year[4] = '\0';
+    T->hour[2] = '\0';
+    T->min[2] = '\0';
+    T->sec[2] = '\0';
+}
+
+LL time_to_sec(time* T)
+{
+    LL secs = 0;
+    secs += atoi(T->sec);
+    secs += atoi(T->min)*60;
+    secs += atoi(T->hour)*60*60;
+    secs += (atoi(T->day)-1)*24*60*60;
+    secs += year_month_to_sec(atoi(T->year), T->month);
+    return secs;
 }
 
 int main(int argc, char* argv[])
@@ -54,13 +74,11 @@ int main(int argc, char* argv[])
     LL window = 0;
     for (int i = 1; i < argc; i++)
     {
-        if (strstr(argv[i], "--file"))
-        {
+        if (strstr(argv[i], "--file")) {
             filename = (char*)calloc(strlen(argv[i]) - 6, 1);
             strcpy(filename, argv[i] + 7);
         }
-        else if (strstr(argv[i], "--window"))
-        {
+        else if (strstr(argv[i], "--window")) {
             window = atoll(argv[i]+9);
         }
     }
@@ -70,104 +88,71 @@ int main(int argc, char* argv[])
         printf("Can't open file, check name/path\n");
         return 1;
     }
-    int ans_size = 50;
-    char buf[4096]; //с запасом
-    LL c = 0;
+    LL ans_size = 50;
+    LL lines = 1000; //выделим на 1000, если надо будет, увеличим
     char** ans = (char**)malloc(ans_size*sizeof(char*)); //выделим сначала массив на 50 строк, если надо будет, сделаем realloc *= 2
-    char* buf2[3];
-    int error_count = 0;
-    int lines = 1000; //выделим на 1000, если надо будет, увеличим
     LL* times = malloc(lines*sizeof(LL)); //массив для хранения времени запроса в секундах для подсчета максимального количества запросов в промежутке [a; a+t]
-    int n = 0; //реальное количество строк
+    char buf[4096]; //с запасом
+    LL error_count = 0;
+    LL n = 0; //реальное количество строк
     while (fgets(buf, sizeof(buf), fp) != NULL) //читаем построчно 
     {
-        c = 0;
-        char* split = strtok(buf, "\""); //используем токенайзер strtok
-        while (split != NULL) 
-        {
-            //printf("%s\n", split);
-            buf2[c] = malloc(strlen(split)+1);
-            strcpy(buf2[c], split);
-            split = strtok(NULL, "\"");
-            c++;
-        }
-        split = strtok(buf2[2], " ");
-        if (split[0] == '5') //неудачный запрос 5хх
-        {
-            if (error_count == ans_size) 
-            {
-                ans = realloc(ans, 2*ans_size*sizeof(char*));
-                ans_size *= 2;
-            }
-            
-            ans[error_count] = malloc(strlen(buf2[1])+1); //список неудачных запросов
-            strcpy(ans[error_count++], buf2[1]);
-        }
-        split = strtok(buf2[0], "[]");
-        split = strtok(NULL, "[]");
-        char* temp = split;
-        split = strtok(temp, "/: ");
-        LL t = 0;
-        t += tosec(split, "day");
-        split = strtok(NULL, "/: "); //месяц
-        char* month = split;
-        split = strtok(NULL, "/: "); //год
-        //t += tosec(split, "year");
-        t += year_month_to_sec(atoi(split), month);
-        //t += tosec(split, month);
-        c = 0;
-        while (split != NULL) //для вычленения времени используем токенайзер strtok, переводим все в секунды, годы и месяцы в файле совпадают
-        {
-            c++;
-            if (c == 2) t += tosec(split, "hour");
-            else if (c == 3) t += tosec(split, "min");
-            else if (c == 4) t += tosec(split, "sec");
-            split = strtok(NULL, "/: ");
-        }
-        if (n == lines) 
-        {
-            times = realloc(times, lines*2*sizeof(LL));
+        time T;
+        int i = 0;
+        while (buf[i++] != '[');
+        memcpy(&T, buf+i, 20); //все поля времени фиксированной длины 
+        //если год <= 9999 (работает в пределах разумного)
+        //предполагаем, что NASA логов не было до 1000 года, либо годы форматированы как и остальные поля, например, 0011 год
+        null_terminate(&T);
+        if (n == lines) {
             lines *= 2;
+            times = realloc(times, lines*sizeof(LL));
         }
-        times[n++] = t;
-        for (int i = 0; i < 3; i++)
-            free(buf2[i]);
+        times[n++] = time_to_sec(&T);
 
+        for (int c = 0; c != 2;) {
+            if (buf[i++] == '"') c++; //символ " в ссылке будет закодирован как %22, поэтому проблем нет
+        }
+        if (buf[i+1] == '5') {
+            if (error_count == ans_size) {
+                ans_size *= 2;
+                ans = realloc(ans, ans_size*sizeof(char*));
+            }
+            ans[error_count] = malloc(strlen(buf)+1); //список неудачных запросов
+            strcpy(ans[error_count++], buf);
+        }
     }
-    int lp = 0;
+    LL lp = 0;
     LL t = 0, mx = 0;
     LL lt = times[0], rt = times[0];
-    c = 1;
-    int tl = 0, tr = 0;
-    for (int i = 1; i < n; i++) //метод двух указателей, sliding window 
+    LL c = 1;
+    LL line_start = 0, line_end = 0;
+    for (LL i = 1; i < n; i++) //метод двух указателей, sliding window 
     {
         t += times[i] - times[i-1];
         c++;
-        while (t > window && lp+1 < n)
-        {
+        while (t > window && lp+1 < n) {
             t -= times[lp+1] - times[lp];
             lp++;
             c--;
         }
-
-        if (c > mx)
-        {
+        if (c > mx) {
             lt = times[lp];
             rt = times[i];
             mx = c;
-            tl = lp;
-            tr = i;
+            line_start = lp;
+            line_end = i;
         }
     }
     fclose(fp);
     free(times);
-    printf("max window of length %lld [t; t+%lld] in secs:\n%lld to %lld\nMax requests in window: %lld at lines: %d-%d\n", window, window, lt, rt, mx, tl+1, tr+1);
-    printf("5xx count: %d\n", error_count);
-    /* список запросов (именно запросов, т.е. GET POST) закамментил, чтобы было не унесло строчки выше
-    if (error_count)
-    {
-        for (int i = 0; i < error_count; i++)
+    printf("max window of length %lld [t; t+%lld] in secs:\n%lld to %lld\nMax requests in window: %lld at lines: %lld-%lld\n", window, window, lt, rt, mx, line_start+1, line_end+1);
+    printf("5xx count: %lld\n", error_count);
+    /* чтобы не унесло строчки выше
+    if (error_count) {
+        for (LL i = 0; i < error_count; i++) {
             printf("%s\n", ans[i]);
+        }
     }
     */
     return 0;
