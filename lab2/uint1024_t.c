@@ -319,8 +319,6 @@ uint1024_t scan_uint1024(char *str) {
 	/* move cursor 2 chars left so we can read first digit */
 	cursor -= 2;
 	while (cursor >= str) {
-		if (digits + 1 > result.size)
-			extend(result, UINT1024_MIN_SIZE);
 
 		/* reading a 2-digit decimal number to struct */
 		sscanf(cursor, "%2d", result.digit + digits);
