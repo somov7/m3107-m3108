@@ -2,6 +2,7 @@
 #include <iso646.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "uint1024_t.h"
 
 
@@ -45,7 +46,7 @@ void copyto(uint1024_t src, uint1024_t dest) {
 	}
 }
 
-uint32_t index_of_last_meaning_digit(const uint1024_t x) {
+uint32_t index_of_last_significant_digit(const uint1024_t x) {
 	int64_t i = (int64_t)x.size - 1;
 	while (x.digit[i] == 0 and i > 0)
 		i--;
@@ -64,14 +65,17 @@ uint1024_t uint1024_from_uint(unsigned int x) {
 }
 
 int compare(uint1024_t x, uint1024_t y) {
-	if (x.size > y.size)
-		return 1;
+	uint32_t len_x = index_of_last_significant_digit(x);
+   	uint32_t len_y = index_of_last_significant_digit(y);
 
-	if (x.size < y.size)
+	if (len_x > len_y)
+		return 1;
+	
+	if (len_x < len_y)
 		return -1;
 
 	/* comparison happens from higher digits to lower */
-	for (int64_t i = x.size; i >= 0; i--) {
+	for (int64_t i = len_x; i >= 0; i--) {
 		if (x.digit[i] > y.digit[i])
 			return 1;
 		if (x.digit[i] < y.digit[i])
@@ -189,7 +193,7 @@ uint1024_t mult(uint1024_t x, uint1024_t y) {
 	if (is_zero)
 		return init(x.size);
 
-	/* Do I need to comment this? */
+	/* Ok. */
 	uint1024_t i = init(y.size);
 	for (i; compare(i, y) < 0; inc(i))
 		ladd(result, x);
@@ -285,8 +289,8 @@ void lmod(uint1024_t dividend, uint1024_t divisor) {
 
 /* makes string representaion */
 char *to_str(uint1024_t x) {
-	uint32_t length = index_of_last_meaning_digit(x);
-	/* every meaning digit will take at least two chars in string representation */
+	uint32_t length = index_of_last_significant_digit(x);
+	/* every significant digit will take at least two chars in string representation */
 	char *str = malloc(2 * length + 1);
 
 	/* making use of pointer so it is easier to locate in string */
@@ -300,11 +304,13 @@ char *to_str(uint1024_t x) {
 
 uint1024_t scan_uint1024(char *str) {
 	char *cursor = str;
-	uint32_t digits = 0;
-	uint1024_t result = init(UINT1024_MIN_SIZE);
+	uint32_t digits = 0, len;
+	uint1024_t result;
 	/* reading a string from right to left */
 	/* move cursor to end of a string */
-	while (*++cursor) {}
+	len = strlen(str);
+	cursor = str + len;
+	result = init(len / 2 + 1);
 	/* move cursor 2 chars left so we can read first digit */
 	cursor -= 2;
 	while (cursor >= str) {
@@ -320,7 +326,7 @@ uint1024_t scan_uint1024(char *str) {
 	 * means that string has an odd amount of decimal digits and I need to read the last one
 	 * BUT if cursor moves 2 chars away then string had only two decimal digits */
 	if (cursor == str - 1)
-			sscanf(str, "%1d", result.digit + digits);
+		sscanf(str, "%1d", result.digit + digits);
 
 	return result;
 }

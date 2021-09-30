@@ -12,7 +12,12 @@ typedef struct {
 	uint1024_t rem;
 } uint1024_div;
 
+/* this two functions are the only legitimate way to make uint1024_t */
 uint1024_t uint1024_from_uint(unsigned int x);
+uint1024_t scan_uint1024(char *str);
+
+/* makes string representaion */
+char *to_str(uint1024_t x);
 
 int compare(uint1024_t x, uint1024_t y);
 
@@ -50,6 +55,3 @@ uint1024_t mod(uint1024_t dividend, uint1024_t divisor);
 /* equivalent of '%=' operator */
 void lmod(uint1024_t dividend, uint1024_t divisor);
 
-/* makes string representaion */
-char *to_str(uint1024_t x);
-uint1024_t scan_uint1024(char *str);
