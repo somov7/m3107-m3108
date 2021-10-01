@@ -109,11 +109,8 @@ int main(int argc, char* argv[])
             times = realloc(times, lines*sizeof(LL));
         }
         times[n++] = time_to_sec(&T);
-
-        for (int c = 0; c != 2;) {
-            if (buf[i++] == '"') c++; //символ " в ссылке будет закодирован как %22, поэтому проблем нет
-        }
-        if (buf[i+1] == '5') {
+        for (i = strlen(buf)-1; buf[i] != ' '; i--);
+        if (buf[i-3] == '5') {
             if (error_count == ans_size) {
                 ans_size *= 2;
                 ans = realloc(ans, ans_size*sizeof(char*));
