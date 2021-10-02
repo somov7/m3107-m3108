@@ -1,10 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "utils.h"
 
 int getLines(FILE *filePointer) {
     fseek(filePointer, 0L, SEEK_END);
-    int fileLength = ftell(filePointer);
-    char str[fileLength];
+    int fileLength = ftell(filePointer) + 1;
+    char *str = malloc(fileLength);
     rewind(filePointer);
 
     int lines = 0;
@@ -18,8 +19,8 @@ int getLines(FILE *filePointer) {
 
 int getWords(FILE *filePointer) {
     fseek(filePointer, 0L, SEEK_END);
-    int fileLength = ftell(filePointer);
-    char str[fileLength];
+    int fileLength = ftell(filePointer) + 1;
+    char *str = malloc(fileLength);
     rewind(filePointer);
 
     int words = 0;
