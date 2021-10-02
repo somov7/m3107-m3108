@@ -7,10 +7,6 @@
 int main(int argc, char *argv[]) {
     FILE *fptr;
     char *filename = argv[argc - 1];
-    int addToFilename = 2;
-    char *filenamePath = malloc(strlen(filename) + addToFilename + 1);
-    strcpy(filenamePath, "./");
-    strcat(filenamePath, filename);
 
     if ((fptr = fopen(filename, "r")) == NULL) {
         printf("File not found\n");
