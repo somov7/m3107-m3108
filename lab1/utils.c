@@ -4,14 +4,21 @@
 
 int getLines(FILE *filePointer) {
     fseek(filePointer, 0L, SEEK_END);
-    int fileLength = ftell(filePointer) + 1;
-    char *str = malloc(fileLength);
+    int fileLength = ftell(filePointer);
+    char *str = malloc(fileLength + 1);
     rewind(filePointer);
 
-    int lines = 0;
+    int lines = 1;
+    if (fileLength == 0) {
+        return lines;
+    }
 
-    while (fgets(str, fileLength, filePointer)) {
-        lines++;
+    while (fgets(str, fileLength + 1, filePointer)) {
+        for (int i = 0; i != '\n'; i++) {
+            if (str[i] == '\n') {
+                lines++;
+            }
+        }
     }
 
     return lines;
@@ -19,13 +26,17 @@ int getLines(FILE *filePointer) {
 
 int getWords(FILE *filePointer) {
     fseek(filePointer, 0L, SEEK_END);
-    int fileLength = ftell(filePointer) + 1;
-    char *str = malloc(fileLength);
+    int fileLength = ftell(filePointer);
+    char *str = malloc(fileLength + 1);
     rewind(filePointer);
+
+    if (fileLength == 0) {
+        return 0;
+    }
 
     int words = 0;
 
-    while (fgets(str, fileLength, filePointer)) {
+    while (fgets(str, fileLength + 1, filePointer)) {
         char lastSym = ' ';
         for (int i = 0; str[i] != '\0'; i++) {
             if ((words == 0 && str[i] != ' ') ||
