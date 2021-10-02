@@ -57,18 +57,17 @@ uint1024_t subtr_op(uint1024_t x, uint1024_t y)
     for (int i = 0; i < sz || over; i++)
     {
         if (i == sz)
-        {
-            res.t = realloc(res.t, (sz+1)*sizeof(int32_t));
-            res.t[sz] = 0;
-            res.size++;
-        }
+            break;
         res.t[i] = x.t[i] - (i < y.size ? y.t[i] : 0) - over;
-        if (res.t[i] < 0) over = 1, res.t[i] += base;
+        if (res.t[i] < 0) {
+            over = 1; 
+            res.t[i] += base;
+        }
         else over = 0;
     }
-    while (res.t[sz-1] == 0 && sz > 1) sz--;
-    res.t = realloc(res.t, sz*sizeof(int32_t));
-    res.size = sz;
+    while (res.t[res.size-1] == 0 && res.size > 1) 
+        res.size--;
+    res.t = realloc(res.t, res.size*sizeof(int32_t));
     return res;
 }
 
