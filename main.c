@@ -5,7 +5,7 @@ int main(int argc, char ** argv) {
     int c, before_c, counter_Strings = 1, counter_Symbols = 1, counter_Words = 1;
     if ((argc != 3) || argv[2] == NULL) {
         fprintf(stderr, "Проверьте количество параметров\n");
-        return 0;
+        return 4;
     }
     FILE *fin;
     fin = fopen(argv[2], "r");
@@ -13,14 +13,14 @@ int main(int argc, char ** argv) {
     if (c == EOF)  {
         counter_Symbols = 0;
     }
-    c = fgetc(fin);
     before_c = c;
+    c = fgetc(fin);
     while (c != EOF) {
         if ((c == '\n') || (c == '\v') || (c == '\f'))
         {
             counter_Strings++;
         }
-        if ((isspace(c) || (c == EOF)) && (isspace(before_c) == 0)) {
+        if (isspace(c) && (isspace(before_c) == 0)) {
             counter_Words++;
         }
         before_c = c;
@@ -42,8 +42,8 @@ int main(int argc, char ** argv) {
     }
     else {
         fprintf(stderr, "ERROR: no input value\n");
+        return 5;
     }
     return 0;
 }
-
 
