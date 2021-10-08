@@ -67,7 +67,7 @@ int main(int argc, char **argv)
     else 
     {
         fprintf(stderr, "Ошибка!\nНеверный вызов функции. Используйте другое значение.\n");
-        return 5;
+        return 0;
     }
     return 0;
 }
