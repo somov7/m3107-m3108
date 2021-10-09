@@ -12,20 +12,19 @@ int main(int argc, char *argv[]) {
     //argv[1] is option
     //argv[2] is path
 
-    if (fileIsExist(argv[2]) == 0){
+    if (DoesFileExist(argv[2]) == 0){
         printf("ERROR, cannot find a file");
         return -2;
     }
     
-    if (strcmp(argv[1], "-l") == 0 || strcmp(argv[1], "--lines") == 0){
-        printf("%d",linesCounter(argv[2])+1);  // ---------------------------------> count of lines (+1 - cause need to count last line)
-    }
-    if (strcmp(argv[1], "-c" ) == 0 || strcmp(argv[1], "--bytes") == 0){
+    if (strcmp(argv[1], "-l") == 0 || strcmp(argv[1], "--lines") == 0)
+        printf("%d",linesCounter(argv[2]));  // ---------------------------------> count of lines
+    else if (strcmp(argv[1], "-c" ) == 0 || strcmp(argv[1], "--bytes") == 0)
         printf("%d",bytesCounter(argv[2])); // ---------------------------------> count of filesize
-    }
-    if (strcmp(argv[1], "-w") == 0 || strcmp(argv[1], "--words") == 0){
+    else if (strcmp(argv[1], "-w") == 0 || strcmp(argv[1], "--words") == 0)
         printf("%d",wordsCounter(argv[2])); // ---------------------------------> count of words
-    }
+    else
+        printf("ERROR, incorrect command");
 
     return 0;
 }
@@ -40,7 +39,7 @@ int linesCounter(char* p){ // p - path
 
     }
     fclose(f);
-    return outVal;
+    return outVal + 1; // +1 - cause need to count last line
 
 }
 
@@ -63,9 +62,9 @@ int wordsCounter(char* p){ // p - path
             isWord = 0;
         }
 
-        fclose(f);
-        return outVal;
-    }
+    fclose(f);
+    return outVal;
+}
 
 int bytesCounter(char* p){ // f - active file, p - path
     int outVal;
@@ -78,13 +77,13 @@ int bytesCounter(char* p){ // f - active file, p - path
 
     return outVal;      
 
-    }
-/*
-int fileIsExist(char* p){ // - path
+}
+
+int DoesFileExist(char* p){ // - path
     FILE* activeFile = fopen(p,"r");
     if (activeFile == NULL)
         return 0;
     else
         return 1;
 
-}*/
+}
