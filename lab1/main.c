@@ -15,12 +15,12 @@
 int main(int argc, const char * argv[]) {
     if (argc < 2) {
         perror("Enter file name");
-        exit(0);
+        exit(EXIT_FAILURE);
     }
     FILE *file_ = fopen(argv[argc-1], "r");
     if (file_ == NULL) {
         perror("file doesn't exist");
-        exit(0);
+        exit(EXIT_FAILURE);
     }
     file_info info = get_file_info(file_);
 
