@@ -88,7 +88,12 @@ file_info get_file_info(FILE *file_) {
             info.lines_num++;
             while (test('\n')) info.lines_num++;
         } else {
-            while (!is_white_space() && _test('\n'));
+            while (_test('\n') && !is_white_space()) {
+                if (c == EOF) {
+                    info.lines_num++;
+                    break;
+                }
+            }
             info.words_num++;
         }
     }
