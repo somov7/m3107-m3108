@@ -27,8 +27,8 @@ int main(int argc, const char * argv[]) {
     const char* short_options = "lwc";
     const struct option long_options[] = {
 		{"lines", no_argument, NULL, 'l'},
-		{"words", optional_argument, NULL, 'w'},
-		{"bytes", required_argument, NULL, 'c'},
+		{"words", no_argument, NULL, 'w'},
+		{"bytes", no_argument, NULL, 'c'},
 		{NULL,0,NULL,0}
 	};
 
