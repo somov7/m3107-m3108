@@ -17,12 +17,14 @@ int main(int argc, char* argv[]) {
 	char* name;
 	name = argv[argc - 1];
 
-	if (fopen(name, "r") == NULL) {
+	input = fopen(name, "r");
+
+	if (input == NULL) {
 		printf("File not be opened");
 		return 1;
 	}
+
 	int l = 1;
-	input = fopen(name, "r");
 
     for (; l <= argc - 2; l++) {
 		char* options = argv[l];
@@ -60,14 +62,14 @@ int main(int argc, char* argv[]) {
 		
 		else if ((strcmp(options, "-w") == 0) || (strcmp(options, "--words") == 0)) {
 			int ch = 0;
-			int wcnt = 0;
+			int isspace = 0;
 			int words = 0;
 			while (ch != EOF) {
 				ch = fgetc(input);
 				if ((ch == ' ') || (ch == '\n') || (ch == '\t') || (ch == '\v') || (ch == '\f') || (ch == EOF) || (ch == '.') || (ch == ',')) {
 					if (words == 1) {
 						words = 0;
-						wcnt++;
+						isspace++;
 					}
 				}
 				else {
@@ -75,7 +77,7 @@ int main(int argc, char* argv[]) {
 				}
 			}
 			fseek(input, 0, SEEK_SET);
-			printf("The file has %d words\n", wcnt);
+			printf("The file has %d words\n", isspace);
 		}
 		else {
 			printf("Invalid command.\n");
