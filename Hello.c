@@ -11,7 +11,10 @@ int main (int argc, char **argv)
   int linecnt = 1; 
   int pr;
   int cntcol; 
-  File = fopen(argv[2], "r"); 
+  File = fopen(argv[2], "r");
+  if (File==NULL) {
+      printf("ERROR:NO FILE\n");
+  }
   
   if ((strcmp(argv[1], "-l")==0) || (strcmp(argv[1], "--lines")==0)) 
 { 
@@ -21,6 +24,7 @@ int main (int argc, char **argv)
             linecnt++; 
   } 
     printf("%d\n",linecnt); 
+    fclose(File);
   } 
   else if (strcmp(argv[1], "-w")==0 || (strcmp(argv[1], "--words")==0)) 
 { 
