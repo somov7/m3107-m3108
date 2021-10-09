@@ -35,10 +35,9 @@ int main (int argc, char **argv)
 { 
   int kol = 1; 
    int Wordcount= 0; 
-  char wrds[2] = {0}; 
-  while ((cntcol=fgetc(File)) != EOF) 
+  while ((! feof(File)) 
   { 
-        fgets(wrds, 1, File); 
+        fgets(wrds[0], 1, File); 
         if (wrds[0] > 32) 
             kol= 0; 
         else if (kol == 0) 
