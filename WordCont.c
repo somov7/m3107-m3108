@@ -42,27 +42,27 @@ int main(int argc, char *argv[])
 
     if (a < 3)
  {
-    printf("Lines : %d \n", lines);
-    printf("Words : %d \n", words);
-    printf("Bytes : %d \n", bytes);
+    printf("%d \n", lines);
+    printf("%d \n", words);
+    printf("%d \n", bytes);
     return(0);
  }
     if (strcmp(argv[2], "-l") == 0 || 
         strcmp(argv[2], "--lines") == 0)
     {
-        printf("Lines : %d \n", lines);
+        printf("%d \n", lines);
         return(0);
     }
     if (strcmp(argv[2], "-c") == 0 || 
         strcmp(argv[2], "--bytes") == 0)
     {
-        printf("Bytes : %d \n", bytes);
+        printf("%d \n", bytes);
         return(0);
     }
     if (strcmp(argv[2], "-w") == 0 || 
         strcmp(argv[2], "--words") == 0)
     {
-        printf("Words : %d \n", words);
+        printf("%d \n", words);
         return(0);
     }
   
