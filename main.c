@@ -1,17 +1,24 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 int main(int argc, char ** argv) {
     int c, before_c, counter_Strings = 1, counter_Symbols = 1, counter_Words = 1;
     if ((argc != 3) || argv[2] == NULL) {
         fprintf(stderr, "Проверьте количество параметров\n");
-        return 4;
+        return EXIT_FAILURE;
     }
     FILE *fin;
+    
     fin = fopen(argv[2], "r");
+    if (fin == NULL) {
+        fprintf(stderr, "Проблема с файлом");
+        return EXIT_FAILURE;
+    }
     c = fgetc(fin);
     if (c == EOF)  {
         counter_Symbols = 0;
+        counter_Words = 0;
     }
     before_c = c;
     c = fgetc(fin);
@@ -42,7 +49,7 @@ int main(int argc, char ** argv) {
     }
     else {
         fprintf(stderr, "ERROR: no input value\n");
-        return 5;
+        return EXIT_FAILURE;
     }
     return 0;
 }
