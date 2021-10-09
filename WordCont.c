@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv)
 {
-    int l = 0, c = 0, ch, w = 0, key = 0;
+    int l = 0, c = 0, ch, w = 0, isword = 0;
     FILE* fp;
     fp = fopen(argv[2], "rt");
 
@@ -13,6 +13,14 @@ int main(int argc, char **argv)
     if (argc != 3)
     {
         printf("You have entered incorrect parameters: you must enter WordCont.exe [OPTION] filename ");
+        return 1;
+    }
+
+    /* Проверяет, открылся ли файл */
+    if (fp == NULL)
+    {
+        perror("error:");
+        return -1;
     }
 
     /* Это алгоритм подсчёта строк, слов и числа байт */
@@ -25,11 +33,11 @@ int main(int argc, char **argv)
         }
         if (ch == ' ' || ch == '\n' || ch == '\t')
         {
-            key = 0;
+            isword = 0;
         }
-        else if (key == 0)
+        else if (isword == 0)
         {
-            key = 1;
+            isword = 1;
             ++w;
         }
     }
@@ -38,7 +46,6 @@ int main(int argc, char **argv)
     if ((strcmp(argv[1], "-l") == 0) || (strcmp(argv[1], "--lines") == 0))
     {
         printf("%d\n", ++l);
-
     }
     if ((strcmp(argv[1], "-c") == 0 ) || (strcmp(argv[1], "--bytes") == 0))
     {
