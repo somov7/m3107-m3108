@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 int main(int argc, char *argv[])
 {
  FILE *fp;
@@ -20,12 +21,15 @@ int main(int argc, char *argv[])
 		   
 		   if (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r')
             {
-               ++words;
+                ++words;
             }
 		   if (ch == '\n')
             { 
                ++lines;
-               ++bytes;
+            }
+            if(isspace(ch))
+            {
+                ++bytes;
             }
 	   }
 
