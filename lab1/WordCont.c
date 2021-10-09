@@ -36,13 +36,6 @@ int main(int argc, char* argv[]) {
 			while ((ch = fgetc(input)) != EOF) {
 				if (ch == '\n') {
 					CountLines++;
-					word = 0;
-				}
-				else {
-					if (ch != EOF) {
-						word = 1;
-					}
-				}
 			}
 			fseek(input, 0, SEEK_SET);
 			printf("Opened file contains %d lines\n", CountLines + word);
