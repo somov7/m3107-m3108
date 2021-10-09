@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-// #include <stdlib.h>
 
 int main(int argc, char *argv[]) {
     FILE *Lab1;
@@ -18,34 +17,13 @@ int main(int argc, char *argv[]) {
 
     int bytes = 0, lines = 1, words = 0;
 
-    while(!feof(Lab1)) {
-        fgetc(Lab1);
+    while (!feof(Lab1)) {
         bytes++;
-    }
-
-    char arr[bytes];
-    rewind(Lab1);
-
-    for (int i = 0; i < bytes; i++) {
-        arr[i] = fgetc(Lab1);
-    }
-
-    for (int i = 0; i < bytes; i++) {
-        if (arr[i + 1] == EOF) {
-            if (arr[i] == ' ' || arr[i] == '\t' || arr[i] == '\n') {
-                break; }
-            else if (arr[i] != ' ' && arr[i] != '\t' && arr[i] != '\n') {
-                words++; }
+        if (fgetc(Lab1) == '\n') {
+            lines++;
         }
-        if (arr[i] == '\n') {
-            lines++; }
-        else if ((arr[i] == ' ' || arr[i] == '\t' || arr[i] == '\n') && i > 0) {
-            if (arr[i - 1] == ' ' || arr[i - 1] == '\t' || arr[i] == '\n') {
-                continue;
-            }
-            else {
-                words++;
-            }
+        if (fgetc(Lab1) != ' ' && fgetc(Lab1) != '\t' && fgetc(Lab1) != '\v' && fgetc(Lab1) != '\r' && fgetc(Lab1) != '\0') {
+            words++;
         }
     }
 
@@ -56,7 +34,7 @@ int main(int argc, char *argv[]) {
         printf("%d \n", lines);
     }
     else if ((strcmp(argv[1], "-c") == 0) || (strcmp(argv[1], "--bytes") == 0)) {
-        printf("%d \n", bytes - 1);
+        printf("%d \n", bytes);
     }
     else {
         fprintf(stderr, "%s\n", "Error 228. You can try: '-l', '--lines'; '-c', '--bytes'; '-w', '--words'.");
