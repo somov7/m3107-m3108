@@ -40,6 +40,5 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "%s\n", "Error 228. You can try: '-l', '--lines'; '-c', '--bytes'; '-w', '--words'.");
         return 1;
     }
-
     return 0;
 }
