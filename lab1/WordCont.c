@@ -24,9 +24,9 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	int l = 1;
+	
 
-    for (; l <= argc - 2; l++) {
+    for (int l = 1; l <= argc - 2; l++) {
 		char* options = argv[l];
 		int ch;
 
