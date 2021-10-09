@@ -14,6 +14,11 @@ int main (int argc, char **argv)
   File = fopen(argv[2], "r");
   if (File==NULL) {
       printf("ERROR:NO FILE\n");
+      return 3;
+  }
+  if ((argc!=3)||(argv[2]==NULL)||(argv[1]==NULL)){
+    fprintf(stderr,"Check input values\n");
+    return 3;
   }
   
   if ((strcmp(argv[1], "-l")==0) || (strcmp(argv[1], "--lines")==0)) 
@@ -48,10 +53,6 @@ int main (int argc, char **argv)
   } 
   else if (strcmp(argv[1], "-c")==0 || (strcmp(argv[1], "--bytes")==0)) 
 { 
-    if ((argc!=3)||(argv[2]==NULL)||(argv[1]==NULL)){
-    fprintf(stderr,"Check input values\n");
-    return 3;
-  }
   while ((cntcol=fgetc(File)) != EOF) 
   { 
     sizeb++;
