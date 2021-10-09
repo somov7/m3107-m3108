@@ -4,30 +4,27 @@
 
 int main(int argc, char *argv[]) {
 
-    int i = 0; // i - value to run on the lines
-    char option[15], path[255];
-
     if (argc != 3){
         printf("ERROR, insufficient number of parameters");
         return -1;
     }
     
-    strcpy(option, argv[1]);
-    strcpy(path, argv[2]);
+    //argv[1] is option
+    //argv[2] is path
 
-    if (fileIsExist(path) == 0){
+    if (fileIsExist(argv[2]) == 0){
         printf("ERROR, cannot find a file");
         return -2;
     }
     
-    if (strcmp(option, "-l") == 0 || strcmp(option, "--lines") == 0){
-        printf("%d",linesCounter(path)+1);  // ---------------------------------> count of lines (+1 - cause need to count last line)
+    if (strcmp(argv[1], "-l") == 0 || strcmp(argv[1], "--lines") == 0){
+        printf("%d",linesCounter(argv[2])+1);  // ---------------------------------> count of lines (+1 - cause need to count last line)
     }
-    if (strcmp(option, "-c" ) == 0 || strcmp(option, "--bytes") == 0){
-        printf("%d",bytesCounter(path)); // ---------------------------------> count of filesize
+    if (strcmp(argv[1], "-c" ) == 0 || strcmp(argv[1], "--bytes") == 0){
+        printf("%d",bytesCounter(argv[2])); // ---------------------------------> count of filesize
     }
-    if (strcmp(option, "-w") == 0 || strcmp(option, "--words") == 0){
-        printf("%d",wordsCounter(path)); // ---------------------------------> count of words
+    if (strcmp(argv[1], "-w") == 0 || strcmp(argv[1], "--words") == 0){
+        printf("%d",wordsCounter(argv[2])); // ---------------------------------> count of words
     }
 
     return 0;
@@ -82,7 +79,7 @@ int bytesCounter(char* p){ // f - active file, p - path
     return outVal;      
 
     }
-
+/*
 int fileIsExist(char* p){ // - path
     FILE* activeFile = fopen(p,"r");
     if (activeFile == NULL)
@@ -90,4 +87,4 @@ int fileIsExist(char* p){ // - path
     else
         return 1;
 
-}
+}*/
