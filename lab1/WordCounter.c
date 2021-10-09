@@ -53,26 +53,6 @@ int next_char(void) {
 }
 
 
-//int next_char(void) {
-//    static char is_eof = 0;
-//    static int i = buffer_size;
-//    static size_t size = buffer_size;
-//    if (i == size) {
-//        buffer = (char *)malloc(buffer_size * sizeof(char));
-//        size = fread(buffer, sizeof(char), buffer_size, file);
-//        if (size != buffer_size && ferror(file)) {
-//            perror("error while reading file");
-//            is_eof = 1;
-//            return EOF;
-//        }
-//        i = 0;
-//    }
-//
-//    if (size == i && feof(file)) is_eof = 1;
-//    return is_eof ? EOF : (c = buffer[i++]);
-//}
-
-
 void skipe_white_space(void) {
     while (is_white_space());
 }
@@ -97,6 +77,6 @@ file_info get_file_info(FILE *file_) {
             info.words_num++;
         }
     }
-    info.size = (character_counter - 1)* sizeof(char);
+    info.size = (character_counter - 1) * sizeof(char);
     return  info;
 }
