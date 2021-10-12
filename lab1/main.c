@@ -5,11 +5,11 @@
 
 void checkInput(unsigned short argc, FILE *file) {
     if (argc != 3) {
-        printf("Two arguments expected!");
+        fprintf(stderr, "Two arguments expected!");
         exit(1);
     }
     if (file == NULL) {
-        printf("Error opening file!");
+        fprintf(stderr, "Error opening file!");
         exit(1);
     }
 
@@ -64,15 +64,13 @@ int main(int argc, char *argv[]) {
     checkInput(argc, importFile);
     if ((strcmp(argv[1], "-l") == 0) || (strcmp(argv[1], "--lines") == 0)) {
         countLines(importFile);
-        return 0;
     } else if ((strcmp(argv[1], "-c") == 0) || (strcmp(argv[1], "--bytes") == 0)) {
         countBytes(importFile);
-        return 0;
     } else if ((strcmp(argv[1], "-w") == 0) || (strcmp(argv[1], "--words") == 0)) {
         countWords(importFile);
-        return 0;
     } else {
-        printf("Unknown command!");
+        fprintf(stderr, "Unknown command!");
         return 1;
     }
+    return 0;
 }
