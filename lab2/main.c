@@ -78,7 +78,7 @@ void printf_value(uint1024_t x) {
 uint1024_t from_uint(unsigned int x) {
     uint1024_t result;
     // Если x < взятого основания, то записываем число в массив размерность которого 1,
-    // иначе размерность - 2.
+    // иначе размерность - 2
     if (x < base) {
         result.num = calloc(1, sizeof(uint32_t));
         result.num[0] = x;
