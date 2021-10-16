@@ -15,7 +15,7 @@ void checkInput(unsigned short argc, FILE *file) {
 
 }
 
-void countLines(FILE *file) {
+unsigned countLines(FILE *file) {
     char ch;
     unsigned linesCounter = 0;
     while ((ch = getc(file)) != EOF) {
@@ -25,19 +25,19 @@ void countLines(FILE *file) {
     }
 
     linesCounter += 1;
-    printf("There are %d lines in file", linesCounter);
+    return linesCounter;
 }
 
-void countBytes(FILE *file) {
+unsigned countBytes(FILE *file) {
     char ch;
     unsigned bytesCounter = 0;
     while ((ch = getc(file)) != EOF) {
         bytesCounter += 1;
     }
-    printf("The size of the file is around %d bytes", bytesCounter);
+    return bytesCounter;
 }
 
-void countWords(FILE *file) {
+unsigned countWords(FILE *file) {
     char ch;
     unsigned wordsCounter = 0;
     char prevChar = ' ';
@@ -45,14 +45,14 @@ void countWords(FILE *file) {
         if ((!isspace(ch)) && (prevChar == ' ')) {
             prevChar = ch;
         } else if ((isspace(ch)) && (prevChar != ' ')) {
-        wordsCounter += 1;
-        prevChar = ' ';
+            wordsCounter += 1;
+            prevChar = ' ';
         }
     }
     if (prevChar != ' ') {
         wordsCounter += 1;
     }
-    printf("There are %d words in file", wordsCounter);
+    return wordsCounter;
 }
 
 int main(int argc, char *argv[]) {
@@ -60,11 +60,11 @@ int main(int argc, char *argv[]) {
     importFile = fopen(argv[2], "r");
     checkInput(argc, importFile);
     if ((strcmp(argv[1], "-l") == 0) || (strcmp(argv[1], "--lines") == 0)) {
-        countLines(importFile);
+        printf("There are %d lines in file", countLines(importFile));
     } else if ((strcmp(argv[1], "-c") == 0) || (strcmp(argv[1], "--bytes") == 0)) {
-        countBytes(importFile);
+        printf("The size of the file is %d bytes", countBytes(importFile));
     } else if ((strcmp(argv[1], "-w") == 0) || (strcmp(argv[1], "--words") == 0)) {
-        countWords(importFile);
+        printf("There are %d words in file", countWords(importFile));
     } else {
         fprintf(stderr, "Unknown command!");
         return 1;
