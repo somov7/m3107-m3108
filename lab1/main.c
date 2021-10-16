@@ -33,9 +33,6 @@ void countBytes(FILE *file) {
     unsigned bytesCounter = 0;
     while ((ch = getc(file)) != EOF) {
         bytesCounter += 1;
-        if (ch == '\n') {
-            bytesCounter += 1;
-        }
     }
     printf("The size of the file is around %d bytes", bytesCounter);
 }
