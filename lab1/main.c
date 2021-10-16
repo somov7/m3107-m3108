@@ -4,14 +4,11 @@
 size_t count_lines(FILE *fp) {
     size_t cnt = 1;
     int current;
-    current = fgetc(fp);
-    while (current != EOF) {
+    while ((current = fgetc(fp)) != EOF) {
         if (current == '\n') {
             cnt++;
         }
-        current = fgetc(fp);
     }
-    fclose(fp);
     return cnt;
 }
 
@@ -20,15 +17,13 @@ size_t count_file_size(FILE *fp) {
     while (getc(fp) != EOF) {
         cnt++;
     }
-    fclose(fp);
     return cnt;
 }
 
 size_t count_words(FILE *fp) {
     size_t cnt = 0;
     int current;
-    current = fgetc(fp);
-    while (current != EOF) {
+    while ((current = fgetc(fp)) != EOF) {
         if (current != ' ' && current != '\n') {
             int help = fgetc(fp);
             while (help != ' ' && help != '\n' && help != EOF) {
@@ -36,9 +31,7 @@ size_t count_words(FILE *fp) {
             }
             cnt++;
         }
-        current = fgetc(fp);
     }
-    fclose(fp);
     return cnt;
 }
 
@@ -64,6 +57,6 @@ int main(int argc, char *argv[]) {
                "-w / --words: number of words\n");
         return -1;
     }
-
+    fclose(fp);
     return 0;
 }
