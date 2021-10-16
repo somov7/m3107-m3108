@@ -51,7 +51,7 @@ void copyto(uint1024_t src, uint1024_t dest) {
 	}
 }
 
-uint32_t index_of_last_significant_digit(const uint1024_t x) {
+uint32_t last_significant_digit(const uint1024_t x) {
 	int64_t i = (int64_t)x.size - 1;
 	while (x.digit[i] == 0 and i > 0)
 		i--;
@@ -70,8 +70,8 @@ uint1024_t uint1024_from_uint(unsigned int x) {
 }
 
 int compare(uint1024_t x, uint1024_t y) {
-	uint32_t len_x = index_of_last_significant_digit(x);
-   	uint32_t len_y = index_of_last_significant_digit(y);
+	uint32_t len_x = last_significant_digit(x);
+   	uint32_t len_y = last_significant_digit(y);
 
 	if (len_x > len_y)
 		return 1;
@@ -187,9 +187,23 @@ void dec(uint1024_t x) {
 	}
 }
 
+void times_hundred(uint1024_t x, int power) {
+	if (power <= 0)
+		return;
+	
+	uint32_t len_x = last_significant_digit(x);
+	if (x.size < len_x + power)
+		extend(x, power);
+
+	for (int64_t i = last_significant_digit(x); i >= 0; ++i) {
+		x.digit[i + power] = x.digit[i];
+		x.digit[i] = 0;
+	}
+}
+
 /* equivalent of '*' operator */
 uint1024_t mult(uint1024_t x, uint1024_t y) {
-	uint1024_t result = init(x.size);
+	uint1024_t result = init(x.size + y.size);
 	/* checking if all of x's digits are zero */
 	bool is_zero = true;
 	for (uint32_t i = 0; i < x.size; ++i) 
@@ -198,11 +212,18 @@ uint1024_t mult(uint1024_t x, uint1024_t y) {
 	if (is_zero)
 		return init(x.size);
 
-	/* Ok. */
-	uint1024_t i = init(y.size);
-	for (i; compare(i, y) < 0; inc(i))
-		ladd(result, x);
-	destroy(i);
+	uint32_t tmp, overflow = 0,
+			 len_x = last_significant_digit(x),
+			 len_y = last_significant_digit(y);
+
+	/* Okay, you  win. */
+	for (uint32_t i = 0; i < x.size + y.size; ++i) {
+		for (uint32_t j = 0; i + j < x.size + y.size; ++j) {
+			tmp = result.digit[i + j] + (uint32_t)(x.digit[i]) * (uint32_t)(y.digit[j]) + overflow;
+			result.digit[i + j] = tmp % BASE;
+			overflow = tmp / BASE;
+		}
+	}
 	return result;
 }
 
@@ -294,7 +315,7 @@ void lmod(uint1024_t dividend, uint1024_t divisor) {
 
 /* makes string representaion */
 char *to_str(uint1024_t x) {
-	uint32_t length = index_of_last_significant_digit(x);
+	uint32_t length = last_significant_digit(x);
 	/* every significant digit will take at least two chars in string representation */
 	char *str = malloc(2 * length + 1);
 
