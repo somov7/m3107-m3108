@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 size_t count_lines(FILE *fp) {
     size_t cnt = 1;
@@ -22,17 +23,18 @@ size_t count_file_size(FILE *fp) {
 
 size_t count_words(FILE *fp) {
     size_t cnt = 0;
-    int current;
+    int current, in_word = 0;
     while ((current = fgetc(fp)) != EOF) {
-        if (current != ' ' && current != '\n') {
-            int help = fgetc(fp);
-            while (help != ' ' && help != '\n' && help != EOF) {
-                help = fgetc(fp);
+        if (!isspace(current)) {
+            in_word = 1;
+        } else {
+            if (in_word == 1) {
+                cnt++;
             }
-            cnt++;
+            in_word = 0;
         }
     }
-    return cnt;
+    return cnt + in_word;
 }
 
 int main(int argc, char *argv[]) {
