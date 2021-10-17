@@ -21,11 +21,11 @@ int syncint_encode(int value) //функция кодирования syncsafe �
 
 int syncint_decode(int value) //функция декодирования syncsafe интов
 {
-    unsigned int a, b, c, d, result = 0x0;
-    a = value & 0xFF;
-    b = (value >> 8) & 0xFF;
-    c = (value >> 16) & 0xFF;
-    d = (value >> 24) & 0xFF;
+    unsigned int a, b, c, d, result = 0;
+    a = value & 255;
+    b = (value >> 8) & 255;
+    c = (value >> 16) & 255;
+    d = (value >> 24) & 255;
 
     result = result | a;
     result = result | (b << 7);
@@ -80,6 +80,88 @@ char* getval(char* str)
     char* val = (char*)malloc(strlen(split));
     strcpy(val, split);
     return val;
+}
+
+unsigned int readidv3(char* filepath, char* prop_name, int set, int* old_frame_size)
+{
+    FILE* f = fopen(filepath, "rb");
+    if (f == NULL) {
+        printf("Can't open file");
+        exit(1);
+    }
+    fread(&header, 1, 10, f); //читаем хедер 10 байтов
+    unsigned int k = btoi(header.size); //размер всей структуры ID3 включая хедер
+    printf("size struct: %d\n", k);
+    unsigned int write_pos = 0;
+    while (fread(&frame, 1, 11, f)) //читаем фрейм 10 байтов + 1 байт перед строкой юникода
+    {
+        if (frame.frameid[0] == 0 || ftell(f) >= k) {
+            write_pos = ftell(f)-11;
+            break;
+        }
+        //больше нечего читать, т.к. первый символ в названии ид фрейма не может быть равен нулю
+        //либо если нет паддинга нулевыми байтами, то прочитали больше, чем нужно
+        unsigned int sz = btoi(frame.size); //размера значения фрейма (длина строки)
+        char* buf = (char*)malloc(sz); //размер строки включает 1 байт для юникода в начале, поэтому все ок
+        fgets(buf, sz, f); //прочитали структуру фрейма включая 1 байт юникода, теперь читаем значение
+        //прочитает sz-1 байт, в конец добавит нуль терминатор
+        if (prop_name == NULL) 
+            printf("pos: %d id: %s size: %d value: %s\n", ftell(f), frame.frameid, sz, buf); //выводим все фреймы
+        else if (!strcmp(frame.frameid, prop_name)) {
+            if (set == 0) printf("id: %s value: %s", frame.frameid, buf); //вывод одного фрейма
+            else {
+                *old_frame_size = sz;
+                write_pos = ftell(f)-10-sz;
+                break;
+            }
+        }
+        free(buf);
+    }
+    fclose(f);
+    return write_pos;
+}
+
+void updateidv3(char* filepath, char* prop_name, char* prop_val)
+{
+    FILE* read = fopen(filepath, "rb");
+    FILE* write = fopen("temp", "wb"); //временный для записи
+    if (read == NULL || write == NULL) {
+        printf("Can't open/create file");
+        exit(1);
+    }
+    unsigned int* old_frame_size = calloc(1, sizeof(unsigned int));
+    unsigned int write_pos = readidv3(filepath, prop_name, 1, old_frame_size);
+    
+    int size_diff = strlen(prop_val) - (*old_frame_size-1);
+    fread(&header, 1, 10, read); //читаем хедер 10 байтов
+    unsigned int k = btoi(header.size); //размер всей структуры ID3 включая хедер
+    k += size_diff; //обновили размер структуры в соответствии с новым фреймом
+    itob(k, header.size);
+    fwrite(&header, 1, 10, write); //записали новый хедер
+    char* buf = (char*)malloc(write_pos-10);
+    fread(buf, 1, write_pos-10, read); //прочитали все байты до фрейма
+    fwrite(buf, 1, write_pos-10, write); //записали все байты до фрейма, теперь пишем фрейм
+    memcpy(frame.frameid, prop_name, 4);
+    char frame_size[4];
+    itob(strlen(prop_val)+1, frame_size);
+    memcpy(frame.size, frame_size, 4);
+    
+    fwrite(&frame, 1, 11, write); //записали фрейм
+    fwrite(prop_val, 1, strlen(prop_val), write); //записали значение фрейма
+    free(buf);
+    fseek(read, 0, SEEK_END);
+    printf("old fr sz: %d\n", *old_frame_size);
+    unsigned int read_offset = *old_frame_size ? write_pos+10+*old_frame_size : write_pos;
+    unsigned int read_size = ftell(read) - read_offset;
+    buf = (char*)malloc(read_size);
+    fseek(read, read_offset, SEEK_SET);
+    fread(buf, 1, read_size, read);
+    fwrite(buf, 1, read_size, write);
+
+    fclose(read);
+    fclose(write);
+    remove(filepath);
+    rename("temp", filepath);
 }
 
 int main(int argc, char* argv[])
@@ -140,104 +222,11 @@ int main(int argc, char* argv[])
             return 1;
         }
     }
-
-    FILE* t;
-    if (set) t = fopen("temp.mp3", "wb"); //временный файл для записи, потом удалим старый файл и переименуем этот в название старого
-    FILE* f = fopen(filepath, "rb");
-    if (!f)
-    {
-        printf("Can't open file\n");
-        return 1;
-    }
-    fread(&header, 1, 10, f); //читаем хедер 10 байтов
-    int k = btoi(header.size); //размер всей структуры ID3 включая хедер
-    //printf("size struct: %d\n", k);
-    int found_prop = 0;
-    int pos;
-    int prop_sz_diff = 0;
-    char* buf;
-    while (fread(&frame, 1, 11, f)) //читаем фрейм 10 байтов + 1 байт перед строкой юникода
-    {
-        if (frame.frameid[0] == 0) break; //больше нечего читать, т.к. первый символ в названии ид фрейма не может быть равен нулю
-        if (ftell(f) >= k) break; //либо если нет паддинга нулевыми байтами, то прочитали больше, чем нужно
-        unsigned int sz = btoi(frame.size); //размера значения фрейма (длина строки)
-        buf = (char*)malloc(sz); //размер строки включает 1 байт для юникода в начале, поэтому все ок
-        fgets(buf, sz, f); //прочитали структуру фрейма включая 1 байт юникода, теперь читаем значение
-        //прочитает sz-1 байт, в конец добавит нуль терминатор
-        
-        if (get && !strcmp(frame.frameid, prop_name)) printf("id: %s value: %s", frame.frameid, buf); //вывод одного фрейма
-        if (show) printf("pos: %d id: %s size: %d value: %s\n", ftell(f), frame.frameid, sz, buf); //выводим все фреймы
-        free(buf);
-        if (set && !strcmp(frame.frameid, prop_name)) //если меняем фрейм и он нашелся в файле
-        {
-            found_prop = 1;
-            prop_sz_diff = strlen(prop_value) - (sz-1); //считаем разницу в длине строки
-            char new_header_sz[4]; //далее обновляем размера всей структуры
-            char new_frame_sz[4]; //и фрейма
-            int oldsz = k;
-            int oldframesz = sz;
-            k += prop_sz_diff;
-            sz += prop_sz_diff;
-            itob(k, new_header_sz);
-            itob(sz, new_frame_sz);
-            memcpy(header.size, new_header_sz, 4); //запишем новые значения в переменные структур
-            memcpy(frame.size, new_frame_sz, 4);
-            pos = ftell(f); //запомним где остановились читать фреймы, чтобы вернуться к этой позиции и записать во временный файл оставшееся содержимое (начиная со след. фрейма)
-            
-            fwrite(&header, 1, 10, t); //запишем новый хедер
-            fseek(f, 10, 0); //читаем фреймы до нашего
-            buf = (char*)malloc(pos-21-(oldframesz-1));
-            fread(buf, 1, pos-21-(oldframesz-1), f);
-            fwrite(buf, 1, pos-21-(oldframesz-1), t); //пишем фреймы до нашего в новый файл
-            fwrite(&frame, 1, 11, t); //пишем новый фрейм
-            fwrite(prop_value, 1, strlen(prop_value), t); //пишем новое значение фрейма
-            free(buf);
-            
-            fseek(f, pos, 0);
-            char buff[1000];
-            while (fread(buff, 1, 1000, f)) //пишем оставшееся содержимое файла после нашего фрейма (?)
-                fwrite(buff, 1, 1000, t);
-            break;
-        }
-    }
-    if (!found_prop && set) //если меняем фрейм и фрейма с таким ид не нашлось, добавим в конец структуры ID3, изменим размер структуры
-    {
-        fseek(f, 0, 0);
-        fread(&header, 1, 10, f);
-        char sz[4];
-        int oldsz = btoi(header.size); //размер старого хедера
-        oldsz += strlen(prop_value) + 11; //размер нового это + 11 байтов структуры (включая байт юникода) + размер строки
-        itob(oldsz, sz); //переведем инт в бигэндиан и закодируем syncsafe
-        memcpy(header.size, sz, 4);
-        fwrite(&header, 1, 10, t); //пишем размер структуры во временный файл
-
-        while (fread(&frame, 1, 11, f) && frame.frameid[0] != 0) //читаем фреймы пока первый символ ИД фрейма не равен нулю (то есть прочитали все и нарвались на паддинг нулевыми байтами)
-        {
-            if (ftell(f) >= oldsz) break; //либо если нет паддинга, больше нечего читать
-            fwrite(&frame, 1, 11, t); //пишем старые фреймы
-            unsigned int sz = btoi(frame.size); //размера значения фрейма (длина строки)
-            buf = (char*)malloc(sz); //размер строки включает 1 байт для юникода в начале, поэтому все ок
-            fgets(buf, sz, f); //прочитали структуру фрейма включая 1 байт юникода, теперь читаем значение
-            fwrite(buf, 1, sz-1, t); //пишем старые значения фреймов минус нулевой байт в строке, который добавляет fgets
-            free(buf);
-        }
-        ID3FRAME tmp;
-        itob(strlen(prop_value)+1, sz);
-        memcpy(tmp.size, sz, 4);
-        memcpy(tmp.frameid, prop_name, 4);
-        fwrite(&tmp, 1, 11, t); //добавляем новый фрейм в конец
-        fwrite(prop_value, 1, strlen(prop_value), t); //добавляем значение фрейма
-
-        char buff[1000];
-        while (fread(buff, 1, 1000, f)) //пишем оставшееся содержимое файла после нашего фрейма (?)
-            fwrite(buff, 1, 1000, t);
-    }
-    if (set) fclose(t);
-    fclose(f);
-    if (set) //если изменяем фреймы, т.к. записывали во временный файл, удалим старый и переименуем временный в название нашего файла
-    {
-        remove(filepath);
-        rename("temp.mp3", filepath);
-    }
+    if (show) 
+        readidv3(filepath, NULL, 0, NULL);
+    else if (get)
+        readidv3(filepath, prop_name, 0, NULL);
+    else if (set)
+        updateidv3(filepath, prop_name, prop_value);
     return 0;
 }
