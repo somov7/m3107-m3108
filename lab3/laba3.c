@@ -10,11 +10,9 @@ LL tosecs(char* str)
 {
     struct tm time = { .tm_year = atoi(str+7) - 1900, .tm_mday = atoi(str), .tm_hour = atoi(str+12), 
     .tm_min = atoi(str+15), .tm_sec = atoi(str+18), .tm_isdst = -1};
-    char month[4]; 
-    memcpy(month, str+3, 3);
-    month[3] = '\0';
+    str[6] = '\0';
     int n = 0;
-    while(strcmp(month, months[n]))
+    while(strcmp(str+3, months[n]))
         n++;
     time.tm_mon = n;
     return mktime(&time);
