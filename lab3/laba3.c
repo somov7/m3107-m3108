@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     while (fgets(buf, sizeof(buf), fp) != NULL) //читаем построчно 
     {
         char str[21];
-        int i = 0;
+        int i = 0, j = strlen(buf)-1;
         while (buf[i++] != '[');
         memcpy(str, buf+i, 20);
         str[20]='\0';
@@ -63,14 +63,17 @@ int main(int argc, char* argv[])
         }
         times[n++] = tosecs(str);
 
-        for (i = strlen(buf)-1; buf[i] != ' '; i--);
-        if (buf[i-3] == '5') {
+        while (buf[j--] != ' ');
+        if (buf[j-2] == '5') {
             if (error_count == ans_size) {
                 ans_size *= 2;
                 ans = realloc(ans, ans_size*sizeof(char*));
             }
-            ans[error_count] = malloc(strlen(buf)+1); //список неудачных запросов
-            strcpy(ans[error_count++], buf);
+            while (buf[i++] != '"');
+            while (buf[j--] != '"');
+            buf[j+1] = '\0';
+            ans[error_count] = malloc(strlen(buf+i)+1); //список неудачных запросов
+            strcpy(ans[error_count++], buf+i);
         }
     }
     LL lp = 0;
@@ -97,14 +100,24 @@ int main(int argc, char* argv[])
     }
     fclose(fp);
     free(times);
-    printf("max window of length %lld [t; t+%lld] in secs:\n%lld to %lld\nMax requests in window: %lld at lines: %lld-%lld\n", window, window, lt, rt, mx, line_start+1, line_end+1);
-    printf("5xx count: %lld\n", error_count);
-    /* чтобы не унесло строчки выше
+    printf("  _      _______  _____  ____ _      __\n");
+    printf(" | | /| / /  _/ |/ / _ \\/ __ \\ | /| / /\n");
+    printf(" | |/ |/ // //    / // / /_/ / |/ |/ / \n");
+    printf(" |__/|__/___/_/|_/____/\\____/|__/|__/  \n");
+    printf("\nmax window of length %lld [t; t+%lld] in secs:\n%lld to %lld\nMax requests in window: %lld at lines: %lld-%lld\n", window, window, lt, rt, mx, line_start+1, line_end+1);
+
+    printf("    __________  ____  ____  ____     _______  ___  __\n");
+    printf("   / ____/ __ \\/ __ \\/ __ \\/ __ \\   / ____/ |/ / |/ /\n");
+    printf("  / __/ / /_/ / /_/ / / / / /_/ /  /___ \\ |   /|   / \n");
+    printf(" / /___/ _, _/ _, _/ /_/ / _, _/  ____/ //   |/   |  \n");
+    printf("/_____/_/ |_/_/ |_|\\____/_/ |_|  /_____//_/|_/_/|_|  \n");
+
+    printf("\n5xx count: %lld\n\n", error_count);
+
     if (error_count) {
         for (LL i = 0; i < error_count; i++) {
             printf("%s\n", ans[i]);
         }
     }
-    */
     return 0;
 }
