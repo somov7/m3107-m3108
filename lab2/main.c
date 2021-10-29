@@ -7,7 +7,9 @@
 #define y_or_zero (i < y.len ? y.num[i] : 0)
 #define x_or_zero (i < x.len ? x.num[i] : 0)
 
+
 const int base = 1000 * 1000 * 1000;
+const int max_uint1024_len = 309;
 
 typedef struct {
     uint32_t *num;
@@ -21,6 +23,13 @@ int max(int a, int b) {
         return b;
 }
 
+int x_less_y(uint1024_t x, uint1024_t y){
+    if (x.len < y.len)
+        return 1;
+    if (x.len == y.len and x.num[x.len-1] < y.num[y.len-1])
+        return 1;
+    return 0;
+}
 uint1024_t init(int size) {
     uint1024_t result;
     result.len = size;
@@ -35,10 +44,9 @@ void removing_zeros(uint1024_t *x) {
 }
 
 void scanf_value(uint1024_t *x) {
-    // 2^1024 - 309 знаков
-    char str[310];
+
+    char str[max_uint1024_len];
     scanf("%309s", str);
-    // длинна строки
     int str_len = strlen(str);
     int num_len;
 
@@ -115,7 +123,8 @@ uint1024_t add_op(uint1024_t x, uint1024_t y) {
 }
 
 uint1024_t subtr_op(uint1024_t x, uint1024_t y) {
-
+    if (x_less_y(x, y))
+        return init(1); // undefined behavior
     int carry = 0;
     int arr_size = max(x.len, y.len);
     uint1024_t result = init(arr_size);
@@ -136,7 +145,8 @@ uint1024_t subtr_op(uint1024_t x, uint1024_t y) {
 }
 
 uint1024_t mult_op(uint1024_t x, uint1024_t y) {
-
+    if (x.len*9 + y.len*9 - 1 > max_uint1024_len)
+        return init(1); // undefined behavior
     int arr_size = x.len + y.len;
     uint1024_t result = init(arr_size);
 
