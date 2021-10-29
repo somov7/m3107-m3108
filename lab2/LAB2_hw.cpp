@@ -14,26 +14,26 @@ void to_zero(uint1024_t *num) {
 }
 
 uint1024_t String_uint1024_t(char *s) {
-    uint1024_t res;
-    to_zero(&res);
+    uint1024_t result;
+    to_zero(&result);
     
     int x = 0;
     int j = 1;
-    int index = strlen(s);
+    int i = strlen(s);
     int base = 1;
     int k = 34;
 
-    while ((index-- > 0) && (k >= 0)) {
-        x += base * (s[index] - 48);
+    while ((i-- > 0) && (k >= 0)) {
+        x += base * (s[i] - 48);
         base *= 10;
-        if (j++ >= 9 || index <= 0) {
-            res.parts[k--] = x;
+        if (j++ >= 9 || i <= 0) {
+            result.parts[k--] = x;
             j = 1;
             base = 1;
             x = 0;
         }
     }
-    return res;
+    return result;
 }
 
 int add(int a, int b, uint8_t *carry) {
@@ -126,9 +126,9 @@ void delLeadZeros(char *str, char *dest)
 
 
 void ToString (uint1024_t res, char *s) {
-    int index = 0;
+    int i = 0;
     for (int i = 0; i < 35; i++) {
-        index += sprintf(&s[index], "%09d", res.parts[i]);
+        i += sprintf(&s[i], "%09d", res.parts[i]);
     }
     delLeadZeros(s, s);
 }
