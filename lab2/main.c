@@ -1,23 +1,35 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
+const int BASE = 1000000000;
 
 typedef struct uint1024 {
-    unsigned char str[128];
+    int* number;
+    size_t size;
 } uint1024_t;
 
 uint1024_t from_uint(unsigned int x) {
     uint1024_t y;
-    for (int i = 0; i < 128; ++i) {
-        y.str[i] = x % 256;
-        x = x / 256;
+    int size;
+    if (x >= BASE) {
+        size = 2;
+    } else {
+        size = 1;
+    }
+    y.number = malloc(size * sizeof(int));
+    y.size = size;
+    y.number[0] = x % BASE;
+    if (size > 1) {
+        y.number[1] = x / BASE;
     }
     return y;
 }
 
 uint1024_t add_op(uint1024_t x, uint1024_t y) {
-    uint1024_t resultAdd = {0};
+    uint1024_t resultAdd;
     short carry = 0;
-    for (int i = 0; i < 128; ++i) {
+    for (int i = 0; i < 2; ++i) {
         resultAdd.str[i] = x.str[i] + y.str[i] + carry;
         carry = 0;
         if (x.str[i] + y.str[i] > 255) {
