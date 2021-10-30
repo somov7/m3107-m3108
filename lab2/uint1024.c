@@ -188,6 +188,6 @@ void printf_value(uint1024_t x) {
     }
 
     for (int i = size - 2; i >= 0; --i) {
-        printf("%d", x.t[i]);
+        printf("%09d", x.t[i]);
     }
 }
