@@ -23,13 +23,19 @@ int max(int a, int b) {
         return b;
 }
 
-int x_less_y(uint1024_t x, uint1024_t y){
+int x_less_y(uint1024_t x, uint1024_t y) {
     if (x.len < y.len)
         return 1;
-    if (x.len == y.len and x.num[x.len-1] < y.num[y.len-1])
-        return 1;
+    if (x.len == y.len) {
+        int ptr = x.len - 1;
+        while (ptr > 0 and x.num[ptr] == y.num[ptr]){
+            ptr--;
+        }
+        return x.num[ptr] < y.num[ptr];
+    }
     return 0;
 }
+
 uint1024_t init(int size) {
     uint1024_t result;
     result.len = size;
@@ -145,7 +151,7 @@ uint1024_t subtr_op(uint1024_t x, uint1024_t y) {
 }
 
 uint1024_t mult_op(uint1024_t x, uint1024_t y) {
-    if (x.len*9 + y.len*9 - 1 > max_uint1024_len)
+    if (x.len * 9 + y.len * 9 - 1 > max_uint1024_len)
         return init(1); // undefined behavior
     int arr_size = x.len + y.len;
     uint1024_t result = init(arr_size);
