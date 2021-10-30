@@ -173,15 +173,18 @@ uint1024_t mult_op(uint1024_t x, uint1024_t y)
 void printf_value(uint1024_t x)
 {
     int size = x.size;
-
+    
+    
     if (!size)
     {
         printf(0);
-    }   else
+    }   
+    else
     {
-        for (int i = size - 1; i >= 0; i--)
+        printf("%d", x.t[size-1]);
+        for (int i = size - 2; i >= 0; i--)
         {
-            printf("%d", x.t[i]);
+            printf("%09d", x.t[i]);
         }
     }
 }
