@@ -191,57 +191,48 @@ void scanf_value(uint1024_t* x)
     char str[1024];
     scanf("%s", str);
 
-    uint1024_t ans;
+    int len = strlen(str);
     int size;
 
-    if (strlen(str) % 9 == 0)
+    if (len % 9 ==0)
     {
-        size = strlen(str) / 9;
+        size = len / 9;
     }   else
     {
-        size = strlen(str) / 9 + 1;
+        size = len / 9 + 1;
     }
 
-    ans.t = malloc(size + sizeof(int32_t));
-    ans.size = size;
+    uint1024_t res;
+    res.t = malloc(size*sizeof(int32_t));
+    res.size = size;
 
-    int i = sizeof(str);
-    int j = 0;
-
-    while (i > 0)
+    for (int i = len, j = 0; i > 0; i -= 9, j++) 
     {
-        str[i] = '\0';
-        
-        if (i >= 9)
-        {
-            ans.t[j] = atoi(str + i - 9);
-        }   else
-        {
-            ans.t[j] = atoi(str);
-        }
-
-        i -= 9;
-        j++;
+	    str[i] = '\0';
+	    res.t[j] = (atoi (i>=9 ? str+i-9 : str));
     }
 
-    *x = ans;
+    *x = res;
 }
 
 int main(int argc, char* argv[])
 {
-    printf_value(from_uint(1111111111));
-    printf("\n");
-    uint1024_t x;
-    uint1024_t y;
-    scanf_value(&x);
-    printf_value(x);
-    scanf_value(&y);
-    printf("\n");
-    printf_value( add_op(from_uint(121111111), from_uint(1111111111)) );
-    printf("\n");
-    printf_value( subtr_op(from_uint(1211111111), from_uint(1111111111)) );
-    printf("\n");
-    printf_value( mult_op(x, y) );
-
+    uint1024_t t1, t2;
+    char buf[310];
+    memset(buf, 0, 310);
+    printf("Enter number 1\n");
+    scanf_value(&t1);
+    printf("Enter number 2\n");
+    scanf_value(&t2);
+    fseek(stdin,0,SEEK_END);
+    printf("Choose operation: + - * \n");
+    scanf("%c", buf);
+    if (!strcmp(buf, "*")) t1 = mult_op(t1, t2);
+    else if (!strcmp(buf, "-")) t1 = subtr_op(t1, t2);
+    else if (!strcmp(buf, "+")) t1 = add_op(t1, t2);
+    printf_value(t1);
+    fseek(stdin,0,SEEK_END);
+ 
+ 
     return 0;
 }
