@@ -81,9 +81,6 @@ uint1024_t subtr_op(uint1024_t x, uint1024_t y) {
     int i = 0;
 
     while (i < size || carry) {
-        if (i == size) {
-            break;
-        }
 
         res.t[i] = x.t[i] - carry;
 
@@ -126,7 +123,7 @@ uint1024_t mult_op(uint1024_t x, uint1024_t y) {
             t = res.t[i + j];
 
             if (j < y.size) {
-                t += 1ll * x.t[i] * y.t[j];
+                t += (long long) x.t[i] * y.t[j];
             }
 
             t += carry;
