@@ -74,10 +74,6 @@ uint1024_t subtr_op(uint1024_t x, uint1024_t y) {
     int size = x.size;
     int carry = 0;
 
-    if (x.size < y.size) {
-        printf("Undefined behaviour");
-        exit(1);
-    }
 
     res.t = calloc(size, sizeof(int32_t));
     res.size = size;
