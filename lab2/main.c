@@ -18,6 +18,7 @@ int max(int a, int b) {
     }
 }
 
+//not working properly on x * y > 1000000000
 uint1024_t mult_op(uint1024_t x, uint1024_t y) {
     int resSize = x.size + y.size;
     uint1024_t resultMult;
@@ -43,7 +44,7 @@ uint1024_t subtr_op(uint1024_t x, uint1024_t y) {
 
     for (int i = 0; i < x.size || underflow; ++i) {
         if (i == x.size) {
-            //break;
+            break;
         }
         resultSubtr.number[i] = x.number[i] - underflow;
         if (i < y.size) {
