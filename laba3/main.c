@@ -14,9 +14,9 @@ typedef struct{
 
 Log *get_next_log(FILE* file) {
     char *line = NULL;
-
     size_t len = getline(&line, &len, file);
-    if (len == -1) {
+    char *line_cpy = line;
+    if (len == -1 || line == NULL) {
         return NULL;
     }
     Log *next_log = (Log *)malloc(sizeof(Log));
@@ -50,11 +50,15 @@ int main(int argc, char** argv) {
         perror("error: ");
         exit(EXIT_FAILURE);
     }
-    Log *newlog = get_next_log(file);
-    print_log(newlog);
-    //free(newlog->request);
-    free(newlog);
-
+    Log *log;
+    int i = 1;
+    while (log = get_next_log(file)) {
+        if (log->status / 100 == 5) {
+            print_log(log);
+            i++;
+        }
+        free(log);
+    }
 }
 
 
