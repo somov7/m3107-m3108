@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include "list.h"
 
 typedef struct{
     char *remote_addr;
@@ -52,7 +53,9 @@ int main(int argc, char** argv) {
     }
     Log *log;
     int i = 1;
+    List list = init(sizeof(Log));
     while (log = get_next_log(file)) {
+
         if (log->status / 100 == 5) {
             print_log(log);
             i++;
