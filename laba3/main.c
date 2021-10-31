@@ -14,6 +14,7 @@ typedef struct{
 
 Log *get_next_log(FILE* file) {
     char *line = NULL;
+
     size_t len = getline(&line, &len, file);
     if (len == -1) {
         return NULL;
@@ -29,7 +30,12 @@ Log *get_next_log(FILE* file) {
     next_log->request = strchr(line, '\"') + 1;
     line = strrchr(line, '\"');
     *line++ = 0;
-
+    line = strchr(line, ' ') + 1;
+    char *tmp = line;
+    line = strchr(line, ' ');
+    *line++ = 0;
+    next_log->status = atoi(tmp);
+    next_log->bytes_send = atoi(line);
     return next_log;
 }
 
