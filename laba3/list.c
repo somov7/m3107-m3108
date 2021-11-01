@@ -13,6 +13,7 @@ List init(size_t element_size) {
             element_size
     };
     list.base->next = list.base->prev = NULL;
+    return list;
 }
 
 int first_add(List list, void *val) {
@@ -23,6 +24,7 @@ int first_add(List list, void *val) {
     node->prev = node->next = NULL;
     list.base->next = list.base->prev = node;
     list.base->next->val = val;
+    return 0;
 }
 
 
@@ -38,8 +40,9 @@ int add_fist(List list, void *val) {
     node->prev = tmp;
     list.base->next = tmp;
     tmp->next = node;
-    tmp->prev = list.base;
+    tmp->prev = NULL;
     tmp->val = val;
+    return 0;
 }
 
 void *peek_fist(List list) {
@@ -55,8 +58,10 @@ void *peek_last(List list) {
 void *pop_fist(List list) {
     Node *node = list.base->next;
     list.base->next = node->next;
-    node->next->prev = list.base;
+    if (node->next) node->next->prev = NULL;
+
     void *val = node->val;
+    node->next = node->prev = NULL;
     free(node);
     return val;
 }
@@ -64,8 +69,10 @@ void *pop_fist(List list) {
 void *pop_last(List list) {
     Node *node = list.base->prev;
     list.base->prev = node->prev;
-    node->prev->next = list.base;
+    if (node->prev) node->prev->next = NULL;
+
     void *val = node->val;
+    node->next = node->prev = NULL;
     free(node);
     return val;
 }
@@ -75,16 +82,17 @@ int add_last(List list, void *val) {
     if (is_empty(list)) {
         return first_add(list, val);
     }
-    Node *tmp = malloc(sizeof(Node));
+    Node *tmp = (Node *) malloc(sizeof(Node));
     if (tmp == NULL) {
         return -1;
     }
     Node *node = list.base->prev;
     node->next = tmp;
     list.base->prev = tmp;
-    tmp->next = list.base;
+    tmp->next = NULL;
     tmp->prev = node;
     tmp->val = val;
+    return 0;
 }
 
 _Bool is_empty(List list) {

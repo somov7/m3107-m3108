@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <time.h>
 #include "list.h"
 
 typedef struct{
@@ -44,6 +45,9 @@ void print_log(Log *log) {
     printf("%s - - [%s] \"%s\" %u %u\n", log->remote_addr, log->local_time, log->request, log->status, log->bytes_send);
 }
 
+uint64_t get_time_in_sec(Log *log) {
+
+}
 
 int main(int argc, char** argv) {
     FILE *file = fopen("/Users/anton/Downloads/access_log_Jul95", "r");
@@ -53,15 +57,17 @@ int main(int argc, char** argv) {
     }
     Log *log;
     int i = 1;
+    List status_list = init(sizeof(Log));
     List list = init(sizeof(Log));
-    while (log = get_next_log(file)) {
-
+    while ((log = get_next_log(file))) {
         if (log->status / 100 == 5) {
+            add_fist(status_list, log);
+            printf("%d: ", i++);
             print_log(log);
-            i++;
         }
-        free(log);
+
     }
+
 }
 
 
