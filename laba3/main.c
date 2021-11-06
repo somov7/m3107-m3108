@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 #include "list.h"
 #include "parser.h"
 
@@ -135,39 +136,41 @@ Log *get_log(FILE *file) {
 
 void print_log(Log *log) {
     char *time = malloc(200);
-    strftime(time, 200, "%d/%b/%Y:%X %Z -0400", gmtime(&log->local_time));
+    strftime(time, 200, "%d/%b/%Y:%X -0400", gmtime(&log->local_time));
     printf("%s - - [%s] \"%s\" %u %u\n", log->remote_addr, time, log->request, log->status, log->bytes_send);
     free(time);
 }
 
-int parsearg(int argc, char **argv, uint64_t *time_win, int *status) {
-    for (int i = 1; i + 1 < argc; i++) {
-        if (argv[i][0] == '-' && argv[2] == 0) {
-            if (argv[i][1] == 't') {
-                *time_win = atol(argv[i+1]);
-            } else if (argv[i][1] == 's') {
-                *status = atoi(argv[i + 1]);
-            } else {
-                return -1;
-            }
-        } else {
-            return -1;
-        }
-    }
-    return 0;
-}
 
 
 int main(int argc, char** argv) {
-    FILE *file = fopen("/Users/anton/Downloads/access_log_Jul95", "r");
-    if (file == NULL) {
-        perror("error: ");
-        exit(EXIT_FAILURE);
-    }
+    FILE *file = NULL;
+
     uint64_t time_win = 0;
     int status = 0;
-    if (parsearg(argc, argv, &time_win, &status) == -1) {
-        perror("bad arguments");
+
+    if (argc < 2) return -1;
+    int c;
+    while ((c = getopt(argc, argv, "t:s:f:")) != -1) {
+        if (c == 't') {
+            time_win = atol(optarg);
+        } else if (c == 's') {
+            status = atoi(optarg);
+        } else if (c == 'f') {
+            //printf("%s\n", optarg);
+            file = fopen(optarg, "r");
+            if (file == NULL) {
+                perror("error: ");
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            perror("bad arg");
+            exit(EXIT_FAILURE);
+        }
+
+    }
+    if (time_win < 0 || status < 0) {
+        perror("Bad arg");
         exit(EXIT_FAILURE);
     }
 
@@ -184,10 +187,11 @@ int main(int argc, char** argv) {
     while (!feof(file)) {
         if ((log = get_log(file)) == NULL) continue;
 
-        if (log->status / 100 == 5) {
+        if (log->status / 100 == status
+         || log->status / 10 == status
+         || log->status == status) {
             printf("%d: ", i++);
             print_log(log);
-            //add_last(status, log);
         }
         add_last(list, log);
         while (1) {
