@@ -24,6 +24,7 @@ void scanf_str(str *x, char input[1000])
         j++;
     }
     j++;
+
      for (int i = 0; input[j] != ']'; i++)
         {
             x -> local_time[i] = input[j];
@@ -37,7 +38,6 @@ void scanf_str(str *x, char input[1000])
     j++;
     for (int i = 0; input[j] != '\"' || input[j+1] != ' '; i++)
         {
-
         x -> request[i] = input[j];
         j++;
         }
@@ -93,7 +93,65 @@ int date(char *input)
     }
     c++;
     temp[0] = input[c]; temp[1] = input[c+1]; // day
-    unsigned int t1 = (atoi(temp) - 1) * 86400;
+    unsigned int t1 = (atoi(temp)) * 86400;
+    c+=3;
+    temp[0] = input[c]; temp[1] = input[c+1]; temp[2] = input[c+2];
+                if (temp == "Jan")
+                {
+                    t1 = t1;
+                }
+                if (temp == "Feb")
+                {
+                    t1 = t1 + 31;
+                }
+                char tmp[4];
+                tmp[0] = input[c+4]; tmp[1] = input[c+5]; tmp[2] = input[c+6]; tmp[3] = input[c+7]; 
+                if (atoi(tmp) & 4 == 0 && temp == "Mar")
+                {
+                    t1 = t1 + 31 + 29;
+                }
+                if (atoi(tmp) & 4 != 0 && temp == "Mar")
+                {
+                    t1 = t1 + 31 + 28;
+                }
+                if (temp == "Apr")
+                {
+                    t1 = t1 + 31 + 28 + 31;
+                }
+                if (temp == "May")
+                {
+                    t1 = t1 + 31 + 28 + 31 + 30;
+                }
+                if (temp == "Jun")
+                {
+                    t1 = t1 + 31 + 28 + 31 + 30 + 31;
+                }
+                if (temp == "Jul")
+                {
+                    t1 = t1 + 31 + 28 + 31 + 30 + 31 + 30;
+                }
+                if (temp == "Aug")
+                {
+                    t1 = t1 + 31 + 28 + 31 + 30 + 31 + 30 + 31;
+                }
+                if (temp == "Sep")
+                {
+                    t1 = t1 + 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31;
+                }
+                if (temp == "Oct")
+                {
+                    t1 = t1 + 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30;
+                }
+                if (temp == "Nov")
+                {
+                    t1 = t1 + 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31;
+                }
+                if (temp == "Dec")
+                {
+                    t1 = t1 + 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30;
+                }
+    temp[0] = input[c]; temp[1] = input[c+1]; temp[2] = input[c+2]; temp[3] = input[c+3]; // year
+    unsigned long int t0 = (atoi(temp)) * 86400 * 365;
     while (input[c] != ':')
     {
         c++;
@@ -122,14 +180,17 @@ int main()
 {
     FILE *fp;
     char input1[1000];
-    fp = fopen("access_log_Jul95.log","r");
+    fp = fopen("access.log","r");
+    int h = 1;
     for(unsigned long z = 0; z < 1891713; z++){
     fgets(input1, 1000, fp);
     str str1;
     scanf_str(&str1, input1);
     if (error_str(str1) == 1)
     {
+    printf("%d ", h);
     printf_str(str1);
+    h++;
     }
     zeroing_str(&str1);
     }
@@ -144,11 +205,11 @@ int main()
     int record_time2 = 0;
     FILE *fp1;
     FILE *fp2;
-    fp1 = fopen("access_log_Jul95.log","r");
-    fp2 = fopen("access_log_Jul95.log","r");
-    for(unsigned long z = 0; z < 1891713; z++)
-    {
-        fgets(input2, 1000, fp1);
+    fp1 = fopen("access.log","r");
+    fp2 = fopen("access.log","r");
+    fgets(input2, 1000, fp1);
+    for(unsigned long z = 0; input2[z] != EOF; z++)
+    {   
         int i = 0;
                 while(interval(date(input2), gapp) >= date(input3))
                 {   
@@ -167,8 +228,10 @@ int main()
                     record_time1 = date(input2);
                     record_time2 = date(input3);
                 }
-                temp = 0;
+                temp = 0;  
+        fgets(input2, 1000, fp1);
         i++;
+
     }
     printf("%d \n", record);
     int day = (record_time1 / 86400) + 1;
@@ -181,4 +244,4 @@ int main()
     minutes = ((record_time2 % 86400) % 3600) / 60;
     seconds = (((record_time2 % 86400) % 3600) % 60 - 1);
     printf("%d Jul %d:%d:%d \n", day, hours, minutes, seconds);
-}
+} 
