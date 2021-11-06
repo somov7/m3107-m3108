@@ -95,6 +95,7 @@ int date(char *input)
     temp[0] = input[c]; temp[1] = input[c+1]; // day
     unsigned int t1 = (atoi(temp)) * 86400;
     c+=3;
+    int flag = 0;
     temp[0] = input[c]; temp[1] = input[c+1]; temp[2] = input[c+2];
                 if (temp == "Jan")
                 {
@@ -106,11 +107,20 @@ int date(char *input)
                 }
                 char tmp[4];
                 tmp[0] = input[c+4]; tmp[1] = input[c+5]; tmp[2] = input[c+6]; tmp[3] = input[c+7]; 
-                if (atoi(tmp) & 4 == 0 && temp == "Mar")
+                if (atoi(tmp) % 4 == 0 && temp == "Mar")
                 {
-                    t1 = t1 + 31 + 29;
+                    if (atoi(tmp) % 100 == 0)
+                    {   
+                        if (atoi(tmp) % 400 == 0)
+                    {
+                        t1 = t1 + 31 + 29;
+                        flag = 1;
+                    }
+                    t1 = t1 + 31 + 28;
+                    }
+                    t1 = t1 + 31 + 28;
                 }
-                if (atoi(tmp) & 4 != 0 && temp == "Mar")
+                if (temp == "Mar")
                 {
                     t1 = t1 + 31 + 28;
                 }
@@ -151,7 +161,14 @@ int date(char *input)
                     t1 = t1 + 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30;
                 }
     temp[0] = input[c]; temp[1] = input[c+1]; temp[2] = input[c+2]; temp[3] = input[c+3]; // year
-    unsigned long int t0 = (atoi(temp)) * 86400 * 365;
+    if (flag == 1)
+    {
+        t1 = t1 + (atoi(temp)) * 86400 * 366;
+    }
+    else
+    {
+        t1 = t1 + (atoi(temp)) * 86400 * 365;
+    }
     while (input[c] != ':')
     {
         c++;
@@ -182,7 +199,8 @@ int main()
     char input1[1000];
     fp = fopen("access.log","r");
     int h = 1;
-    for(unsigned long z = 0; z < 1891713; z++){
+    while(!feof(fp)){
+    for(unsigned long z = 0; input1[z] >= 0; z++){
     fgets(input1, 1000, fp);
     str str1;
     scanf_str(&str1, input1);
@@ -193,6 +211,7 @@ int main()
     h++;
     }
     zeroing_str(&str1);
+    }
     }
     char input2[1000];
     char input3[1000];
@@ -208,7 +227,9 @@ int main()
     fp1 = fopen("access.log","r");
     fp2 = fopen("access.log","r");
     fgets(input2, 1000, fp1);
-    for(unsigned long z = 0; input2[z] != EOF; z++)
+    while(!feof(fp1) && !feof(fp2))
+    {
+    for(unsigned long z = 0; input2[z] >= 0; z++)
     {   
         int i = 0;
                 while(interval(date(input2), gapp) >= date(input3))
@@ -232,6 +253,7 @@ int main()
         fgets(input2, 1000, fp1);
         i++;
 
+    }
     }
     printf("%d \n", record);
     int day = (record_time1 / 86400) + 1;
