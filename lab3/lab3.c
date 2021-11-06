@@ -13,34 +13,28 @@ typedef struct
 void scanf_str(str *x, char input[1000])
 {
     int j = 0;
-
     while (input[j] != ' ')
     {
         x -> remote_adr[j] = input[j];
         j++;
     }
-
     j++;
     while (input[j] != '[')
     {
         j++;
     }
     j++;
-
      for (int i = 0; input[j] != ']'; i++)
         {
             x -> local_time[i] = input[j];
             j++;
         }
-    
-
     j++;
     while (input[j] != '\"')
     {   
         j++;
     }
     j++;
-
     for (int i = 0; input[j] != '\"' || input[j+1] != ' '; i++)
         {
 
@@ -89,7 +83,6 @@ void zeroing_str(str *x)
     x->status = 0;
     x->bytes_send = 0;
 }
-
 int date(char *input)
 {
     int c=0;
@@ -120,8 +113,6 @@ int date(char *input)
     t1 = t1 + atoi(temp);
     return t1;
 }
-
-
 int interval(unsigned int t1, int gap)
 {
     unsigned int t2 = t1 + gap;
@@ -141,7 +132,6 @@ int main()
     printf_str(str1);
     }
     zeroing_str(&str1);
-
     }
     char input2[1000];
     char input3[1000];
@@ -160,9 +150,6 @@ int main()
     {
         fgets(input2, 1000, fp1);
         int i = 0;
-        
-                    
-        
                 while(interval(date(input2), gapp) >= date(input3))
                 {   
                     while (i >= 1)
@@ -180,12 +167,9 @@ int main()
                     record_time1 = date(input2);
                     record_time2 = date(input3);
                 }
-                temp = 0;  
-                
+                temp = 0;
         i++;
-        
     }
-
     printf("%d \n", record);
     int day = (record_time1 / 86400) + 1;
     int hours = (record_time1 % 86400) / 3600;
