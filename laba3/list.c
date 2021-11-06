@@ -10,8 +10,10 @@
 List init(size_t element_size) {
     List list = {
             (Node*) malloc(sizeof(Node)),
-            element_size
+            element_size,
+            malloc(sizeof(size_t))
     };
+    *list.list_size = 0;
     list.base->next = list.base->prev = NULL;
     return list;
 }
@@ -24,6 +26,25 @@ int first_add(List list, void *val) {
     node->prev = node->next = NULL;
     list.base->next = list.base->prev = node;
     list.base->next->val = val;
+    (*list.list_size)++;
+    return 0;
+}
+
+int add_first_cpy(List list, void *val) {
+    if (add_fist(list, val) == -1) return -1;
+    char *buf = malloc(list.elem_size * sizeof(char));
+    if (buf == NULL) return -1;
+    memcpy(buf, val, list.elem_size);
+    list.base->next->val = buf;
+    return 0;
+}
+
+int add_last_cpy(List list, void *val) {
+    if (add_last(list, val) == -1) return -1;
+    char *buf = malloc(list.elem_size * sizeof(char));
+    if (buf == NULL) return -1;
+    memcpy(buf, val, list.elem_size);
+    list.base->prev->val = buf;
     return 0;
 }
 
@@ -42,6 +63,25 @@ int add_fist(List list, void *val) {
     tmp->next = node;
     tmp->prev = NULL;
     tmp->val = val;
+    (*list.list_size)++;
+    return 0;
+}
+
+int add_last(List list, void *val) {
+    if (is_empty(list)) {
+        return first_add(list, val);
+    }
+    Node *tmp = (Node *) malloc(sizeof(Node));
+    if (tmp == NULL) {
+        return -1;
+    }
+    Node *node = list.base->prev;
+    node->next = tmp;
+    list.base->prev = tmp;
+    tmp->next = NULL;
+    tmp->prev = node;
+    tmp->val = val;
+    (*list.list_size)++;
     return 0;
 }
 
@@ -63,6 +103,7 @@ void *pop_fist(List list) {
     void *val = node->val;
     node->next = node->prev = NULL;
     free(node);
+    (*list.list_size)--;
     return val;
 }
 
@@ -74,25 +115,17 @@ void *pop_last(List list) {
     void *val = node->val;
     node->next = node->prev = NULL;
     free(node);
+    (*list.list_size)--;
     return val;
 }
 
-
-int add_last(List list, void *val) {
-    if (is_empty(list)) {
-        return first_add(list, val);
+void delete(List list) {
+    while (is_empty(list)) {
+        Node *node = pop_last(list);
+        free(node);
     }
-    Node *tmp = (Node *) malloc(sizeof(Node));
-    if (tmp == NULL) {
-        return -1;
-    }
-    Node *node = list.base->prev;
-    node->next = tmp;
-    list.base->prev = tmp;
-    tmp->next = NULL;
-    tmp->prev = node;
-    tmp->val = val;
-    return 0;
+    free(list.list_size);
+    free(list.base);
 }
 
 _Bool is_empty(List list) {
