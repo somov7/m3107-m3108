@@ -126,7 +126,7 @@ int main(int argc, char **argv)
     struct tm *time;
     long long timewindow = atoi(argv[2]);
     char symbol;
-    char request[500];
+    char request[2048];
     long long requestlength;
     symbol = fgetc(fin);
     while (symbol != EOF)
