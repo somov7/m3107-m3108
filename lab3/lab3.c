@@ -120,7 +120,7 @@ int date(char *input)
                 }
                 if (temp == "Mar")
                 {
-                    t1 = t1 + (31 + 28) * 3600;
+                    t1 = t1 + (31 + 28) * 3600*24;
                 }
                 if (temp == "Apr")
                 {
