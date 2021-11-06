@@ -95,7 +95,6 @@ int date(char *input)
     temp[0] = input[c]; temp[1] = input[c+1]; // day
     unsigned int t1 = (atoi(temp)) * 86400;
     c+=3;
-    int flag = 0;
     temp[0] = input[c]; temp[1] = input[c+1]; temp[2] = input[c+2];
                 if (temp == "Jan")
                 {
@@ -114,7 +113,6 @@ int date(char *input)
                         if (atoi(tmp) % 400 == 0)
                     {
                         t1 = t1 + 31 + 29;
-                        flag = 1;
                     }
                     t1 = t1 + 31 + 28;
                     }
@@ -161,13 +159,30 @@ int date(char *input)
                     t1 = t1 + 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30;
                 }
     temp[0] = input[c]; temp[1] = input[c+1]; temp[2] = input[c+2]; temp[3] = input[c+3]; // year
-    if (flag == 1)
+    for (int year = 0; year <= atoi(temp); year++)
     {
-        t1 = t1 + (atoi(temp)) * 86400 * 366;
-    }
-    else
-    {
-        t1 = t1 + (atoi(temp)) * 86400 * 365;
+        if (year % 4)
+        {
+            if (year % 100)
+            {
+                if (year % 400)
+                {
+                    t1 = t1 + 366;
+                }
+                else
+                {
+                    t1 = t1 +365;
+                }
+            }
+            else
+            {
+                t1 = t1 + 366;
+            }
+        }
+        else
+        {
+            t1 = t1 + 365;
+        }
     }
     while (input[c] != ':')
     {
