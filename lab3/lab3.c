@@ -118,7 +118,7 @@ int date(char *input)
                     }
                     t1 = t1 + 31 + 28;
                     }
-                    t1 = t1 + 31 + 28;
+                    t1 = t1 + 31 + 29;
                 }
                 if (temp == "Mar")
                 {
