@@ -85,11 +85,25 @@ char *convert_unixtime(time_t x){
     strftime(time_str, 21, "%d/%b/%Y:%H:%M:%S", tmp);
     return time_str;
 }
-int main() {
-    FILE *F = fopen("access_log_Jul95.log", "r"),
-         *err_file = fopen("error.log", "w");
+int main(int argc, char *argv[]) {
+    FILE *F, *err_file;
+    F = fopen(argv[1], "r");
+    if (argv[1] == NULL || argv[2] == NULL) {
+         printf("Not enough arguments");
+        return 1;
+    }
+    else if (argc > 3) {
+        printf("Too much arguments");
+        return 1;
+    }
+    else if (!F){
+        printf("Cannot open this file");
+        return 1;
+    }
 
-    char s[513];
+    err_file = fopen("error.log", "w");
+
+    char s[2048];
     int cnt = 0, diff, cntw = 0;
     log l;
     queue *q = malloc(sizeof(queue));
@@ -98,9 +112,9 @@ int main() {
     q->tail = NULL;
     win->size = 0;
 
-    printf("Time interval (seconds):");
-    scanf("%i", &diff);
-    while (fgets(s, 513, F)) {
+
+    diff = atoi(argv[2]);
+    while (fgets(s, 2048, F)) {
         if (count_quotes(s) > 2) {
             fprintf(err_file, "%s", s);
             continue;
