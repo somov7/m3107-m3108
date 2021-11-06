@@ -1,0 +1,80 @@
+#include <stdio.h>
+#include <string.h>
+#define SIZE 1891714
+#define par 1000
+int main(void)
+{
+ FILE* log_file;
+ FILE* result_file;
+ int kol=0;
+ int k;
+ int n;
+ char current_str[500];
+int *integer_array = (int*)malloc(SIZE * sizeof(int));
+ log_file=fopen("file.txt", "r");
+ result_file=fopen("result.txt", "w");
+   char *p;
+ while(!(feof(log_file)))
+   {   
+    fgets(current_str, 500, log_file);
+	  if (((strstr(current_str," 500 "))!=NULL)||((strstr(current_str," 501 "))!=NULL))
+        {
+        	 kol=kol+1;	      	 
+    fprintf(result_file,"Poriadkovi nomer stroki: %i.nomer stroki v file: %i. stroka: %s",kol,n+1,current_str);  
+        }	  
+    n++;
+   }
+   fprintf(result_file,"Kol-vo neudachnih zaprosov:%i\n",kol);
+rewind(log_file);
+int kolkol=0;
+while(!(feof(log_file)))
+   {   
+    fgets(current_str, 500, log_file);
+    int k = 0;
+    for( p = strtok( current_str, "[" ); p; p = strtok( NULL, "]" ) )
+    {
+        k++;
+        if(k == 2)
+        {
+         int day_1 = p[0] - '0';
+         int day_2 = p[1] - '0';
+         int hour_1 = p[12] - '0';
+         int hour_2 = p[13] - '0';
+         int minute_1 = p[15] - '0';
+         int minute_2 = p[16] - '0';
+         int second_1 = p[18] - '0';
+         int second_2 = p[19] - '0';
+         kolkol++;
+         int SUM=(day_1*10+day_2)*24*60*60+(hour_1*10+hour_2)*60*60+(minute_1*10+minute_2)*60+(second_1*10+second_2);
+         integer_array[kolkol]=SUM;
+        }
+    }     	 
+   }
+int raz=0;
+int parametr=par+1;
+int left=0;
+int right=0;
+int max=0;
+for (int i=1;i<SIZE;i++)
+{
+left=i;
+right=i;
+for (int j=i;raz<parametr;j++)
+{
+  raz=raz+integer_array[j+1]-integer_array[j];
+  right++;
+}
+if(right-left>max)
+max=right-left;
+if(integer_array[right]-integer_array[left]==parametr)
+{
+fprintf(result_file,"(%d-%d) %i %i\n",integer_array[left],integer_array[right],right-left,max);
+}
+raz=0;
+}
+
+ fclose(log_file);
+ fclose(result_file);	
+	
+ return 0;
+}
