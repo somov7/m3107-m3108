@@ -93,7 +93,7 @@ int date(char *input)
     }
     c++;
     temp[0] = input[c]; temp[1] = input[c+1]; // day
-    unsigned int t1 = (atoi(temp)) * 86400;
+    unsigned int t1 = ((atoi(temp))-1) * 86400;
     c+=3;
     temp[0] = input[c]; temp[1] = input[c+1]; temp[2] = input[c+2];
                 if (temp == "Jan")
@@ -102,7 +102,7 @@ int date(char *input)
                 }
                 if (temp == "Feb")
                 {
-                    t1 = t1 + 31;
+                    t1 = t1 + 31*3600*24;
                 }
                 char tmp[4];
                 tmp[0] = input[c+4]; tmp[1] = input[c+5]; tmp[2] = input[c+6]; tmp[3] = input[c+7]; 
@@ -159,7 +159,7 @@ int date(char *input)
                     t1 = t1 + (31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30)*3600*24;
                 }
     temp[0] = input[c]; temp[1] = input[c+1]; temp[2] = input[c+2]; temp[3] = input[c+3]; // year
-    for (int year = 0; year <= atoi(temp); year++)
+    for (int year = 1; year < atoi(temp); year++)
     {
         if (year % 4)
         {
