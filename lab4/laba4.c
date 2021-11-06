@@ -4,37 +4,6 @@
 #include <stdint.h>
 #include <windef.h>
 
-int syncint_encode(int value) //функция кодирования syncsafe интов
-{
-    int out, mask = 0x7F;
-
-    while (mask ^ 0x7FFFFFFF) {
-        out = value & ~mask;
-        out <<= 1;
-        out |= value & mask;
-        mask = ((mask + 1) << 8) - 1;
-        value = out;
-    }
-
-    return out;
-}
-
-int syncint_decode(int value) //функция декодирования syncsafe интов
-{
-    unsigned int a, b, c, d, result = 0;
-    a = value & 255;
-    b = (value >> 8) & 255;
-    c = (value >> 16) & 255;
-    d = (value >> 24) & 255;
-
-    result = result | a;
-    result = result | (b << 7);
-    result = result | (c << 14);
-    result = result | (d << 21);
-
-    return result;
-}
-
 #pragma pack(push,1) //чтобы структуры были едиными без паддинга байтов
 typedef struct tagHEADER //структура хедера ID3v2.4
 {
@@ -51,24 +20,23 @@ typedef struct tagFRAME //(фрейм 10 байтов, но после идет 
     char flag[2]; //flags
     char unicode; //unicode flag right after the frame
 } ID3FRAME;
-//#pragma pack(pop)
+#pragma pack(pop)
 
 ID3HEADER header;
 ID3FRAME frame;
 
 int btoi(char ch[4]) //байты в инт
 {
-    return syncint_decode(((int)ch[0] << 24) + ((int)ch[1] << 16)  
-        + ((int)ch[2] << 8) + ((int)ch[3] << 0));
+    return ch[0] << 21 | ch[1] << 14 | ch[2] << 7 | ch[3] << 0;
 }
 
 void itob(int x, char* ch)
 {
-    int t = syncint_encode(x);
-    ch[0] = (t >> 24) & ((1 << 8) - 1);
-    ch[1] = (t >> 16) & ((1 << 8) - 1);
-    ch[2] = (t >> 8) & ((1 << 8) - 1);
-    ch[3] = (t >> 0) & ((1 << 8) - 1);
+    int bits = 127;
+    ch[3] = x & bits;
+    ch[2] = (x >> 7) & bits;
+    ch[1] = (x >> 14) & bits;
+    ch[0] = (x >> 21) & bits;
 }
 
 char* getval(char* str)
@@ -157,7 +125,8 @@ void updateidv3(char* filepath, char* prop_name, char* prop_val)
     fseek(read, read_offset, SEEK_SET);
     fread(buf, 1, read_size, read);
     fwrite(buf, 1, read_size, write);
-
+    free(buf);
+    
     fclose(read);
     fclose(write);
     remove(filepath);
