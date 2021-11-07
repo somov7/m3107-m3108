@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <windef.h>
 
 #pragma pack(push,1) //чтобы структуры были едиными без паддинга байтов
 typedef struct tagHEADER //структура хедера ID3v2.4
@@ -37,17 +35,6 @@ void itob(int x, char* ch)
     ch[2] = (x >> 7) & bits;
     ch[1] = (x >> 14) & bits;
     ch[0] = (x >> 21) & bits;
-}
-
-char* getval(char* str)
-{
-    char* split = strtok(str,"=");
-    if (split == NULL) return NULL;
-    split = strtok(NULL, "=");
-    if (split == NULL) return NULL;
-    char* val = (char*)malloc(strlen(split));
-    strcpy(val, split);
-    return val;
 }
 
 unsigned int readidv3(char* filepath, char* prop_name, int set, int* old_frame_size)
@@ -133,60 +120,51 @@ void updateidv3(char* filepath, char* prop_name, char* prop_val)
     rename("temp", filepath);
 }
 
+
+void getval(char* str, char** target)
+{
+    char* split = strtok(str,"=");
+    if (split != NULL)
+        split = strtok(NULL, "=");
+    if (split == NULL) {
+        printf("Wrong format");
+        exit(1);
+    }
+    *target = (char*)malloc(strlen(split));
+    strcpy(*target, split);
+}
+
+
 int main(int argc, char* argv[])
 {
     char* filepath = NULL;
     char* prop_name = NULL;
     char* prop_value = NULL;
     int show = 0, get = 0, set = 0;
-    if (argc < 3)
-    {
+    if (argc < 3) {
         printf("Correct usage: --filepath=<path>\n--show\n--set=<propname> --value=<propvalue>\n--get=<propname>");
         return 1;
     }
-    for (int i = 1; i < argc; i++)
-    {
-        if (strstr(argv[i], "--filepath")) //ищем подстроку т.к. аргумент и значение идет как одна строка --filepath=path.mp3
-        {
-            if (!(filepath = getval(argv[i])))
-            {
-                printf("Wrong format");
-                return 1;
-            }
+    for (int i = 1; i < argc; i++) {
+        if (strstr(argv[i], "--filepath")) {
+            getval(argv[i], &filepath);
             printf("filepath: %s\n", filepath);
         }
-        else if (strstr(argv[i], "--set"))
-        {
+        else if (strstr(argv[i], "--set")) {
             set = 1;
-            if (!(prop_name = getval(argv[i])))
-            {
-                printf("Wrong format");
-                return 1;
-            }
+            getval(argv[i], &prop_name);
         }
-        else if (strstr(argv[i], "--get"))
-        {
+        else if (strstr(argv[i], "--get")) {
             get = 1;
-            if (!(prop_name = getval(argv[i])))
-            {
-                printf("Wrong format");
-                return 1;
-            }
+            getval(argv[i], &prop_name);
         }
-        else if (strstr(argv[i], "--value"))
-        {
-           if (!(prop_value = getval(argv[i])))
-           {
-               printf("Wrong format");
-               return 1;
-           }
+        else if (strstr(argv[i], "--value")) {
+            getval(argv[i], &prop_value);
         }
-        else if (!strcmp(argv[i], "--show"))
-        {
+        else if (!strcmp(argv[i], "--show")) {
             show = 1;
         }
-        else
-        {
+        else {
             printf("Wrong format");
             return 1;
         }
