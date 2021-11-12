@@ -6,7 +6,7 @@
 #include <iso646.h>
 
 
-const int maxReqLen = 2048;
+const int maxReqLen = 4096;
 const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
