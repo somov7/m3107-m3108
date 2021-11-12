@@ -25,11 +25,11 @@ uint1024_t mult_op(uint1024_t x, uint1024_t y) {
     resultMult.number = calloc(resSize, sizeof (int));
     resultMult.size = resSize;
     for (int i = 0; i < x.size; ++i) {
-        for (int j = 0; j < x.size - i; ++j) {
+        for (int j = 0; j < y.size - i; ++j) {
             resultMult.number[i + j] += x.number[i] * y.number[j];
         }
     }
-    for (int i = 0; i < x.size - 1; ++i) {
+    for (int i = 0; i < resSize - 1; ++i) {
         resultMult.number[i + 1] += resultMult.number[i] / BASE;
         resultMult.number[i] %= BASE;
     }
@@ -85,24 +85,13 @@ uint1024_t add_op(uint1024_t x, uint1024_t y) {
     resultAdd.size = resSize;
     short overflow = 0;
 
-    for (int i = 0; i < resSize || overflow; ++i) {
-        if (i == resSize) {
-            resultAdd.number = realloc(resultAdd.number, (resSize + 1) * sizeof (int));
-            resultAdd.number[resSize] = 0;
-            resultAdd.size += 1;
-        }
-        resultAdd.number[i] += overflow;
-        if (i < x.size) {
-            resultAdd.number[i] += x.number[i];
-        }
-        if (i < y.size) {
-            resultAdd.number[i] += y.number[i];
-        }
+    for (int i = 0; i < resSize; ++i) {
+        resultAdd.number[i] = overflow + x.number[i] + y.number[i];
+    }
+    for (int i = 0; i < resSize - 1; ++i) {
         if (resultAdd.number[i] >= BASE) {
-            overflow = 1;
             resultAdd.number[i] -= BASE;
-        } else {
-            overflow = 0;
+            resultAdd.number[i + 1]++;
         }
     }
     return resultAdd;
