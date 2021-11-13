@@ -27,5 +27,9 @@ int main(int argc, char** argv) {
 
   fclose(file);
 
+  clock_t end = clock();
+  double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
+  printf("Time: %f\n", time_spent);
+
   return 0;
 }
