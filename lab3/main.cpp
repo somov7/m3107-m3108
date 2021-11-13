@@ -7,7 +7,7 @@ int main( void )
 {
     struct tm time;
 
-    int* secsArr;
+    int* secarr;
     int win;
     int strcnt = 1, months = 0, number = 0, errorcnt = 0, status;
 
@@ -42,7 +42,7 @@ int main( void )
         c = fgetc(File);
     }
 
-    secsArr = (int*)malloc(sizeof(int) * strcnt);
+    secarr = (int*)malloc(sizeof(int) * strcnt);
 
     fseek(File, 0, SEEK_SET);
 
@@ -72,19 +72,19 @@ int main( void )
         }
 
         time.tm_mon = months;
-        secsArr[n] = mktime(&time);
+        secarr[n] = mktime(&time);
         n++;
     }
 
-    int supportArr = 0, cnt = 1, maxr = 0, j = 1, frst, last;
+    int suparr = 0, cnt = 1, maxr = 0, j = 1, frst, last;
     for (int i = 1; i < strcnt; i++) 
     {
-        supportArr += secsArr[i] - secsArr[i - 1];
+        suparr += secarr[i] - secarr[i - 1];
         cnt++;
 
-        while (supportArr > win && j + 1 < strcnt) 
+        while (suparr > win && j + 1 < strcnt) 
         {
-            supportArr -= (secsArr[j] - secsArr[j - 1]);
+            suparr -= (secarr[j] - secarr[j - 1]);
             j++;
             cnt--;
 
