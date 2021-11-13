@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
         timeWindow = atoi(argv[1]);
     }
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 1000; i++) {
         errors[i] = (char *) malloc(1000 * sizeof(char));
     }
 
