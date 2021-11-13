@@ -73,7 +73,7 @@ long long timeFromString(char *str) {
 //  изначально использовал функцию strptime() из time.h, которая автоматически парсит строку в time_t,
 //  но ручной парс работает ± в 15 раз быстрее (по крайней мере на моём ПК), поэтому оставил его :)
     int d = atoi(str);
-    int y = atoi(str + 7)-1995;
+    int y = atoi(str + 7)-1900;
     int h = atoi(str + 12);
     int s = atoi(str + 18);
     int m = atoi(str + 15);
