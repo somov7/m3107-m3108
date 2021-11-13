@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
         errors[i] = (char *) malloc(1000 * sizeof(char));
     }
 
-    fp = fopen("access_log_Jul95", "r");
+    fp = fopen(filename, "r");
     if (fp == NULL)
         exit(EXIT_FAILURE);
 
