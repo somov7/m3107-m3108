@@ -9,7 +9,8 @@
 long parse_time(char* time_string)
 {
     char time_format[7] = "//::: ", parsed_time[7][6] = { "" };
-    int i = 0, time_type = 0, index = 0;
+    int i = 0, time_type = 0, index = 0, month = 0;
+    char months[12][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
     while (time_string[i])
     {
@@ -20,13 +21,17 @@ long parse_time(char* time_string)
         ++i;
     }
 
+    for (int j = 0; j < 12; j++)
+        if (!strcmp(parsed_time[1], months[j]))
+            month = j;
+
     struct tm tdate = {
-        .tm_mday = atof(parsed_time[0]),
-        .tm_mon = atof(parsed_time[1]) - 1,
-        .tm_year = atof(parsed_time[2]) - 1900,
-        .tm_hour = atof(parsed_time[3]),
-        .tm_min = atof(parsed_time[4]),
-        .tm_sec = atof(parsed_time[5]),
+        .tm_mday = atoi(parsed_time[0]),
+        .tm_mon = month,
+        .tm_year = atoi(parsed_time[2]) - 1900,
+        .tm_hour = atoi(parsed_time[3]),
+        .tm_min = atoi(parsed_time[4]),
+        .tm_sec = atoi(parsed_time[5]),
         .tm_isdst = 0
     };
 
