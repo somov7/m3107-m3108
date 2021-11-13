@@ -60,31 +60,24 @@ char *getSubstring(char *str) {
     return result;
 }
 
-long long timeFromString(char *str) {
+time_t timeFromString(char *str) {
     if (str == NULL)
         return 0;
-    long long result = 0;
     char months[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+    struct tm time = {0};
     for (int i = 0; i < 12; ++i)
         if (!strcmp(months[i], str + 3)) {
-            result = i*2592000;
+            time.tm_mon = i;
             break;
         }
-//  изначально использовал функцию strptime() из time.h, которая автоматически парсит строку в time_t,
-//  но ручной парс работает ± в 15 раз быстрее (по крайней мере на моём ПК), поэтому оставил его :)
-    int d = atoi(str);
-    int y = atoi(str + 7)-1900;
-    int h = atoi(str + 12);
-    int s = atoi(str + 18);
-    int m = atoi(str + 15);
-    int gh = (str[22] - '0') * 10 + (str[23] - '0');
-    int gm = (str[24] - '0') * 10 + (str[25] - '0');
-    result += y * 31536000 + d * 86400 + h * 3600 + m * 60 + s;
-    if (str[21] == '-')
-        result -= (gh * 3600 + gm * 60);
-    else
-        result += (gh * 3600 + gm * 60);
-    return result;
+    time.tm_year = atoi(str + 7) - 1900;
+    time.tm_mday = atoi(str);
+    time.tm_hour = atoi(str + 12);
+    time.tm_min = atoi(str + 15);
+    time.tm_sec = atoi(str + 18);
+    time.tm_isdst = -1;
+    time.tm_gmtoff = ((str[22] - '0') * 10 + (str[23] - '0')) * 3600 + ((str[24] - '0') * 10 + (str[25] - '0')) * 60;
+    return mktime(&time);
 }
 
 char parseOnError(char *str) {
@@ -118,7 +111,7 @@ void parseLogs(FILE *input, long long maxInterval) {
         fseek(input, currentPosition1, SEEK_SET);
         fgets(str1, 2049, input);
         char *subStr1 = getSubstring(str1);
-        long long firstTime = timeFromString(subStr1);
+        time_t firstTime = timeFromString(subStr1);
         currentPosition1 = ftell(input);
         if (currentPosition2 > currentPosition1)
             fseek(input, currentPosition2, SEEK_SET);
@@ -128,7 +121,7 @@ void parseLogs(FILE *input, long long maxInterval) {
             if (parseOnError(str2))
                 errorsCount++;
             char *subStr2 = getSubstring(str2);
-            long long lastTime = timeFromString(subStr2);
+            time_t lastTime = timeFromString(subStr2);
             if (difftime(lastTime, firstTime) > maxInterval)
                 break;
             if (currentPosition2 >= end)
