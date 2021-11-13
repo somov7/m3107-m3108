@@ -143,7 +143,7 @@ void parseLogs(FILE *input, long long maxInterval) {
         printf("         ||\n");
     }
     printf("log's have %ld 5xx errors\n", errorsCount);
-    printf("max log's window in %ld sec contain %ld queries\nfrom: %s\nto: %s", maxInterval, maxCount, maxStr1,
+    printf("max log's window in %lld sec contain %ld queries\nfrom: %s\nto: %s", maxInterval, maxCount, maxStr1,
            maxStr2);
 }
 
