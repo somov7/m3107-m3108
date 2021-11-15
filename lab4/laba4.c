@@ -38,7 +38,7 @@ void itob(int x, char* ch)
     ch[0] = (x >> 21) & bits;
 }
 
-unsigned int readidv3(char* filepath, char* prop_name, int set, int* old_frame_size)
+int readidv3(char* filepath, char* prop_name, int set, int* old_frame_size)
 {
     FILE* f = fopen(filepath, "rb");
     if (f == NULL) {
@@ -46,9 +46,9 @@ unsigned int readidv3(char* filepath, char* prop_name, int set, int* old_frame_s
         exit(1);
     }
     fread(&header, 1, 10, f); //читаем хедер 10 байтов
-    unsigned int k = btoi(header.size); //размер всей структуры ID3 включая хедер
+    int k = btoi(header.size); //размер всей структуры ID3 включая хедер
     printf("size struct: %d\n", k);
-    unsigned int write_pos = 0;
+    int write_pos = 0;
     while (fread(&frame, 1, 11, f)) //читаем фрейм 10 байтов + 1 байт перед строкой юникода
     {
         if (frame.frameid[0] == 0 || ftell(f) >= k) {
@@ -57,7 +57,7 @@ unsigned int readidv3(char* filepath, char* prop_name, int set, int* old_frame_s
         }
         //больше нечего читать, т.к. первый символ в названии ид фрейма не может быть равен нулю
         //либо если нет паддинга нулевыми байтами, то прочитали больше, чем нужно
-        unsigned int sz = btoi(frame.size); //размера значения фрейма (длина строки)
+        int sz = btoi(frame.size); //размера значения фрейма (длина строки)
         char* buf = (char*)malloc(sz); //размер строки включает 1 байт для юникода в начале, поэтому все ок
         fgets(buf, sz, f); //прочитали структуру фрейма включая 1 байт юникода, теперь читаем значение
         //прочитает sz-1 байт, в конец добавит нуль терминатор
@@ -100,12 +100,12 @@ void updateidv3(char* filepath, char* prop_name, char* prop_val)
         printf("Can't open/create file");
         exit(1);
     }
-    unsigned int* old_frame_size = calloc(1, sizeof(unsigned int));
-    unsigned int write_pos = readidv3(filepath, prop_name, 1, old_frame_size);
+    int* old_frame_size = calloc(1, sizeof(int));
+    int write_pos = readidv3(filepath, prop_name, 1, old_frame_size);
     
     int size_diff = strlen(prop_val) - (*old_frame_size-1);
     fread(&header, 1, 10, read); //читаем хедер 10 байтов
-    unsigned int k = btoi(header.size); //размер всей структуры ID3 включая хедер
+    int k = btoi(header.size); //размер всей структуры ID3 включая хедер
     k += size_diff; //обновили размер структуры в соответствии с новым фреймом
     itob(k, header.size);
     fwrite(&header, 1, 10, write); //записали новый хедер
@@ -122,8 +122,8 @@ void updateidv3(char* filepath, char* prop_name, char* prop_val)
     free(buf);
     fseek(read, 0, SEEK_END);
     printf("old fr sz: %d\n", *old_frame_size);
-    unsigned int read_offset = *old_frame_size ? write_pos+10+*old_frame_size : write_pos;
-    unsigned int read_size = ftell(read) - read_offset;
+    int read_offset = *old_frame_size ? write_pos+10+*old_frame_size : write_pos;
+    int read_size = ftell(read) - read_offset;
     buf = (char*)malloc(read_size);
     fseek(read, read_offset, SEEK_SET);
     fread(buf, 1, read_size, read);
