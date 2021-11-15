@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <locale.h>
 
 #pragma pack(push,1) //чтобы структуры были едиными без паддинга байтов
 typedef struct tagHEADER //структура хедера ID3v2.4
@@ -60,10 +61,25 @@ unsigned int readidv3(char* filepath, char* prop_name, int set, int* old_frame_s
         char* buf = (char*)malloc(sz); //размер строки включает 1 байт для юникода в начале, поэтому все ок
         fgets(buf, sz, f); //прочитали структуру фрейма включая 1 байт юникода, теперь читаем значение
         //прочитает sz-1 байт, в конец добавит нуль терминатор
-        if (prop_name == NULL) 
-            printf("pos: %d id: %s size: %d value: %s\n", ftell(f), frame.frameid, sz, buf); //выводим все фреймы
+        if (prop_name == NULL) {
+            printf("pos: %-10d id: %-10s size: %-10d value: ", ftell(f), frame.frameid, sz); //выводим все фреймы
+            if (frame.unicode) {
+                wprintf(L"%s\n", buf);
+            }
+            else {
+                printf("%s\n", buf);
+            }
+        }
         else if (!strcmp(frame.frameid, prop_name)) {
-            if (set == 0) printf("id: %s value: %s", frame.frameid, buf); //вывод одного фрейма
+            if (set == 0) {
+                printf("id: %-10s value: ", frame.frameid); //вывод одного фрейма
+                if (frame.unicode) {
+                    wprintf(L"%s\n", buf);
+                }
+                else {
+                    printf("%s\n", buf);
+                }
+            }
             else {
                 *old_frame_size = sz;
                 write_pos = ftell(f)-10-sz;
@@ -137,14 +153,18 @@ void getval(char* str, char** target)
 
 int main(int argc, char* argv[])
 {
+    setlocale(LC_ALL, "Russian");
+
     char* filepath = NULL;
     char* prop_name = NULL;
     char* prop_value = NULL;
     int show = 0, get = 0, set = 0;
+
     if (argc < 3) {
         printf("Correct usage: --filepath=<path>\n--show\n--set=<propname> --value=<propvalue>\n--get=<propname>");
         return 1;
     }
+
     for (int i = 1; i < argc; i++) {
         if (strstr(argv[i], "--filepath")) {
             getval(argv[i], &filepath);
@@ -169,6 +189,7 @@ int main(int argc, char* argv[])
             return 1;
         }
     }
+    
     if (show) 
         readidv3(filepath, NULL, 0, NULL);
     else if (get)
