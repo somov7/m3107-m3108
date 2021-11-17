@@ -136,7 +136,7 @@ void arr_to_bmp(char* folderpath, int count)
         for(int x = 0; x < w; x++)
         {
             int pos = x / 8; //скипаем паддинг байты в строке байтов. если ширина 20 пикселей, будет от 0 до 2, всего 3 байта, в которых и есть все нужны биты
-            if (v[y*w+x]) scan[pos] |= 1 << (7 - x % 8); //составляем байт. |=  (=)  +=, т.к. позиция битов всегда различна
+            if (v[y*w+x]) scan[pos] |= 1 << (7 - x % 8); //составляем байт
         }
         fwrite(scan, 1, linesize, resimg); //записали сканлинию
         free(scan);
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
 {
     char* input_file;
     char* output_folder;
-    int max_iter = 300; //ограничено 100 картинками, чтобы не убить SSD
+    int max_iter = 500; //ограничено 500 картинками, чтобы не убить SSD
     int dump_freq = 1;
 
     if (argc <= 4) 
