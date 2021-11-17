@@ -15,6 +15,8 @@ void checkInput(unsigned short argc, FILE *file) {
 }
 
 int main(int argc, char *argv[]) {
+    struct tm time;
+    char monthsList[][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
     int countErrors = 0;
     char month[4];
     char remote_addr[2048];
@@ -22,9 +24,11 @@ int main(int argc, char *argv[]) {
     char request[2048];
     int status;
     int bytes_send;
+    int convertedTimeSize = 2048;
+    time_t* convertedTime = (time_t*)malloc(sizeof(time_t) * convertedTimeSize);
+    int lineNumber = 0;
 
-    FILE *log;
-    log = fopen(argv[2], "r");
+    FILE* log = fopen(argv[2], "r");
     checkInput(argc, log);
 
     printf("List of requests ended with error 5xx");
@@ -34,6 +38,23 @@ int main(int argc, char *argv[]) {
             countErrors++;
             printf("\n%d. %s - error %d", countErrors, request, status);
         }
+        sscanf(local_time, "%d/%3s/%d:%d:%d:%d", &time.tm_mday, &month, &time.tm_year, &time.tm_hour, &time.tm_min, &time.tm_sec);
+        time.tm_year -= 1900;
+
+        for(int i = 0; i < 12; i++){
+            if (strcmp(monthsList[i], month) == 0){
+                time.tm_mon = i;
+                break;
+            }
+        }
+
+        if (lineNumber == convertedTimeSize) {
+            convertedTimeSize *= 2;
+            convertedTime = realloc(convertedTime, sizeof(time_t) * convertedTimeSize);
+        }
+        convertedTime[lineNumber] = mktime(&time);
+        lineNumber += 1;
     }
-    printf("\n%d", countErrors);
+
+    printf("\n\nThere are %d 5xx errors in %s", countErrors, argv[2]);
 }
