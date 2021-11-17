@@ -130,17 +130,18 @@ void arr_to_bmp(char* folderpath, int count)
     fwrite(buf, 1, bitmapFileHeader.bfOffBits, resimg);
     free(path);
     free(buf);
+    char* scan = calloc(linesize, 1); //строки байтов размера linesize что мы будем писать в файл
     for(int y = 0; y < h; y++)
     {
-        char* scan = calloc(linesize, 1); //строки байтов размера linesize что мы будем писать в файл
         for(int x = 0; x < w; x++)
         {
             int pos = x / 8; //скипаем паддинг байты в строке байтов. если ширина 20 пикселей, будет от 0 до 2, всего 3 байта, в которых и есть все нужны биты
             if (v[y*w+x]) scan[pos] |= 1 << (7 - x % 8); //составляем байт
         }
         fwrite(scan, 1, linesize, resimg); //записали сканлинию
-        free(scan);
+        memset(scan, 0, linesize);
     }
+    free(scan);
     fclose(resimg);
 }
 
