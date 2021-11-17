@@ -41,12 +41,9 @@ FILE* img;
 
 void next_life(int freq) //генерируем новую жизнь наивным алгоритмом, new_v временный массив для новых битов
 {
-    for (int i = 0; i < freq; i++)
-    {
-        for (int x = 0; x < h; x++)
-        {
-            for (int y = 0; y < w; y++)
-            {
+    for (int i = 0; i < freq; i++) {
+        for (int x = 0; x < h; x++) {
+            for (int y = 0; y < w; y++) {
                 int c = 0;
                 for (int t = -1; t <= 1; t++)
                     for (int j = -1; j <= 1; j++)
@@ -63,22 +60,20 @@ void next_life(int freq) //генерируем новую жизнь наивн
                 else new_v[t] = 0;
             }
         }
-    memcpy(v, new_v, w*h);
-    memset(new_v, 0, w*h);
+        memcpy(v, new_v, w*h);
+        memset(new_v, 0, w*h);
     }
 }
 
 int bmp_to_arr(char* imgpath) //читаем 1-битовую bmp в массив v
 {
     img = fopen(imgpath, "rb");
-    if (!img)
-    {
+    if (!img) {
         printf("Can't open file");
         exit(1);
     }
     fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER),1,img); //читаем файл хедер бмп
-    if (bitmapFileHeader.bfType != 0x4D42) //проверим если тип файла бмп
-    {
+    if (bitmapFileHeader.bfType != 0x4D42) {//проверим если тип файла бмп 
         fclose(img);
         exit(1);
     }
@@ -95,10 +90,8 @@ int bmp_to_arr(char* imgpath) //читаем 1-битовую bmp в масси�
     printf("linesize: %d\n", linesize);
     char* data = (char*)malloc(filesize);
     fread(data, 1, filesize, img); //прочитаем все байты картинки
-    for(int y = h - 1; y >= 0; y--)
-    {
-        for(int x = 0; x < w; x++)
-        {
+    for(int y = h - 1; y >= 0; y--) {
+        for(int x = 0; x < w; x++) {
             int pos = y * linesize + x / 8; //возьмем первый байт (первый с последней по формату бмп)
             //x / 8 - восемь раз читаем один байт, перед тем, как перейти к следующему
             //y * linesize - скипаем паддинг байты
@@ -122,8 +115,7 @@ void arr_to_bmp(char* folderpath, int count)
     char* path = (char*)malloc(sizeof(folderpath)+6);
     sprintf(path, "%s\\%d.bmp", folderpath, count); //форматируем путь в соответствии с папкой и count итерацией
     FILE* resimg = fopen(path, "wb");
-    if (resimg == NULL)
-    {
+    if (resimg == NULL) {
         printf("Failed to open file");
         exit(1);
     }
@@ -131,10 +123,8 @@ void arr_to_bmp(char* folderpath, int count)
     free(path);
     free(buf);
     char* scan = calloc(linesize, 1); //строки байтов размера linesize что мы будем писать в файл
-    for(int y = 0; y < h; y++)
-    {
-        for(int x = 0; x < w; x++)
-        {
+    for(int y = 0; y < h; y++) {
+        for(int x = 0; x < w; x++) {
             int pos = x / 8; //скипаем паддинг байты в строке байтов. если ширина 20 пикселей, будет от 0 до 2, всего 3 байта, в которых и есть все нужны биты
             if (v[y*w+x]) scan[pos] |= 1 << (7 - x % 8); //составляем байт
         }
@@ -151,56 +141,50 @@ int main(int argc, char* argv[])
 {
     char* input_file;
     char* output_folder;
-    int max_iter = 500; //ограничено 500 картинками, чтобы не убить SSD
+    int max_iter = 300; //ограничено 500 картинками, чтобы не убить SSD
     int dump_freq = 1;
+    int random = 0;
 
-    if (argc <= 4) 
-    {
-        printf("Correct usage: --input <filename> --output <filedir>");
+    if (argc <= 4) {
+        printf("Correct usage: --input <filename> --output <filedir>\n--max_iter <> --dump_freq <>");
         return 1;
     }
 
-    for (int i = 1; i < argc; i++)
-    {
-        if (!strcmp(argv[i], "--input"))
-        {
-            if (i + 1 < argc)
-            {
+    for (int i = 1; i < argc; i++) {
+        if (!strcmp(argv[i], "--input")) {
+            if (i + 1 < argc) {
                 input_file = (char*)malloc(strlen(argv[i+1]));
                 strcpy(input_file, argv[i+1]);
             }
-            else
-            {
+            else {
                 printf("Wrong format");
                 return 1;
             }
 
         }
-        else if (!strcmp(argv[i], "--output"))
-        {
-            if (i + 1 < argc)
-            {
+        else if (!strcmp(argv[i], "--output")) {
+            if (i + 1 < argc) {
                 output_folder = (char*)malloc(strlen(argv[i+1]));
                 strcpy(output_folder, argv[i+1]);
             }
-            else
-            {
+            else {
                 printf("Wrong format");
                 return 1;
             }
         }
-        else if (!strcmp(argv[i], "--max_iter"))
-        {
-            if (i + 1 < argc) max_iter = atoi(argv[i+1]);
-            else
-            {
+        else if (!strcmp(argv[i], "--max_iter")) {
+            if (i + 1 < argc) {
+                max_iter = atoi(argv[i+1]);
+            }
+            else {
                 printf("Wrong format");
                 return 1;
             }
         }
-        else if (!strcmp(argv[i], "--dump_freq"))
-        {
-            if (i + 1 < argc) dump_freq = atoi(argv[i+1]);
+        else if (!strcmp(argv[i], "--dump_freq")) {
+            if (i + 1 < argc) {
+                dump_freq = atoi(argv[i+1]);
+            }
             else
             {
                 printf("Wrong format");
@@ -208,11 +192,11 @@ int main(int argc, char* argv[])
             }
         }
     }
+
     bmp_to_arr(input_file); //прочитаем бмп в массив, чтобы могли генеририровать новые картинки
 
     new_v = calloc(1,w*h);
-    for (int i = 0; i < max_iter; i++)
-    {
+    for (int i = 0; i < max_iter; i++) {
         next_life(dump_freq); //получаем новый массив по правилам игры с заданной частотой
         arr_to_bmp(output_folder, i); //переведим массив в бмп и сохраняем в указанной папке
     }
@@ -220,6 +204,7 @@ int main(int argc, char* argv[])
     fclose(img);
     free(v);
     free(new_v);
-    lolz(w, h);
+    
+    draw_img(w, h);
     return 0;
 }
