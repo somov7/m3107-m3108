@@ -15,7 +15,7 @@ void checkInput(unsigned short argc, FILE *file) {
 }
 
 int main(int argc, char *argv[]) {
-    struct tm time;
+    struct tm requestTime;
     char monthsList[][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
     int countErrors = 0;
     char month[4];
@@ -26,7 +26,8 @@ int main(int argc, char *argv[]) {
     int bytes_send;
     int convertedTimeSize = 2048;
     time_t* convertedTime = (time_t*)malloc(sizeof(time_t) * convertedTimeSize);
-    int lineNumber = 0;
+    int lineCount = 0;
+    int timeWindow = atoi(argv[1]);
 
     FILE* log = fopen(argv[2], "r");
     checkInput(argc, log);
@@ -38,23 +39,46 @@ int main(int argc, char *argv[]) {
             countErrors++;
             printf("\n%d. %s - error %d", countErrors, request, status);
         }
-        sscanf(local_time, "%d/%3s/%d:%d:%d:%d", &time.tm_mday, &month, &time.tm_year, &time.tm_hour, &time.tm_min, &time.tm_sec);
-        time.tm_year -= 1900;
+        sscanf(local_time, "%d/%3s/%d:%d:%d:%d", &requestTime.tm_mday, &month, &requestTime.tm_year, &requestTime.tm_hour, &requestTime.tm_min, &requestTime.tm_sec);
+        requestTime.tm_year -= 1900;
 
         for(int i = 0; i < 12; i++){
             if (strcmp(monthsList[i], month) == 0){
-                time.tm_mon = i;
+                requestTime.tm_mon = i;
                 break;
             }
         }
 
-        if (lineNumber == convertedTimeSize) {
+        if (lineCount == convertedTimeSize) {
             convertedTimeSize *= 2;
             convertedTime = realloc(convertedTime, sizeof(time_t) * convertedTimeSize);
         }
-        convertedTime[lineNumber] = mktime(&time);
-        lineNumber += 1;
+        convertedTime[lineCount] = mktime(&requestTime);
+        lineCount += 1;
     }
 
+    time_t supportArr = 0, counter = 1, maxRequest = 0, j = 1, first, last;
+    for (int i = 1; i < lineCount; i++) {
+        supportArr += convertedTime[i] - convertedTime[i-1];
+        counter++;
+        while (supportArr > timeWindow && j + 1 < lineCount) {
+            supportArr -= (convertedTime[j] - convertedTime[j-1]);
+            j++;
+            counter--;
+
+        }
+        if (counter > maxRequest) {
+            maxRequest = counter;
+            first = i;
+            last = j;
+        }
+    }
+
+    char startTime[32] = {0};
+    char endTime[32] = {0};
+    ctime_s(startTime, sizeof startTime, &convertedTime[first]);
+    ctime_s(endTime, sizeof endTime, &convertedTime[last]);
+    free(convertedTime);
     printf("\n\nThere are %d 5xx errors in %s", countErrors, argv[2]);
+    printf("\nThere are %d requests max in %d seconds, since %.24s to %.24s", maxRequest, timeWindow, endTime, startTime);
 }
