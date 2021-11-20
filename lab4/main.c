@@ -57,7 +57,7 @@ int data(char *name) {
         printf("%c", current_tag.idv3[i]);
     printf("v2.");
     printf("%d\n", current_tag.version[0]);
-    while (ftell(fin) <= TagSize) {
+    while (ftell(fin) < TagSize) {
         frame current_frame;
         fread(current_frame.id, sizeof(char), 4, fin);
         fread(current_frame.size, sizeof(char), 4, fin);
@@ -108,16 +108,16 @@ int get_data(char *name, char temp_id[4]) {
                 id_counter++;
         }
         if (id_counter == 4) {
-        for (int i = 0; i<4; i++)
-            printf("%c", current_frame.id[i]);
-        printf(": ");
-        fread(temp_char, sizeof(char), FrameSize, fin);
-        for (int j = 0; j < FrameSize; j++)
-            printf("%c", temp_char[j]);
-        if (checker == 0)
-            printf ("\n");
-        checker = 1;
-        break;
+            for (int i = 0; i<4; i++)
+                printf("%c", current_frame.id[i]);
+            printf(": ");
+            fread(temp_char, sizeof(char), FrameSize, fin);
+            for (int j = 0; j < FrameSize; j++)
+                printf("%c", temp_char[j]);
+            if (checker == 0)
+                printf ("\n");
+            checker = 1;
+            break;
         }
         else
             fread(temp_char, sizeof(char), FrameSize, fin);
@@ -158,13 +158,14 @@ int change_data(char *name, char temp_id[4], unsigned char value[]) {
             temp_symbol = fgetc(fin);
             fputc(temp_symbol, fin_temp);
     }
-    printf("ok\n");
     while (ftell(fin) <= TagSize) {
         id_counter = 0;
         frame current_frame;
         fread(current_frame.id, sizeof(char), 4, fin);
         fread(current_frame.size, sizeof(char), 4, fin);
         fread(current_frame.flag, sizeof(char), 2, fin);
+        if (current_frame.id[0] == 0)
+            break;
         unsigned int FrameSize = GettingSIZE(current_frame.size);
         unsigned char temp_char[FrameSize];
         for (int i = 0; i<4; i++) {
@@ -202,31 +203,31 @@ int change_data(char *name, char temp_id[4], unsigned char value[]) {
             for (int i = 0; i<FrameSize; i++) {
                 fputc(temp_char[i], fin_temp);
             }
+        if (current_frame.id[0] == 0)
+            break;
         }
     }
-//    if (new_check_frame == 0) {
-//        char new_size_frame[4];
-//        for (int i = 0; i<4; i++)
-//            printf("%c", temp_id[i]);
-//        printf(": ");
-//        GettingNewSIZE((unsigned int)strlen(value) + 1, new_size_frame);
-//        unsigned int FrameSize = GettingSIZE(new_size_frame);
-//        for (int i = 0; i < 4; i++)
-//            fputc(temp_id[i], fin_temp);
-//        for (int i = 0; i < 4; i++)
-//            fputc(new_size_frame, fin_temp);
-//        for (int i = 0; i < 2; i++)
-//            fputc("0", fin_temp);
-//        for (int i = 0; i < FrameSize; i++) {
-//            fputc(value[i], fin_temp);
-//            printf("%c", value[i]);
-//        }
-//        for (int i = 0; i < strlen(value); i++) {
-//            fputc(value[i], fin_temp);
-//        }
-//        printf ("\n");
-//    }
-    TagSize += new_size_frame-old_size_frame;
+    if (new_check_frame == 0) {
+        char new_size_frame_temp[4];
+        for (int i = 0; i<4; i++)
+            printf("%c", temp_id[i]);
+        printf(": ");
+        GettingNewSIZE((unsigned int)strlen(value) + 1, new_size_frame_temp);
+        unsigned int FrameSize = GettingSIZE(new_size_frame_temp);
+        new_size_frame = FrameSize;
+        for (int i = 0; i < 4; i++)
+            fputc(temp_id[i], fin_temp);
+        for (int i = 0; i < 4; i++)
+            fputc(new_size_frame_temp[i], fin_temp);
+        for (int i = 0; i < 2; i++)
+            fputc(0, fin_temp);
+        for (int i = 0; i < FrameSize; i++) {
+            fputc(value[i], fin_temp);
+            printf("%c", value[i]);
+        }
+        printf ("\n");
+    }
+    TagSize = TagSize + new_size_frame-old_size_frame;
     GettingNewSIZE(TagSize, current_tag.size);
     unsigned char symbol = ' ';
     symbol = fgetc(fin);
@@ -236,28 +237,29 @@ int change_data(char *name, char temp_id[4], unsigned char value[]) {
     }
     fseek(fin_temp, 0, SEEK_SET);
     fseek(fin, 0, SEEK_SET);
-    for (int i = 0; i < 6; i++)
-        temp_symbol = fgetc(fin);
-    fread(current_tag.size, sizeof(char), 4, fin);
-    fseek(fin, 0, SEEK_SET);
     temp_symbol = fgetc(fin);
-    for (int i = 0; i < 10; i++) {
-        fputc(temp_symbol, fin_temp);
-        temp_symbol = fgetc(fin);
-    }
+    
     fseek(fin_temp, 0L, SEEK_END);
     sz = ftell(fin_temp);
     fseek(fin_temp, 0, SEEK_SET);
-    FILE *fin_new;
-    fin_new = fopen(name, "w");
-    fseek(fin_new, 0, SEEK_SET);
+    fclose(fin);
+    fin = fopen(name, "w");
+    fseek(fin_temp, 6, SEEK_SET);
+    for (int i = 0; i<4; i++)
+        fputc(current_tag.size[i], fin_temp);
+//    for (int i = 0; i < 10; i++) {
+//        fputc(temp_symbol, fin_temp);
+//        temp_symbol = fgetc(fin);
+//    }
+    fseek(fin, 0, SEEK_SET);
+    fseek(fin_temp, 0, SEEK_SET);
     symbol = fgetc(fin_temp);
     while (feof(fin_temp) == 0) {
-        fputc(symbol, fin_new);
+        fputc(symbol, fin);
         symbol = fgetc(fin_temp);
     }
     fclose(fin_temp);
-    fclose(tmpfile());
+    fclose(fin);
     return 0;
 }
     
