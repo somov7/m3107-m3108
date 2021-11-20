@@ -46,26 +46,26 @@ int main(int argc, const char * argv[]) {
     long long first_time = 0, second_time = 0, counter_failure_requests = 0, counter = 0, counter_max = 0;
     time_t max_range_time_first, max_range_time_second;
     struct tm *m_time;
-    fin2 = fopen ("/Users/artemparfenov/Downloads/access_log_Jul95-2", "r");
-    fin = fopen ("/Users/artemparfenov/Downloads/access_log_Jul95-2", "r");
+//    fin2 = fopen ("/Users/artemparfenov/Downloads/access_log_Jul95-2", "r");
+//    fin = fopen ("/Users/artemparfenov/Downloads/access_log_Jul95-2", "r");
 //    fin2 = fopen ("/Users/artemparfenov/Downloads/access_log_Jul95 -> crash", "r");
 //    fin = fopen ("/Users/artemparfenov/Downloads/access_log_Jul95 -> crash", "r");
-//    fin = fopen(argv[2], "r");
-//    fin2 = fopen(argv[2], "r");
-//    if (argc != 3) {
-//            fprintf(stderr, "Проверьте количество параметров\n");
-//            return EXIT_FAILURE;
-//        }
-//    if (argv[1] == NULL) {
-//            fprintf(stderr, "Проверьте входной файл");
-//            return EXIT_FAILURE;
-//        }
-//    int time_range = atoi(argv[2]);
-    int time_range = 10;
+    fin = fopen(argv[2], "r");
+    fin2 = fopen(argv[2], "r");
+    if (argc != 3) {
+            fprintf(stderr, "Проверьте количество параметров\n");
+            return EXIT_FAILURE;
+        }
+    if (argv[1] == NULL) {
+            fprintf(stderr, "Проверьте входной файл");
+            return EXIT_FAILURE;
+        }
+    int time_range = atoi(argv[2]);
+//    int time_range = 10;
 //    fin = fopen ("/Users/artemparfenov/Desktop/nasa -> txt", "r");
 //    fin2 = fopen ("/Users/artemparfenov/Desktop/nasa -> txt", "r");
 //    time_range = argv[1];
-//    current_symbol = fgetc(fin);
+    current_symbol = fgetc(fin);
     current_symbol2 = fgetc(fin2);
     while (current_symbol != EOF) {
         
