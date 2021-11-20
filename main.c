@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
+#include <wchar.h>
 
 typedef struct id3v2_header{
     unsigned char id[3];
@@ -60,7 +61,7 @@ int main(int argc, char *argv[]) {
         else if (strncmp(argv[i], "--get=", 6) == 0){
             do_get = 1;
             field_ptr = argv[i] + 6;
-            // printf("%s\n", field_ptr);
+            printf("%s\n", field_ptr);
             break;
         }
         else if (strncmp(argv[i], "--set=", 6) == 0){
@@ -118,7 +119,7 @@ int main(int argc, char *argv[]) {
         }
 
         frame_id[4] = '\0';
-
+        // printf("frame: %s\n", frame_id);
         frame_size = frame1.size[0] * 0x200000 +   //2^21
                      frame1.size[1] * 0x4000 +     //2^14
                      frame1.size[2] * 0x80 +       //2^7
@@ -171,19 +172,16 @@ int main(int argc, char *argv[]) {
         // printf("file pointer: %ld\n", ftell(test_mp3));
         // printf("encoding is: %x\n", frame_encoding);
         if (frame_encoding == 0 || frame_encoding == 3){
+            char temp[frame_size];
+            fgets(temp, (int)frame_size, test_mp3);
             if (do_show){
-                char temp[frame_size];
-                fgets(temp, (int)frame_size, test_mp3);
                 printf("%s %s\n",frame_id, temp);
             }
             else if (do_get && (strcmp(field_ptr, frame_id) == 0)){
-                char temp[frame_size];
-                fgets(temp, (int)frame_size, test_mp3);
                 printf("%s %s\n",frame_id, temp);
+                return 0;
             }
             else if (do_set){
-                char temp[frame_size];
-                fgets(temp, (int)frame_size, test_mp3);
             }
         }
 
