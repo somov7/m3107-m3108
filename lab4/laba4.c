@@ -49,36 +49,7 @@ void itob(int x, uint8_t* ch, int is_header)
     }
 }
 
-void save_img(uint8_t* buf, uint8_t* img_name, int sz)
-{
-    int i = 0;
-    uint8_t mime[64], pic_type, pic_description[64];
-    strcpy(mime, buf);
-    while (buf[i++] != 0);
-    pic_type = buf[i++];
-    strcpy(pic_description, buf+i);
-    while (buf[i++] != 0);
-    printf("Pic mime: %s pic type: %d pic description: %s\n", mime, pic_type, pic_description);
-    if (strstr(mime, "jpeg")) {
-        sprintf(mime, "%s.jpg", img_name);
-    }
-    else if (strstr(mime, "png")) {
-        sprintf(mime, "%s.png", img_name);
-    }
-    else {
-        sprintf(mime, "%s.hz", img_name);
-    }
-    FILE* img = fopen(mime, "wb");
-    if (!img) {
-        printf("Can't create file");
-        exit(1);
-    }
-    while (i < sz) {
-        fputc(buf[i++], img);
-    }
-}
-
-int readidv3(uint8_t* file_path, uint8_t* prop_name, int set, int* old_frame_size, uint8_t* img_name)
+int readidv3(uint8_t* file_path, uint8_t* prop_name, int set, int* old_frame_size)
 {
     FILE* f = fopen(file_path, "rb");
     if (f == NULL) {
@@ -96,12 +67,8 @@ int readidv3(uint8_t* file_path, uint8_t* prop_name, int set, int* old_frame_siz
             break; //запомним, где остановились читать для перезаписи тега
         }
         int sz = btoi(frame.size, 0); //размера значения фрейма (длина строки)
-        uint8_t* buf = (uint8_t*)calloc(sz,1);
+        uint8_t* buf = calloc(sz, sizeof(uint8_t));
         fread(buf, 1, sz-1, f);
-        buf[sz-1] = 0;
-        if (!strcmp(frame.frameid, "APIC") && img_name) {
-            save_img(buf, img_name, sz);
-        }
         if (prop_name == NULL) {
             printf("pos: %-10d id: %-10s size: %-10d value: ", ftell(f), frame.frameid, sz); //выводим все фреймы
             if (frame.unicode) {
@@ -112,6 +79,7 @@ int readidv3(uint8_t* file_path, uint8_t* prop_name, int set, int* old_frame_siz
             }
         }
         else if (!strcmp(frame.frameid, prop_name)) {
+            
             if (set == 0) {
                 printf("id: %-10s value: ", frame.frameid); //вывод одного фрейма
                 if (frame.unicode) {
@@ -120,6 +88,7 @@ int readidv3(uint8_t* file_path, uint8_t* prop_name, int set, int* old_frame_siz
                 else {
                     printf("%s\n", buf);
                 }
+                return -1;
             }
             else {
                 *old_frame_size = sz;
@@ -136,20 +105,22 @@ int readidv3(uint8_t* file_path, uint8_t* prop_name, int set, int* old_frame_siz
 void updateidv3(uint8_t* file_path, uint8_t* prop_name, uint8_t* prop_val)
 {
     FILE* read = fopen(file_path, "rb");
-    FILE* write = fopen("temp", "wb"); //временный для записи
+    char* temp_file = calloc(1, strlen(file_path)+5);
+    sprintf(temp_file, "%s.temp", file_path);
+    FILE* write = fopen(temp_file, "wb"); //временный для записи
     if (read == NULL || write == NULL) {
         printf("Can't open/create file");
         exit(1);
     }
     int* old_frame_size = calloc(1, sizeof(int));
-    int write_pos = readidv3(file_path, prop_name, 1, old_frame_size, NULL);
-    
+    int write_pos = readidv3(file_path, prop_name, 1, old_frame_size);
     int size_diff = strlen(prop_val) - (*old_frame_size-1);
     fread(&header, 1, 10, read); //читаем хедер 10 байтов
     int k = btoi(header.size, 1); //размер всей структуры ID3 включая хедер
     k += size_diff; //обновили размер структуры в соответствии с новым фреймом
     itob(k, header.size, 1);
     fwrite(&header, 1, 10, write); //записали новый хедер
+
     uint8_t* buf = (uint8_t*)malloc(write_pos-10);
     fread(buf, 1, write_pos-10, read); //прочитали все байты до фрейма
     fwrite(buf, 1, write_pos-10, write); //записали все байты до фрейма, теперь пишем фрейм
@@ -174,7 +145,7 @@ void updateidv3(uint8_t* file_path, uint8_t* prop_name, uint8_t* prop_val)
     fclose(read);
     fclose(write);
     remove(file_path);
-    rename("temp", file_path);
+    rename(temp_file, file_path);
 }
 
 
@@ -187,7 +158,7 @@ void getval(uint8_t* str, uint8_t** target)
         printf("Wrong format");
         exit(1);
     }
-    *target = (uint8_t*)malloc(strlen(split));
+    *target = malloc(strlen(split)+1);
     strcpy(*target, split);
 }
 
@@ -195,18 +166,14 @@ void getval(uint8_t* str, uint8_t** target)
 int main(int argc, uint8_t* argv[])
 {
     setlocale(LC_ALL, "Russian");
-    int a = 0, b = 0, c = 26, d = 135;
-    int t = c << 7 | d << 0;
-    printf("ok: %d\n", t);
 
     uint8_t* file_path = NULL;
     uint8_t* prop_name = NULL;
     uint8_t* prop_value = NULL;
-    uint8_t* img_name = NULL;
-    int show = 0, get = 0, set = 0, extract_img = 0;
+    int show = 0, get = 0, set = 0;
 
     if (argc < 3) {
-        printf("Correct usage: --filepath=<path>\n--show\n--set=<propname> --value=<propvalue>\n--get=<propname>\n--img=<imgname>");
+        printf("Correct usage: --filepath=<path>\n--show\n--set=<propname> --value=<propvalue>\n--get=<propname>\n");
         return 1;
     }
 
@@ -226,10 +193,6 @@ int main(int argc, uint8_t* argv[])
         else if (strstr(argv[i], "--value")) {
             getval(argv[i], &prop_value);
         }
-        else if (strstr(argv[i], "--img")) {
-            extract_img = 1;
-            getval(argv[i], &img_name);
-        }
         else if (!strcmp(argv[i], "--show")) {
             show = 1;
         }
@@ -238,13 +201,17 @@ int main(int argc, uint8_t* argv[])
             return 1;
         }
     }
-    
+    if (prop_name && strlen(prop_name) != 4) {
+        printf("Wrong frame size: %d", strlen(prop_name));
+        return 1;
+    }
+
     if (show) 
-        readidv3(file_path, NULL, 0, NULL, NULL);
-    else if (get)
-        readidv3(file_path, prop_name, 0, NULL, NULL);
-    else if (extract_img)
-        readidv3(file_path, NULL, 0, NULL, img_name);
+        readidv3(file_path, NULL, 0, NULL);
+    else if (get) {
+        if (readidv3(file_path, prop_name, 0, NULL) != -1)
+            printf("Can't find frame: %s\n", prop_name);
+    }
     else if (set)
         updateidv3(file_path, prop_name, prop_value);
     return 0;
