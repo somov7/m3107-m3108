@@ -50,8 +50,7 @@ int main(int argc, const char * argv[]) {
 //    fin = fopen ("/Users/artemparfenov/Downloads/access_log_Jul95-2", "r");
 //    fin2 = fopen ("/Users/artemparfenov/Downloads/access_log_Jul95 -> crash", "r");
 //    fin = fopen ("/Users/artemparfenov/Downloads/access_log_Jul95 -> crash", "r");
-    fin = fopen(argv[2], "r");
-    fin2 = fopen(argv[2], "r");
+   
     if (argc != 3) {
             fprintf(stderr, "Проверьте количество параметров\n");
             return EXIT_FAILURE;
@@ -60,6 +59,8 @@ int main(int argc, const char * argv[]) {
             fprintf(stderr, "Проверьте входной файл");
             return EXIT_FAILURE;
         }
+    fin = fopen(argv[1], "r");
+    fin2 = fopen(argv[1], "r");
     int time_range = atoi(argv[2]);
 //    int time_range = 10;
 //    fin = fopen ("/Users/artemparfenov/Desktop/nasa -> txt", "r");
