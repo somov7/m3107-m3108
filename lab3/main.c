@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+
     char startTime[32] = {0};
     char endTime[32] = {0};
     ctime_s(startTime, sizeof startTime, &convertedTime[first]);
