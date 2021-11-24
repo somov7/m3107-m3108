@@ -86,6 +86,7 @@ void show(char *filepath) {
         fread(&frame, 1, frameBytes, fin);
         free(frameText);
     }
+    fclose(fin);
 }
 
 int get(char *filepath, char *id, int print) {
@@ -114,6 +115,7 @@ int get(char *filepath, char *id, int print) {
             }
 
             pos = ftell(fin) - frameTextSize - 10;
+            fclose(fin);
             return pos;     // возращает позицию начала нужного фрейма
 
         }
@@ -121,14 +123,17 @@ int get(char *filepath, char *id, int print) {
         fread(&frame, 1, frameBytes, fin);
         free(frameText);
     }
-
+    fclose(fin);
     return pos;
 }
 
 
 void set(char *filepath, char *propName, char *propValue) {
+
+
     FILE *fin = fopen(filepath, "rb");
     FILE *fout = fopen("temp", "wb");
+
 
     if (fin == NULL or fout == NULL) {
         printUsage("Can't open a file");
@@ -173,11 +178,18 @@ void set(char *filepath, char *propName, char *propValue) {
     fread(lastBytes, 1, diff, fin);
     fwrite(lastBytes, 1, diff, fout);
 
+    fclose(fin);
+    remove(filepath);
+    fclose(fout);
+    rename("temp", filepath);
+
 }
 
 void update(char *filepath, char *propName, char *propValue) {
+
     FILE *fin = fopen(filepath, "rb");
     FILE *fout = fopen("temp", "wb");
+
 
     if (fin == NULL or fout == NULL) {
         printUsage("Can't open a file");
@@ -227,7 +239,9 @@ void update(char *filepath, char *propName, char *propValue) {
     fread(lastBytes, 1, diff, fin);
     fwrite(lastBytes, 1, diff, fout);
 
+    fclose(fin);
     remove(filepath);
+    fclose(fout);
     rename("temp", filepath);
 
 }
@@ -236,10 +250,11 @@ int main(int argc, char **argv) {
 
     setlocale(LC_ALL, "Russian");
 
-    if (!(argc < 3 or argc > 4)) {
+    if ((argc < 3 or argc > 4)) {
         printUsage("Invalid value of arguments");
         return 1;
     }
+
 
     strtok(argv[1], "=");
     char *filepath = strtok(NULL, "=");
@@ -268,6 +283,5 @@ int main(int argc, char **argv) {
     } else {
         printUsage("unknown command");
     }
-
 
 }
