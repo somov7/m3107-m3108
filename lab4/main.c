@@ -3,9 +3,10 @@
 #include <iso646.h>
 #include <string.h>
 #include <locale.h>
+#include <inttypes.h>
 
-#define headerBytes 10 // кол-во байт занимаемых хэддером
-#define frameBytes 11 // кол-во байт занимаемых фрэймом
+const int headerBytes = 10; // кол-во байт занимаемых хэддером
+const int frameBytes = 11; // кол-во байт занимаемых фрэймом
 
 #pragma pack(push, 1)
 typedef struct id3v2Header {
@@ -77,22 +78,26 @@ void show(char *filepath) {
         fgets(frameText, frameTextSize, fin);
 
         printf("id: %5s || size: %5d || value: ", frame.frameId, frameTextSize);
-        for (int i = 0; i < frameTextSize; i++)
-            printf("%c", frameText[i]);
-        printf("\n");
+        if (frame.unicode) {
+            wprintf(L"%ls\n", frameText + 2); // для юникод
+        }
+        else {
+            printf("%s\n", frameText);
+        }
 
         fread(&frame, 1, frameBytes, fin);
         free(frameText);
     }
 }
 
-void get(char *filepath, char* id){
+int get(char *filepath, char* id){
     FILE *fin = fopen(filepath, "rb");
     openCorrect(fin);
 
-    fread(&header, sizeof(char), headerBytes, fin);
+    fread(&header, 1, headerBytes, fin);
     int headerSizeInt = bytesToInt(header.size, 1);
     fread(&frame, 1, frameBytes, fin);
+    int pos = -1;
 
     while (frame.frameId[0] != 0 and ftell(fin) < headerSizeInt) {
         int frameTextSize = bytesToInt(frame.size, 0);
@@ -101,28 +106,84 @@ void get(char *filepath, char* id){
 
         if (!strcmp(frame.frameId, id)){
             printf("id: %5s || size: %5d || value: ", frame.frameId, frameTextSize);
-            for (int i = 0; i < frameTextSize; i++)
-                wprintf(L"%c", frameText[i]);
-            printf("\n");
-            break;
+            if (frame.unicode) {
+                wprintf(L"%ls\n", frameText); // для юникод
+            }
+            else {
+                printf("%s\n", frameText);
+            }
+            pos = ftell(fin) - frameTextSize - 10;
+            return pos;     // возращает позицию начала нужного фрейма
         }
 
         fread(&frame, 1, frameBytes, fin);
         free(frameText);
     }
+
+    return pos;
 }
 
 
 void set(char *filepath, char* propName, char* propValue) {
+    FILE* fin = fopen(filepath, "rb");
+    FILE* fout = fopen("temp", "wb");
+
+    if (fin == NULL or fout == NULL){
+        printUsage("Can't open a file");
+        exit(2);
+    }
+
+    int pos = get(filepath, propName);
+    fread(&header, 1, headerBytes, fin);        //считываем хеддер
+    char* buf = calloc(pos - 10, 1);            //считываем всё от хеддера до нужного фрейма.
+    fread(buf, 1, pos - 10, fin);
+
+    id3v2Frame curFrame;
+    fread(&curFrame, 1, frameBytes, fin);       // считываем нужный фрейм
+    int frameSize = bytesToInt(curFrame.size, 0);
+
+    fseek(fin, 0, SEEK_END);    // запоминаем конечную позицию для считывания
+    int endPos = ftell(fin);
+    fseek(fin, 0, SEEK_SET);
+    fread(&header, 1, headerBytes, fin);
+
+    int newHeaderSize = bytesToInt(header.size, 1) + ((int)strlen(propValue) - frameSize);  // нашли новый размер хэддера в инт
+    itob(newHeaderSize, header.size, 1); // перевод в байты
+
+    fwrite(&header, 1, headerBytes, fout);      // запись хеддера
+
+    fread(buf, 1, pos - 10, fin); // перемещаем указатель до нужного фрейма
+    fwrite(buf, 1, pos - 10, fout); // записываем всё до нужного фрейма
+
+    fread(&curFrame, 1, frameBytes, fin);   // переместили указатель до начала значения фрейма
+    char *frameText = calloc(frameSize, 1);
+    fgets(frameText, frameSize, fin); //переместили указатель до конца значения фрейма
+
+    itob((int)strlen(propValue), curFrame.size, 0); // меняем размер фрейма
+    fwrite(&curFrame, 1, frameBytes, fout); // записали нужный фрейм
+    fwrite(propValue, 1, (int)strlen(propValue), fout); // записали значение нужно фрейма
+
+    int curPos = ftell(fin);
+    int diff = endPos - curPos;
+
+    uint8_t *lastBytes = malloc(diff);
+    fread(lastBytes, 1, diff, fin);
+    fwrite(lastBytes, 1, diff, fout);
 
 }
 
+void update();
+
 int main(int argc, char **argv) {
+
+    setlocale(LC_ALL, "Russian");
 
     if (argc != 3) {
         printUsage("Invalid value of arguments");
         return 1;
     }
-    show("01.Barrel Of A Gun.mp3");
-    //get("C:\\mp3Tool\\music\\black-wonderful-life.mp3", "TIT2");
+    show("C:\\mp3Tool1\\music\\01.Barrel Of A Gun.mp3");
+    printf("\n");
+    set("C:\\mp3Tool1\\music\\01.Barrel Of A Gun.mp3", "TCON", "123");
+
 }
