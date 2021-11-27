@@ -195,6 +195,7 @@ char writeTag(FILE *output, char *frameName, char *content, unsigned tagSize) {
                 return 0;
         free(bytes);
     }
+    fseek(output, 10, SEEK_SET);
     findFrames(output, frameName);
     fseek(output, -10, SEEK_CUR);
     if (fputs(frameName, output) == EOF)
