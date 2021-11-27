@@ -1,6 +1,5 @@
 #define uc unsigned char
 
-#pragma pack(push, 1) // чтобы структуры были едиными без паддинга байтов
 typedef struct {
     uc idv3[3];
     uc version[2];
@@ -14,7 +13,6 @@ typedef struct {
     uc flag[2];
     bool unicode;
 } TagFrame;
-#pragma pack(pop)
 
 void get_frames(char *filename, char *frame_name);
 void get_frame(char *filename, char *frame_name);
