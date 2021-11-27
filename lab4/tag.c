@@ -6,51 +6,37 @@
 #include "tag.h"
 #include "utils.h"
 
-TagHeader header;
+TagHeader head;
 TagFrame frame;
 
-void get_frames(char *filename) {
+void get_frames(char *filename, char *frame_name) {
     FILE *file = fopen(filename, "rb");
+
+    bool all_frames = false;
+    if (frame_name == NULL) {
+        all_frames = true;
+    }
 
     if (file == NULL) {
         printf("File does not exist");
         exit(1);
     }
 
-    fread(&header, sizeof(char), 10, file);
+    fread(&head, sizeof(char), 10, file);
 
-    int tag_size = bytes_to_int(header.size, true);
+    int tag_size = bytes_to_int(head.size, true);
     printf("Header size: %d\n", tag_size);
 
     while (fread(&frame, sizeof(char), 11, file)) {
         if (frame.frame_name[0] == '\0' || ftell(file) >= tag_size) return;
-        int frame_size = bytes_to_int(frame.size, (header.version[0] == 4 ? true : false));
+        int frame_size = bytes_to_int(frame.size, (head.version[0] == 4 ? true : false));
         char *temp = read_data(frame_size, file);
-        print_frame(frame, temp);
-        free(temp);
-    }
-}
-
-void get_frame(char *filename, char *frame_name) {
-    FILE *file = fopen(filename, "rb");
-
-    if (file == NULL) {
-        printf("File does not exist");
-        exit(1);
-    }
-
-    fread(&header, sizeof(char), 10, file);
-    int tag_size = bytes_to_int(header.size, true);
-
-    while (fread(&frame, sizeof(char), 11, file)) {
-        if (frame.frame_name[0] == '\0' || ftell(file) >= tag_size) // доходим до \0 или дошли до коцна файла
-            break;
-        int frame_size = bytes_to_int(frame.size, (header.version[0] == 4 ? true : false));
-        char *temp = read_data(frame_size, file);
-
-        if (strcmp(frame_name, frame.frame_name) == 0)
+        if (all_frames) {
             print_frame(frame, temp);
-
+        } else {
+            if (strcmp(frame_name, frame.frame_name) == 0)
+                print_frame(frame, temp);
+        }
         free(temp);
     }
 }
