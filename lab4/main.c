@@ -130,23 +130,15 @@ void setTag(FILE* inputFile, char* prop_name, char* prop_value){
     memcpy(newFrame.id, prop_name, 4);
 
     fseek(inputFile, 10, SEEK_SET);
-    while (fread(&frame, 1, 11, inputFile) && bytesToInt(frame.id, 8) != 0) {}
-    pointPos = ftell(inputFile);
-    fseek(inputFile, 10, SEEK_SET);
-    prevFrame = (char *) malloc(pointPos - 10 + 1);
-    fread(prevFrame, 1, pointPos - 10 + 1, inputFile);
-
-    nextFrame = (char *) malloc(pointEnd - pointPos + 1);
-    fread(nextFrame, 1, pointEnd - pointPos + 1, inputFile);
+    nextFrame = (char *) malloc(pointEnd - 10 + 1);
+    fread(nextFrame, 1, pointEnd - 10 + 1, inputFile);
 
     fseek(inputFile, 0, SEEK_SET);
     fwrite(&header, 1, 10, inputFile);
     fwrite(&newFrame, 1, 11, inputFile);
     fwrite(prop_value, 1, strlen(prop_value), inputFile);
-    fwrite(prevFrame, 1, pointPos - 10 + 1, inputFile);
-    fwrite(nextFrame, 1, pointEnd - pointPos + 1, inputFile);
+    fwrite(nextFrame, 1, pointEnd - 10 + 1, inputFile);
 
-    free(prevFrame);
     free(nextFrame);
 }
 
