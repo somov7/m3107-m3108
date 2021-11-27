@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+const char mask = 0x7f;
+
 enum Options {
-    SHOW_OPTION = 82,
+    SHOW_OPTION = 1,
     GET_OPTION,
     SET_OPTION
 };
@@ -74,10 +76,10 @@ FILE *getFile(char *filename) {
 
 unsigned char* toSyncSize(unsigned size) {
     unsigned char *bytes = malloc(4);
-    bytes[0] = size >> 21 & 0x7f;
-    bytes[1] = size >> 14 & 0x7f;
-    bytes[2] = size >> 7 & 0x7f;
-    bytes[3] = size & 0x7f;
+    bytes[0] = size >> 21 & mask;
+    bytes[1] = size >> 14 & mask;
+    bytes[2] = size >> 7 & mask;
+    bytes[3] = size & mask;
     return bytes;
 }
 
@@ -104,7 +106,7 @@ unsigned findFrames(FILE *input, const char *frameName) {
     return findFrames(input, frameName);
 }
 
-unsigned printFrames(FILE *input, unsigned count) {
+unsigned showFrames(FILE *input, unsigned count) {
     char byte[10];
     fread(byte, sizeof (byte), 1, input);
     if (!byte[0])
@@ -121,10 +123,10 @@ unsigned printFrames(FILE *input, unsigned count) {
     } else
         fread(buf, size, 1, input);
     printf("\n");
-    printFrames(input, count+1);
+    showFrames(input, count + 1);
 }
 
-char printFrame(FILE *input, char *frameName) {
+char getFrame(FILE *input, char *frameName) {
     long size = findFrames(input, frameName);
     if (size) {
         printf("%s:\t", frameName);
@@ -191,6 +193,7 @@ char writeTag(FILE *output, char *frameName, char *content, unsigned tagSize) {
         for (int i = 0; i < 4; ++i)
             if (fputc(bytes[i], output) == EOF)
                 return 0;
+        free(bytes);
     }
     findFrames(output, frameName);
     fseek(output, -10, SEEK_CUR);
@@ -201,6 +204,7 @@ char writeTag(FILE *output, char *frameName, char *content, unsigned tagSize) {
     for (int i = 0; i < 4; ++i)
         if (fputc(bytes[i], output) == EOF)
             return 0;
+    free(bytes);
     fseek(output, 2, SEEK_CUR);
     if (fputs(content, output) == EOF)
         return 0;
@@ -222,12 +226,12 @@ void solve(FILE *file, char command, char *tag, char *value) {
         error(TAG_NOT_EXIST);
     switch (command) {
         case SHOW_OPTION: {
-            if (!printFrames(file, 0))
+            if (!showFrames(file, 0))
                 error(TAG_HAS_NOT_FRAMES);
             break;
         }
         case GET_OPTION: {
-            if (!printFrame(file, tag))
+            if (!getFrame(file, tag))
                 error(FRAME_NOT_EXIST);
             break;
         }
@@ -237,6 +241,7 @@ void solve(FILE *file, char command, char *tag, char *value) {
             printf("Tag updated\n");
         }
     }
+    fclose(file);
 }
 
 int main(int argc, char **argv) {
@@ -247,17 +252,21 @@ int main(int argc, char **argv) {
         unsigned long filepathSize = strlen(argv[1]);
         if (filepathSize < 12)
             error(INCORRECT_FILEPATH);
+        char *tmpStr = malloc(11);
+        strncpy(tmpStr, argv[1], 11);
+        if (strcmp(tmpStr, "--filepath="))
+            error(INCORRECT_OPTION);
         filepathSize -= 11;
         filepath = malloc(filepathSize);
         strncpy(filepath, argv[1]+11, filepathSize);
         unsigned long commandSize = strlen(argv[2]);
         if (commandSize < 6)
             error(INCORRECT_OPTION);
-        char *tmpStr = malloc(6);
-        strncpy(tmpStr, argv[2], 6);
+        char *tmpStr2 = malloc(6);
+        strncpy(tmpStr2, argv[2], 6);
         if (!strcmp(argv[2], "--show")) {
             solve(getFile(filepath), SHOW_OPTION, NULL, NULL);
-        } else if (!strcmp(tmpStr, "--get=")) {
+        } else if (!strcmp(tmpStr2, "--get=")) {
             if (commandSize != 10)
                 error(INCORRECT_GET_OPTION);
             tag = malloc(4);
@@ -266,19 +275,25 @@ int main(int argc, char **argv) {
             solve(getFile(filepath), GET_OPTION, tag, NULL);
         } else
             error(INCORRECT_OPTION);
+        free(tmpStr);
+        free(tmpStr2);
     } else {
         unsigned long filepathSize = strlen(argv[1]);
         if (filepathSize < 12)
             error(INCORRECT_FILEPATH);
+        char *tmpStr = malloc(11);
+        strncpy(tmpStr, argv[1], 11);
+        if (strcmp(tmpStr, "--filepath="))
+            error(INCORRECT_OPTION);
         filepathSize -= 11;
         filepath = malloc(filepathSize);
         strncpy(filepath, argv[1]+11, filepathSize);
         unsigned long tagSize = strlen(argv[2]);
         if (tagSize != 10)
             error(INCORRECT_OPTION);
-        char *tmpStr = malloc(6);
-        strncpy(tmpStr, argv[2], 6);
-        if (strcmp(tmpStr, "--set="))
+        char *tmpStr2 = malloc(6);
+        strncpy(tmpStr2, argv[2], 6);
+        if (strcmp(tmpStr2, "--set="))
             error(INCORRECT_OPTION);
         tag = malloc(4);
         strncpy(tag, argv[2]+6, 4);
@@ -286,9 +301,9 @@ int main(int argc, char **argv) {
         unsigned long valueSize = strlen(argv[3]);
         if (valueSize < 9)
             error(INCORRECT_OPTION);
-        char *tmpStr2 = malloc(6);
-        strncpy(tmpStr2, argv[3], 8);
-        if (strcmp(tmpStr2, "--value="))
+        char *tmpStr3 = malloc(6);
+        strncpy(tmpStr3, argv[3], 8);
+        if (strcmp(tmpStr3, "--value="))
             error(INCORRECT_OPTION);
         valueSize -= 8;
         value = malloc(valueSize);
@@ -303,6 +318,9 @@ int main(int argc, char **argv) {
             value[prevValueSize+newValueSize+1] = '\0';
         }
         solve(getFile(filepath), SET_OPTION, tag, value);
+        free(tmpStr);
+        free(tmpStr2);
+        free(tmpStr3);
     }
     return 0;
 }
