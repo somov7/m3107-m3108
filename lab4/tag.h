@@ -15,5 +15,4 @@ typedef struct {
 } TagFrame;
 
 void get_frames(char *filename, char *frame_name);
-void get_frame(char *filename, char *frame_name);
 void set_frame(char *filename, char *frame_name, char *frame_value);
