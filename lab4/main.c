@@ -54,7 +54,8 @@ void itob(int x, char *ch, int is_header) {
         ch[2] = (char) ((x >> 7) & bits);
         ch[1] = (char) ((x >> 14) & bits);
         ch[0] = (char) ((x >> 21) & bits);
-    } else {
+    }
+    else {
         ch[3] = (char) (x & bits);
         ch[2] = (char) ((x >> 8) & bits);
         ch[1] = (char) ((x >> 16) & bits);
@@ -79,7 +80,8 @@ void show(char *filepath) {
         printf("id: %5s || size: %5d || value: ", frame.frameId, frameTextSize);
         if (frame.unicode) {
             wprintf(L"%ls\n", frameText + 2); // для юникод
-        } else {
+        }
+        else {
             printf("%s\n", frameText);
         }
 
@@ -109,7 +111,8 @@ int get(char *filepath, char *id, int print) {
                 printf("id: %5s || size: %5d || value: ", frame.frameId, frameTextSize);
                 if (frame.unicode) {
                     wprintf(L"%ls\n", frameText); // для юникод
-                } else {
+                }
+                else {
                     printf("%s\n", frameText);
                 }
             }
@@ -195,7 +198,8 @@ void update(char *filepath, char *propName, char *propValue) {
         printUsage("Can't open a file");
         exit(2);
     }
-
+    char ch = '1';
+    char ch1 = *(&ch);
     fseek(fin, 0, SEEK_END);    // запоминаем конечную позицию для считывания
     int endPos = ftell(fin);
     fseek(fin, 0, SEEK_SET);
@@ -255,32 +259,34 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-
     strtok(argv[1], "=");
     char *filepath = strtok(NULL, "=");
 
-
     if (strstr(argv[2], "--show") != NULL) {
         show(filepath);
+    }
 
-    } else if (strstr(argv[2], "--get") != NULL) {
+    else if (strstr(argv[2], "--get") != NULL) {
         strtok(argv[2], "=");
         char *propName = strtok(NULL, "=");
         get(filepath, propName, 1);
 
-    } else if (strstr(argv[2], "--set") != NULL) {
+    }
+
+    else if (strstr(argv[2], "--set") != NULL) {
         strtok(argv[2], "=");
         char *propName = strtok(NULL, "=");
         strtok(argv[3], "=");
         char *propValue = strtok(NULL, "=");
         if (get(filepath, propName, 0) == -1) {
             update(filepath, propName, propValue);
-        }
-        else {
+        } else {
             set(filepath, propName, propValue);
         }
 
-    } else {
+    }
+
+    else {
         printUsage("unknown command");
     }
 
