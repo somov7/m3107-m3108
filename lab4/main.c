@@ -4,6 +4,9 @@
 #include <locale.h>
 #include <math.h>
 
+const int HEADERSIZE = 10;
+const int FRAMESIZE = 11;
+
 typedef struct {
     char id[3];
     char version[2];
@@ -46,9 +49,9 @@ void showTags(FILE* inputFile){
     id3Header header;
     id3Frame frame;
     char *frameValue;
-    fread(&header, 1, 10, inputFile);
+    fread(&header, 1, HEADERSIZE, inputFile);
     int tagSize = bytesToInt(header.size, 7);
-    while ((fread(&frame, 1, 11, inputFile)) && ftell(inputFile) <= tagSize) {
+    while ((fread(&frame, 1, FRAMESIZE, inputFile)) && ftell(inputFile) <= tagSize) {
         int frameSize = bytesToInt(frame.size, 8);
         frameValue = (char *) malloc(frameSize);
         fgets(frameValue, frameSize, inputFile);
@@ -62,9 +65,9 @@ void getTag(FILE* inputFile, char* prop_name){
     id3Header header;
     id3Frame frame;
     char *frameValue;
-    fread(&header, 1, 10, inputFile);
+    fread(&header, 1, HEADERSIZE, inputFile);
     int tagSize = bytesToInt(header.size, 7);
-    while ((fread(&frame, 1, 11, inputFile)) && ftell(inputFile) <= tagSize) {
+    while ((fread(&frame, 1, FRAMESIZE, inputFile)) && ftell(inputFile) <= tagSize) {
         int frameSize = bytesToInt(frame.size, 8);
         frameValue = (char *) malloc(frameSize);
         fgets(frameValue, frameSize, inputFile);
@@ -82,9 +85,9 @@ void setTag(FILE* inputFile, char* prop_name, char* prop_value){
     id3Header header;
     id3Frame frame;
 
-    fread(&header, 1, 10, inputFile);
+    fread(&header, 1, HEADERSIZE, inputFile);
     int tagSize = bytesToInt(header.size, 7);
-    while ((fread(&frame, 1, 11, inputFile)) && ftell(inputFile) < tagSize) {
+    while ((fread(&frame, 1, FRAMESIZE, inputFile)) && ftell(inputFile) < tagSize) {
         char *frameValue;
         int frameSize = bytesToInt(frame.size, 8);
         frameValue = (char *) malloc(frameSize);
@@ -101,7 +104,7 @@ void setTag(FILE* inputFile, char* prop_name, char* prop_value){
             intToBytes(frameSizeNew, frame.size, 8);
 
             fseek(inputFile, 10, SEEK_SET);
-            prevFrame = (char *) malloc(pointPos - 21 - frameSize + 1);
+            prevFrame = (char *) malloc(pointPos - (HEADERSIZE + FRAMESIZE) - frameSize + 1);
             fread(prevFrame, 1, pointPos - 21 - frameSize + 1, inputFile);
             fseek(inputFile, pointPos, SEEK_SET);
             nextFrame = (char *) malloc(pointEnd - pointPos + 1);
@@ -109,7 +112,7 @@ void setTag(FILE* inputFile, char* prop_name, char* prop_value){
 
             fseek(inputFile, 0, SEEK_SET);
             fwrite(&header, 1, 10, inputFile);
-            fwrite(prevFrame, 1, pointPos - 21 - frameSize + 1, inputFile);
+            fwrite(prevFrame, 1, pointPos - (HEADERSIZE + FRAMESIZE) - frameSize + 1, inputFile);
             fwrite(&frame, 1, 11, inputFile);
             fwrite(prop_value, 1, strlen(prop_value), inputFile);
             fwrite(nextFrame, 1, pointEnd - pointPos + 1, inputFile);
@@ -130,14 +133,14 @@ void setTag(FILE* inputFile, char* prop_name, char* prop_value){
     memcpy(newFrame.id, prop_name, 4);
 
     fseek(inputFile, 10, SEEK_SET);
-    nextFrame = (char *) malloc(pointEnd - 10 + 1);
-    fread(nextFrame, 1, pointEnd - 10 + 1, inputFile);
+    nextFrame = (char *) malloc(pointEnd - HEADERSIZE + 1);
+    fread(nextFrame, 1, pointEnd - HEADERSIZE + 1, inputFile);
 
     fseek(inputFile, 0, SEEK_SET);
-    fwrite(&header, 1, 10, inputFile);
-    fwrite(&newFrame, 1, 11, inputFile);
+    fwrite(&header, 1, HEADERSIZE, inputFile);
+    fwrite(&newFrame, 1, FRAMESIZE, inputFile);
     fwrite(prop_value, 1, strlen(prop_value), inputFile);
-    fwrite(nextFrame, 1, pointEnd - 10 + 1, inputFile);
+    fwrite(nextFrame, 1, pointEnd - HEADERSIZE + 1, inputFile);
 
     free(nextFrame);
 }
