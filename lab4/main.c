@@ -65,10 +65,10 @@ void getTag(FILE* inputFile, char* prop_name){
     fread(&header, 1, 10, inputFile);
     int tagSize = bytesToInt(header.size, 7);
     while ((fread(&frame, 1, 11, inputFile)) && ftell(inputFile) <= tagSize) {
+        int frameSize = bytesToInt(frame.size, 8);
+        frameValue = (char *) malloc(frameSize);
+        fgets(frameValue, frameSize, inputFile);
         if (strcmp(frame.id, prop_name) == 0) {
-            int frameSize = bytesToInt(frame.size, 8);
-            frameValue = (char *) malloc(frameSize);
-            fgets(frameValue, frameSize, inputFile);
             printf("Frame: %s, value: %s\n", frame.id, frameValue);
             return;
         }
@@ -102,7 +102,7 @@ void setTag(FILE* inputFile, char* prop_name, char* prop_value){
 
             fseek(inputFile, 10, SEEK_SET);
             prevFrame = (char *) malloc(pointPos - 21 - frameSize + 1);
-            fread(prevFrame, 1, pointPos - 21 - (frameSize - 1), inputFile);
+            fread(prevFrame, 1, pointPos - 21 - frameSize + 1, inputFile);
             fseek(inputFile, pointPos, SEEK_SET);
             nextFrame = (char *) malloc(pointEnd - pointPos + 1);
             fread(nextFrame, 1, pointEnd - pointPos + 1, inputFile);
