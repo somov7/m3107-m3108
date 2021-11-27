@@ -241,7 +241,7 @@ void solve(FILE *file, char command, char *tag, char *value) {
 
 int main(int argc, char **argv) {
     char *filepath, *value, *tag;
-    if (argc < 3 || argc > 4)
+    if (argc < 3)
         error(INCORRECT_OPTION_COUNT);
     if (argc == 3) {
         unsigned long filepathSize = strlen(argv[1]);
@@ -275,16 +275,33 @@ int main(int argc, char **argv) {
         strncpy(filepath, argv[1]+11, filepathSize);
         unsigned long tagSize = strlen(argv[2]);
         if (tagSize != 10)
-            error(INCORRECT_SET_OPTION);
+            error(INCORRECT_OPTION);
+        char *tmpStr = malloc(6);
+        strncpy(tmpStr, argv[2], 6);
+        if (strcmp(tmpStr, "--set="))
+            error(INCORRECT_OPTION);
         tag = malloc(4);
         strncpy(tag, argv[2]+6, 4);
+        checkTextTag(tag);
         unsigned long valueSize = strlen(argv[3]);
         if (valueSize < 9)
-            error(INCORRECT_SET_OPTION);
+            error(INCORRECT_OPTION);
+        char *tmpStr2 = malloc(6);
+        strncpy(tmpStr2, argv[3], 8);
+        if (strcmp(tmpStr2, "--value="))
+            error(INCORRECT_OPTION);
         valueSize -= 8;
         value = malloc(valueSize);
         strncpy(value, argv[3]+8, valueSize);
-        checkTextTag(tag);
+        for (int i = 4; i < argc; ++i) {
+            unsigned long prevValueSize = strlen(value);
+            unsigned long newValueSize = strlen(argv[i]);
+            value = realloc(value, prevValueSize+newValueSize+2);
+            value[prevValueSize] = ' ';
+            for (unsigned long j = prevValueSize+1; j <= prevValueSize+newValueSize; ++j)
+                value[j] = argv[i][j-prevValueSize-1];
+            value[prevValueSize+newValueSize+1] = '\0';
+        }
         solve(getFile(filepath), SET_OPTION, tag, value);
     }
     return 0;
