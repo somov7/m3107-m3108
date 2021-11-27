@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-
 const int headerBytes = 10;
 const int frameBytes = 11;
 
@@ -70,7 +69,7 @@ void show(char *filepath){
 
         printf("id: %s, data: ", frame.frameId);
         if (frame.unicode) {
-            wprintf(L"%ls\n", frameText + 2); // для юникод
+            wprintf(L"%ls\n", frameText + 2);
         }
         else {
             printf("%s\n", frameText);
@@ -101,7 +100,7 @@ int get(char *filepath, char *id, bool flag) {
             if (flag) {
                 printf("id: %s, data: ", frame.frameId);
                 if (frame.unicode) {
-                    wprintf(L"%ls\n", frameText); // для юникод
+                    wprintf(L"%ls\n", frameText);
                 }
                 else {
                     printf("%s\n", frameText);
@@ -110,7 +109,7 @@ int get(char *filepath, char *id, bool flag) {
 
             position = ftell(fin) - frameTextSize - 10;
             fclose(fin);
-            return position;     // возращает позицию начала нужного фрейма
+            return position;
         }
 
         fread(&frame, 1, frameBytes, fin);
@@ -142,21 +141,21 @@ void set(char *filepath, char *propName, char *propValue) {
     fseek(fin, 0, SEEK_SET);
     fread(&header, 1, headerBytes, fin);
 
-    int newHeaderSize = btoi(header.size, true) + ((int) strlen(propValue) - frameSize) + 1;  // нашли новый размер хэддера в инт
-    itob(newHeaderSize, header.size, true); // перевод в байты
+    int newHeaderSize = btoi(header.size, true) + ((int) strlen(propValue) - frameSize) + 1;
+    itob(newHeaderSize, header.size, true);
 
-    fwrite(&header, 1, headerBytes, fout);      // запись хеддера
+    fwrite(&header, 1, headerBytes, fout);
 
-    fread(buf, 1, position - 10, fin); // перемещаем указатель до нужного фрейма
-    fwrite(buf, 1, position - 10, fout); // записываем всё до нужного фрейма
+    fread(buf, 1, position - 10, fin);
+    fwrite(buf, 1, position - 10, fout);
 
-    fread(&curFrame, 1, frameBytes, fin);   // переместили указатель до начала значения фрейма
+    fread(&curFrame, 1, frameBytes, fin);
     char *frameText = calloc(frameSize, 1);
-    fgets(frameText, frameSize, fin); //переместили указатель до конца значения фрейма
+    fgets(frameText, frameSize, fin);
 
-    itob((int) strlen(propValue) + 1, curFrame.size, false); // меняем размер фрейма
-    fwrite(&curFrame, 1, frameBytes, fout); // записали нужный фрейм
-    fwrite(propValue, 1, (int) strlen(propValue), fout); // записали значение нужно фрейма
+    itob((int) strlen(propValue) + 1, curFrame.size, false);
+    fwrite(&curFrame, 1, frameBytes, fout);
+    fwrite(propValue, 1, (int) strlen(propValue), fout);
 
     int curPos = ftell(fin);
     int diff = endPos - curPos;
@@ -180,7 +179,7 @@ void update(char *filepath, char *propName, char *propValue) {
     fileCheck(fin);
     fileCheck(fout);
 
-    fseek(fin, 0, SEEK_END);    // запоминаем конечную позицию для считывания
+    fseek(fin, 0, SEEK_END);
     int endPos = ftell(fin);
     fseek(fin, 0, SEEK_SET);
 
@@ -196,11 +195,11 @@ void update(char *filepath, char *propName, char *propValue) {
     fread(&frame, 1, frameBytes, fin);
 
     int newHeaderSize = headerSizeInt + 12 + (int) strlen(propValue);
-    itob(newHeaderSize, header.size, true);                    //  изменяем размер хеддера
-    fwrite(&header, 1, headerBytes, fout);                          // записываем новый хеддер
+    itob(newHeaderSize, header.size, true);
+    fwrite(&header, 1, headerBytes, fout);
 
 
-    while (frame.frameId[0] != 0 && ftell(fin) < headerSizeInt) {  // находим позицию последнего фрейма
+    while (frame.frameId[0] != 0 && ftell(fin) < headerSizeInt) {
 
         int frameTextSize = btoi(frame.size, false);
         char *frameText = calloc(frameTextSize - 1, 1);
