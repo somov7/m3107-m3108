@@ -33,10 +33,14 @@ struct frame *getFrames(FILE *filePointer, int *frameCount) {
             fgetc(filePointer);
         }
 
-        for (int i = 0; i < size; i++) {
-            value[i] = fgetc(filePointer);
-            if (value[i] == '\0') {
-                value[i] = ' ';
+        for (int i = 0, j = 0; i < size; i++) {
+            int ch = fgetc(filePointer);
+
+            if (ch != '\0' && ch < 128) {
+                value[j] = ch;
+                j++;
+            } else {
+                value[j] = ' ';
             }
         }
 
