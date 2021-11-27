@@ -52,8 +52,8 @@ void set(FILE* fp, char* propName, char* prop_Value) {
       pos += FRAME_SIZE + frameSize;
     }
 
-     adding new frame
-    //TagFrame newFrame;
+    //adding new frame
+    TagFrame newFrame;
     int sevenBitsUsed = ((tagHeader.majorVersion) == 4 ? 1 : 0); // in id3v2.4.0 uses seven bits Size 4 * %0xxxxxxx
     int frameSizeInteger = strlen(prop_Value) / sizeof(char);
     char frameSizeString[4];
