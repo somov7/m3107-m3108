@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <inttypes.h>
+#include <stdlib.h>
+#include <iso646.h>
 
 #pragma pack(push, 1)
 typedef struct stBitMapFile {
@@ -25,8 +27,36 @@ typedef struct stBitMapFile {
 } bitMapFile;
 #pragma pack(pop)
 
+bitMapFile bmp;
+
+int** mallocPixelArray(int height, int width){
+    int** resArr = (int**) calloc(height, sizeof (int));
+    for (int i = 0; i < height; i++){
+        resArr[i] = (int*)calloc(width, sizeof(int));
+    }
+    return resArr;
+}
+
+void rewriteHeadder(FILE *fin, FILE *fout){
+    fread(&bmp, 1, sizeof(bitMapFile), fin);
+    fwrite(&bmp, 1, sizeof(bitMapFile), fout);
+}
+
+int** bmpToPixelsArray(int height, int width){
+    int **resArr = mallocPixelArray(height, width);
+
+    
+}
 
 int main() {
+    FILE *fin = fopen("test.bmp", "rb");
+    FILE *fout = fopen("Finish.bmp", "wb");
+    rewriteHeadder(fin, fout);
+
+    int **pixelArr;
 
 
+
+    fclose(fin);
+    fclose(fout);
 }
