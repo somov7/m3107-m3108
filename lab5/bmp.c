@@ -14,15 +14,6 @@ void freePixelArray(int height, int** arr){
     free(arr);
 }
 
-void printArr(int** arr, int height, int width){
-    for (int y = 0; y < height; y++){
-        for (int x = 0; x < width; x++){
-            printf("%d", arr[y][x]);
-        }
-        printf("\n");
-    }
-}
-
 int** mallocPixelArray(int height, int width){
     int** resArr = (int**) calloc(height, sizeof (int));
     for (int i = 0; i < height; i++){

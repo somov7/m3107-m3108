@@ -6,12 +6,10 @@
 
 int main(int argc, char** argv) {
 
-    MAX_ITER = 20;
-    DUMP_FREQ = 2;
+    MAX_ITER = 500;
+    DUMP_FREQ = 1;
 
     argParse(argc, argv);
-    printf("%s\n %s\n %d\n %d\n", INPUT_FILE_NAME, DIRECTORY_NAME, MAX_ITER, DUMP_FREQ);
-
     FILE *fin = fopen(INPUT_FILE_NAME, "rb");
     openCorrect(fin);
 
@@ -21,7 +19,6 @@ int main(int argc, char** argv) {
     char *offset = calloc(bmp.bfOffs, sizeof(char));
     fseek(fin, 0, SEEK_SET);
     fread(offset, 1, bmp.bfOffs, fin);
-    printf("height - %d\n  width - %d\n", bmp.biHeight, bmp.biWidth);
 
     int **pixelArr = bmpToPixelsArray(bmp.biHeight, bmp.biWidth, fin, bmp);
 
@@ -34,6 +31,7 @@ int main(int argc, char** argv) {
 
     freePixelArray(bmp.biHeight, pixelArr);
     fclose(fin);
+    free(offset);
     free(INPUT_FILE_NAME);
     free(DIRECTORY_NAME);
 
