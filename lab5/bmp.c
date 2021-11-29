@@ -1,22 +1,10 @@
 #include <stdio.h>
-#include <inttypes.h>
 #include <stdlib.h>
 #include <iso646.h>
 #include <string.h>
 #include "bmp.h"
 #include "game.h"
-
-void printUsage(char* err){
-    printf("Error: %s", err);
-
-}
-
-void openCorrect(FILE* file){
-    if (file == NULL){
-        printUsage("Can't open a file");
-        exit(-1);
-    }
-}
+#include "argParse.h"
 
 void freePixelArray(int height, int** arr){
     for (int i = 0; i < height; i++){

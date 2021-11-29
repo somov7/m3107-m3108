@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <iso646.h>
 
-#define MAX_FILENAME_LEN 10;
-
 #pragma pack(push, 1)
 typedef struct stBitMapFile {
 
@@ -32,8 +30,6 @@ typedef struct stBitMapFile {
 } bitMapFile;
 #pragma pack(pop)
 
-void printUsage(char* err);
-void openCorrect(FILE* file);
 int** bmpToPixelsArray(int height, int width, FILE* fin, bitMapFile bmp);
 int** mallocPixelArray(int height, int width);
 void printArr(int** arr, int height, int width);
