@@ -5,6 +5,8 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <iso646.h>
+#include <string.h>
+
 
 #pragma pack(push, 1)
 typedef struct stBitMapFile {
@@ -34,4 +36,4 @@ int** bmpToPixelsArray(int height, int width, FILE* fin, bitMapFile bmp);
 int** mallocPixelArray(int height, int width);
 void printArr(int** arr, int height, int width);
 void freePixelArray(int height, int** arr);
-void pixelArrayToBmp(int** pixelArr, int height, int width, char* offset, int generationNumber, int offsetLen);
+void pixelArrayToBmp(int** pixelArr, int height, int width, char* offset, int generationNumber, int offsetLen, char* directoryName);

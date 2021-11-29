@@ -5,6 +5,7 @@
 #include "bmp.h"
 #include "game.h"
 #include "argParse.h"
+#define MAX_DIRECTORY_LEN 1000
 
 void freePixelArray(int height, int** arr){
     for (int i = 0; i < height; i++){
@@ -59,12 +60,18 @@ int** bmpToPixelsArray(int height, int width, FILE* fin, bitMapFile bmp){
     return resArr;
 }
 
-void pixelArrayToBmp(int** pixelArr, int height, int width, char* offset, int generationNumber, int offsetLen){
+void pixelArrayToBmp(int** pixelArr, int height, int width, char* offset, int generationNumber, int offsetLen, char* directoryName){
+
     char *strGenNumber = calloc(10, sizeof(char));
     itoa(generationNumber, strGenNumber, 10);
-    char *filename = strcat(strGenNumber, ".bmp");
+    char *fullFilePath = calloc(MAX_DIRECTORY_LEN, sizeof(char));
+    strcat(fullFilePath, directoryName);
+    strcat(fullFilePath, "/");
+    strcat(fullFilePath, strGenNumber);
+    strcat(fullFilePath, ".bmp");
 
-    FILE *fout = fopen(filename, "wb");
+
+    FILE *fout = fopen(fullFilePath, "wb");
     openCorrect(fout);
 
     fwrite(offset, 1, offsetLen, fout); // записываем все байты до самой битмапы
@@ -88,5 +95,6 @@ void pixelArrayToBmp(int** pixelArr, int height, int width, char* offset, int ge
     }
 
     fclose(fout);
-    free(filename);
+    free(fullFilePath);
+    free(strGenNumber);
 }

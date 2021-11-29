@@ -1,11 +1,16 @@
-#include <stdio.h>
 #include "bmp.h"
 #include "game.h"
 #include "argParse.h"
 
+
+
 int main(int argc, char** argv) {
 
+    MAX_ITER = 20;
+    DUMP_FREQ = 2;
+
     argParse(argc, argv);
+    printf("%s\n %s\n %d\n %d\n", INPUT_FILE_NAME, DIRECTORY_NAME, MAX_ITER, DUMP_FREQ);
 
     FILE *fin = fopen(INPUT_FILE_NAME, "rb");
     openCorrect(fin);
@@ -20,10 +25,10 @@ int main(int argc, char** argv) {
 
     int **pixelArr = bmpToPixelsArray(bmp.biHeight, bmp.biWidth, fin, bmp);
 
-    for (int i = 0; i < 600; i++){
+    for (int i = 0; i < MAX_ITER; i++){
         pixelArr = gameLife(pixelArr, bmp.biHeight, bmp.biWidth);
-        if (i % 10 == 0){
-            pixelArrayToBmp(pixelArr, bmp.biHeight, bmp.biWidth, offset, i, (int)bmp.bfOffs);
+        if (i % DUMP_FREQ == 0){
+            pixelArrayToBmp(pixelArr, bmp.biHeight, bmp.biWidth, offset, i + 1, (int)bmp.bfOffs, DIRECTORY_NAME);
         }
     }
 
@@ -31,4 +36,5 @@ int main(int argc, char** argv) {
     fclose(fin);
     free(INPUT_FILE_NAME);
     free(DIRECTORY_NAME);
+
 }
