@@ -1,0 +1,4 @@
+#ifndef LAB5_ARGPARSE_H
+#define LAB5_ARGPARSE_H
+
+#endif //LAB5_ARGPARSE_H

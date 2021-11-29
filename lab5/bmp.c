@@ -2,9 +2,21 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <iso646.h>
+#include <string.h>
 #include "bmp.h"
 #include "game.h"
 
+void printUsage(char* err){
+    printf("Error: %s", err);
+
+}
+
+void openCorrect(FILE* file){
+    if (file == NULL){
+        printUsage("Can't open a file");
+        exit(-1);
+    }
+}
 
 void freePixelArray(int height, int** arr){
     for (int i = 0; i < height; i++){
@@ -57,4 +69,36 @@ int** bmpToPixelsArray(int height, int width, FILE* fin, bitMapFile bmp){
     }
     free(scanLine);
     return resArr;
+}
+
+void pixelArrayToBmp(int** pixelArr, int height, int width, char* offset, int generationNumber, int offsetLen){
+    char *strGenNumber = calloc(10, sizeof(char));
+    itoa(generationNumber, strGenNumber, 10);
+    char *filename = strcat(strGenNumber, ".bmp");
+
+    FILE *fout = fopen(filename, "wb");
+    openCorrect(fout);
+
+    fwrite(offset, 1, offsetLen, fout); // записываем все байты до самой битмапы
+
+    int realWidth = (width / 8) + ((width % 8 > 0) ? 1 : 0);    // действительная ширина где находятся значащие биты
+    int scanLineSize = realWidth;
+    if (realWidth % 4 != 0){
+        scanLineSize = realWidth + (4 - (realWidth % 4));
+    }
+
+    for (int y = height - 1; y >= 0; y--){
+        char* scanLine = calloc(scanLineSize, sizeof(char));
+        for (int x = 0; x < width; x++){
+                int curBytePosition = x / 8;
+                if (pixelArr[y][x] == 0){
+                    scanLine[curBytePosition] = (char)(1 << (7 - x % 8)) bitor scanLine[curBytePosition];
+                }
+        }
+        fwrite(scanLine, 1, scanLineSize, fout);
+        free(scanLine);
+    }
+
+    fclose(fout);
+    free(filename);
 }
