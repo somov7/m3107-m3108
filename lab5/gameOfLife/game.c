@@ -8,6 +8,7 @@ void printArr(int **arr, int h, int w){
     }
 
 }
+
 int **mallocForArr(int height, int width){
     int **arr = malloc(height * sizeof(int*));
     for (int i = 0; i < height; i++){
@@ -15,7 +16,6 @@ int **mallocForArr(int height, int width){
     }
     return arr;
 }
-
 
 int **gameOfLife(int **arr, int height, int width){
     int **tempArr = mallocForArr(height, width);
@@ -90,7 +90,6 @@ int **gameOfLife(int **arr, int height, int width){
             }
         }
         // правая "полоска"
-        counter = 0;
         for (int k = 1; k < height - 1; k++) {
             counter = 0;
             if (arr[k - 1][width - 1] == LIVE_CELL) counter++;
@@ -105,7 +104,6 @@ int **gameOfLife(int **arr, int height, int width){
             }
         }
         // нижняя "полоска"
-        counter = 0;
         for (int k = 1; k < width - 1; k++) {
             counter = 0;
             if (arr[height - 2][k] == LIVE_CELL) counter++;

@@ -1,9 +1,8 @@
-#include <string.h>
 #include "game.h"
 #include "bmp.h"
 
-BitMapFileHeader *bitmapFileHeader;
-BitMapInfoHeader *bitmapInfoHeader;
+BitMapFileHeader bitmapFileHeader;
+BitMapInfoHeader bitmapInfoHeader;
 
 int main(int argc, char *argv[]){
     if (argc < 5){
@@ -58,24 +57,19 @@ int main(int argc, char *argv[]){
         }
     }
 
-    int *height, *width;
+    int height, width;
     FILE *pImage;
-    bmp_to_arr(input_file, &height, &width, &pImage, &bitmapFileHeader, &bitmapInfoHeader);
 
+    int **gameField = bmp_to_arr(input_file, &height, &width, &pImage, &bitmapFileHeader, &bitmapInfoHeader);
 
-
-    int **arr = malloc(*height * sizeof(int*));
-    for (int i = 0; i < height; i++){
-        arr[i] = malloc(*width * sizeof(int));
-        for (int j = 0; j < width; j++){
-            //как-то заполнить массив
-        }
+    for(int i = 0; i < max_iter; i++){
+        gameField = gameOfLife(gameField, height, width);
+        if (i % dump_freq == 0)
+            arr_to_bmp(gameField, height, width, i + 1, output_dir, &bitmapFileHeader, &pImage);
     }
 
-    for (int day = 0; day < max_iter; day++) {
-        arr = gameOfLife(arr, *height, *width);
-        printf("\n");
-    }
-
+    fclose(pImage);
+    free(input_file);
+    free(output_dir);
     return 0;
 }

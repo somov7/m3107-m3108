@@ -5,9 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #pragma pack(push, 1)
-typedef struct BITMAPFILEHEADER{
+typedef struct BITMAPFILEHEADER {
     uint16_t Type; // сигнатура "BM"
     uint32_t fileSize; // размер файла
     uint16_t Reserved1;
@@ -15,7 +16,7 @@ typedef struct BITMAPFILEHEADER{
     uint32_t OffsetBits; // Смещение изображения от начала файла
 } BitMapFileHeader;
 
-typedef struct BITMAPINFOHEADER{
+typedef struct BITMAPINFOHEADER {
     uint32_t headerSize; // длина заголовка
     uint32_t width; // ширина
     uint32_t height; // высота
@@ -31,4 +32,9 @@ typedef struct BITMAPINFOHEADER{
 } BitMapInfoHeader;
 #pragma pack(pop)
 
-void bmp_to_arr(char *filepath, int **height, int **width, FILE **pImage, struct BITMAPFILEHEADER **bitmapFileHeader, struct BITMAPINFOHEADER **bitmapInfoHeader);
+int **bmp_to_arr(char *filepath, int *height, int *width, FILE **pImage, struct BITMAPFILEHEADER *bitmapFileHeader,
+                 struct BITMAPINFOHEADER *bitmapInfoHeader);
+
+void
+arr_to_bmp(int **arr, int height, int width, int iter_num, char *dir_name, struct BITMAPFILEHEADER *bitmapFileHeader,
+            FILE **pImage);
