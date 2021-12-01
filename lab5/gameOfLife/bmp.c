@@ -103,5 +103,4 @@ arr_to_bmp(int **arr, int height, int width, int iter_num, char *dir_name, struc
     }
     fclose(pNewImage);
     free(newFilePath);
-    free(genInStr);
 }

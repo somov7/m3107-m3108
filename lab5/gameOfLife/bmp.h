@@ -13,13 +13,13 @@ typedef struct BITMAPFILEHEADER {
     uint32_t fileSize; // размер файла
     uint16_t Reserved1;
     uint16_t Reserved2;
-    uint32_t OffsetBits; // Смещение изображения от начала файла
+    uint32_t OffsetBits; // Смещение изображения от начала файла (!)
 } BitMapFileHeader;
 
 typedef struct BITMAPINFOHEADER {
     uint32_t headerSize; // длина заголовка
-    uint32_t width; // ширина
-    uint32_t height; // высота
+    uint32_t width; // ширина (!)
+    uint32_t height; // высота (!)
     uint16_t planes; // число плоскостей
     uint16_t BitCount; // глубина цвета (бит на точку)
     uint32_t Compression; // тип сжатия

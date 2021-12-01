@@ -1,14 +1,5 @@
 #include "game.h"
 
-void printArr(int **arr, int h, int w){
-    for(int i = 0; i < h; i++) {
-        for (int j = 0; j < w; j++)
-            printf("%d ", arr[i][j]);
-        printf("\n");
-    }
-
-}
-
 int **mallocForArr(int height, int width){
     int **arr = malloc(height * sizeof(int*));
     for (int i = 0; i < height; i++){
