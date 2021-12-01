@@ -4,10 +4,10 @@
 #include <string.h>
 #include "draw_img.h"
 
-char* v = NULL;
-char* new_v = NULL;
-int h, w;
-int linesize;
+static char* game_array = NULL;
+static char* game_array_buff = NULL;
+static int height, width;
+static int line_size;
 
 #pragma pack(push,1)
 typedef struct tagBITMAPFILEHEADER
@@ -35,69 +35,77 @@ typedef struct tagBITMAPINFOHEADER
 } BITMAPINFOHEADER;
 #pragma pack(pop)
 
-BITMAPFILEHEADER bitmapFileHeader;
-BITMAPINFOHEADER bitmapInfoHeader;
-FILE* img;
+static BITMAPFILEHEADER bitmapFileHeader;
+static BITMAPINFOHEADER bitmapInfoHeader;
+static FILE* image_file;
 
-void next_life(int freq) //генерируем новую жизнь наивным алгоритмом, new_v временный массив для новых битов
+
+void next_life(int freq) //генерируем новую жизнь наивным алгоритмом, game_array_buff временный массив для новых битов
 {
     for (int i = 0; i < freq; i++) {
-        for (int x = 0; x < h; x++) {
-            for (int y = 0; y < w; y++) {
-                int c = 0;
-                for (int t = -1; t <= 1; t++)
-                    for (int j = -1; j <= 1; j++)
-                        if (!(t == 0 && j == 0) && (x+t) >= 0 && (x+t) < h && (y+j) >= 0 
-                        && (y+j) < w && v[(x+t)*w + y+j]) 
-                            c++;
-                int live = 0, t = x*w + y;
-                if (v[t]) live = 1;
+       for (int i = 1 + width; i < width * height - width - 1; i += 8) {
+           uint64_t* sum = (uint64_t*)(game_array_buff + i);
+           *sum += *(uint64_t*)(game_array + i - width - 1);
+           *sum += *(uint64_t*)(game_array + i - width);
+           *sum += *(uint64_t*)(game_array + i - width + 1);
+           *sum += *(uint64_t*)(game_array + i - 1);
+           *sum += *(uint64_t*)(game_array + i + 1);
+           *sum += *(uint64_t*)(game_array + i + width - 1);
+           *sum += *(uint64_t*)(game_array + i + width);
+           *sum += *(uint64_t*)(game_array + i + width + 1);
+       }
+       
+       for (int h = 1; h < height - 1; h++) {
+           for (int w = 1; w < width - 1; w++) {
+                int t = h*width + w;
+                int live = game_array[t];
+                int cnt = game_array_buff[t];
+                game_array[t] = 0 || (live && (cnt == 2 || cnt == 3)) || (!live && cnt == 3);
+           }
+       }
 
-                if (live && c < 2) new_v[t] = 0;
-                else if (live && c > 3) new_v[t] = 0;
-                else if (live && (c == 2 || c == 3)) new_v[t] = 1;
-                else if (!live && c == 3) new_v[t] = 1;
-                else new_v[t] = 0;
-            }
-        }
-        memcpy(v, new_v, w*h);
-        memset(new_v, 0, w*h);
+       memset(game_array_buff, 0, width*height);
     }
 }
 
-int bmp_to_arr(char* imgpath) //читаем 1-битовую bmp в массив v
+int bmp_to_arr(char* imgpath) //читаем 1-битовую bmp в массив game_array
 {
-    img = fopen(imgpath, "rb");
-    if (!img) {
+    image_file = fopen(imgpath, "rb");
+
+    if (!image_file) {
         printf("Can't open file");
         exit(1);
     }
-    fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER),1,img); //читаем файл хедер бмп
-    if (bitmapFileHeader.bfType != 0x4D42) {//проверим если тип файла бмп 
-        fclose(img);
+    const int bmp_const = 0x4D42;
+    fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER),1,image_file); //читаем файл хедер бмп
+    if (bitmapFileHeader.bfType != bmp_const) {//проверим если тип файла бмп 
+        fclose(image_file);
         exit(1);
     }
 
-    fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER),1,img); //читаем инфо хедер
-
-    h = bitmapInfoHeader.biHeight;
-    w = bitmapInfoHeader.biWidth;
-    v = (char*)malloc(w*h); //выделим память под массив w*h, вместо двумерного будем использовать одномерный, вместо v[i][j] будем v[i*w+j]
-    fseek(img, bitmapFileHeader.bfOffBits, 0); //скипнем до начала байтов нашей картинки
-    linesize = ((w * bitmapInfoHeader.biBitCount + 31) / 32) * 4; //размер сканлинии в байтах, байтов в строке всегда кратно 4
+    fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER),1,image_file); //читаем инфо хедер
+    fseek(image_file, bitmapFileHeader.bfOffBits, 0); //скипнем до начала байтов нашей картинки
+    line_size = ((bitmapInfoHeader.biWidth * bitmapInfoHeader.biBitCount + 31) / 32) * 4; //размер сканлинии в байтах, байтов в строке всегда кратно 4
     //если у нас ширина картинки 20 пикселей, на пиксель нужен 1 бит, нам достаточно 3 байтов, но будет добавлен еще 1 для кратности
-    int filesize = linesize * h;
-    printf("linesize: %d\n", linesize);
+    int filesize = line_size * bitmapInfoHeader.biHeight;
+
+    height = bitmapInfoHeader.biHeight + 2;
+    width = bitmapInfoHeader.biWidth + 2;
+
+    game_array = (char*)calloc(sizeof(char),width*height); //выделим память под массив w*h, вместо двумерного будем использовать одномерный, вместо game_array[i][j] будем game_array[i*w+j]
+
+    printf("line_size: %d\n", line_size);
     char* data = (char*)malloc(filesize);
-    fread(data, 1, filesize, img); //прочитаем все байты картинки
-    for(int y = h - 1; y >= 0; y--) {
-        for(int x = 0; x < w; x++) {
-            int pos = y * linesize + x / 8; //возьмем первый байт (первый с последней по формату бмп)
+    fread(data, 1, filesize, image_file); //прочитаем все байты картинки
+
+    for (int h = height - 2; h >= 1; h--) {
+        int t = h * width;
+        for (int w = 1; w <= width-2; w++) {
+            int pos = (h-1) * line_size + (w-1) / 8; //возьмем байт
             //x / 8 - восемь раз читаем один байт, перед тем, как перейти к следующему
-            //y * linesize - скипаем паддинг байты
-            int bit = 1 << (7 - x % 8); //возьмем первый бит, потом второй, третий до 8
-            int vx = (data[pos] & bit) > 0; //если бит в нужной позиции в нашем байте равен 1, значение будет 1
-            v[y * w + x] = vx; //v[y][x] = vx;
+            //y * line_size - скипаем паддинг байты
+            int bit = 1 << (7 - (w-1) % 8); //возьмем первый бит, потом второй, третий до 8
+            game_array[t + w] = (data[pos] & bit) > 0; //если бит в нужной позиции в нашем байте равен 1, значение будет 1
         }
     }
 
@@ -106,33 +114,36 @@ int bmp_to_arr(char* imgpath) //читаем 1-битовую bmp в масси�
     return 0;
 }
 
-void arr_to_bmp(char* folderpath, int count)
+void arr_to_bmp(char* folder_path, int count)
 {
     char* buf = (char*)malloc(bitmapFileHeader.bfOffBits);
-    fseek(img, 0, SEEK_SET);
-    fread(buf, 1, bitmapFileHeader.bfOffBits, img); //структуры бмп изменять не будем, т.к. ничего не изменилось кроме положения битов 0 1
+    fseek(image_file, 0, SEEK_SET);
+    fread(buf, 1, bitmapFileHeader.bfOffBits, image_file); //структуры бмп изменять не будем, т.к. ничего не изменилось кроме положения битов 0 1
 
-    char* path = (char*)malloc(sizeof(folderpath)+6);
-    sprintf(path, "%s\\%d.bmp", folderpath, count); //форматируем путь в соответствии с папкой и count итерацией
-    FILE* resimg = fopen(path, "wb");
-    if (resimg == NULL) {
+    char* path = (char*)malloc(sizeof(folder_path)+10);
+    sprintf(path, "%s\\%d.bmp", folder_path, count); //форматируем путь в соответствии с папкой и count итерацией
+    FILE* result_image = fopen(path, "wb");
+    if (result_image == NULL) {
         printf("Failed to open file");
         exit(1);
     }
-    fwrite(buf, 1, bitmapFileHeader.bfOffBits, resimg);
+
+    fwrite(buf, 1, bitmapFileHeader.bfOffBits, result_image); //пишем метаданные
     free(path);
     free(buf);
-    char* scan = calloc(linesize, 1); //строки байтов размера linesize что мы будем писать в файл
-    for(int y = 0; y < h; y++) {
-        for(int x = 0; x < w; x++) {
-            int pos = x / 8; //скипаем паддинг байты в строке байтов. если ширина 20 пикселей, будет от 0 до 2, всего 3 байта, в которых и есть все нужны биты
-            if (v[y*w+x]) scan[pos] |= 1 << (7 - x % 8); //составляем байт
-        }
-        fwrite(scan, 1, linesize, resimg); //записали сканлинию
-        memset(scan, 0, linesize);
+
+    char* scan = calloc(line_size, 1); //строки байтов размера line_size что мы будем писать в файл
+
+    for (int h = 1; h < height-1; h++) {
+        int t = h*width;
+        for (int w = 1; w < width-1; w++)
+            scan[(w-1)/8] |= (game_array[t+w] << (7 - (w-1) % 8)); //составляем сканлинию/байт
+        fwrite(scan, 1, line_size, result_image); //записали сканлинию
+        memset(scan, 0, line_size);
     }
+
     free(scan);
-    fclose(resimg);
+    fclose(result_image);
 }
 
 
@@ -141,9 +152,8 @@ int main(int argc, char* argv[])
 {
     char* input_file;
     char* output_folder;
-    int max_iter = 300; //ограничено 500 картинками, чтобы не убить SSD
+    int max_iter = 1000; //ограничено 500 картинками, чтобы не убить SSD
     int dump_freq = 1;
-    int random = 0;
 
     if (argc <= 4) {
         printf("Correct usage: --input <filename> --output <filedir>\n--max_iter <> --dump_freq <>");
@@ -195,16 +205,17 @@ int main(int argc, char* argv[])
 
     bmp_to_arr(input_file); //прочитаем бмп в массив, чтобы могли генеририровать новые картинки
 
-    new_v = calloc(1,w*h);
+    game_array_buff = calloc(sizeof(char), width*height);
+
     for (int i = 0; i < max_iter; i++) {
         next_life(dump_freq); //получаем новый массив по правилам игры с заданной частотой
         arr_to_bmp(output_folder, i); //переведим массив в бмп и сохраняем в указанной папке
     }
 
-    fclose(img);
-    free(v);
-    free(new_v);
+    fclose(image_file);
+    free(game_array);
+    free(game_array_buff);
     
-    draw_img(w, h);
+    draw_img(width, height);
     return 0;
 }
