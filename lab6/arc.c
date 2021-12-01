@@ -1,18 +1,6 @@
 #include "arc.h"
 #include "list.h"
-
-void printUsage(char *str) {
-    printf("%s", str);
-}
-
-
-void openCorrect(FILE *file) {
-    if (file == NULL) {
-        printUsage("can't open a file:");
-        exit(-1);
-    }
-}
-
+#include "argParse.h"
 
 char *getFileName(char *filePath) {
     if (strrchr(filePath, '\\') == NULL) {
@@ -52,7 +40,6 @@ uint32_t getHeaderSize(char **str, int numberFiles) {
     }
     return res;
 }
-
 
 void getInfo(char **str, int numberFiles) {
 
@@ -123,7 +110,7 @@ void inCompress(char **str, int numberFiles, char *arcName) {
             }
         }
         fclose(curFile);
-        //remove(str[i]);
+        remove(str[i]);
     }
 
     fclose(arc);
@@ -181,5 +168,38 @@ void outCompress(char* arcName){
     }
 
     fclose(arc);
-    //remove(arcName);
+    remove(arcName);
+}
+
+
+void showFiles(char* arcName){
+    FILE *arc = fopen(arcName, "rb");
+    openCorrect(arc);
+    int infoSize;
+    fread(&infoSize, 4, 1, arc);
+
+    char *infoBlock = calloc(infoSize + 1, sizeof(char));
+    fread(infoBlock, 1, infoSize, arc);
+
+    infoBlock[infoSize] = '\0';
+
+    int tokenCnt = 0;
+    node *tokens = parseInfo(&tokenCnt, infoBlock);
+    free(infoBlock);
+
+    int filesCnt = tokenCnt / 2;
+
+    printf("There are %d files archived: \n", filesCnt);
+
+    for (int i = 0; i < filesCnt; i++){
+
+        char* size = popBack(&tokens);
+        char* name = popBack(&tokens);
+
+        printf("-- %s\n", name);
+
+        free(size);
+        free(name);
+    }
+
 }
