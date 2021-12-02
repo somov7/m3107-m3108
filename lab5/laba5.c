@@ -43,28 +43,58 @@ static FILE* image_file;
 void next_life(int freq) //генерируем новую жизнь наивным алгоритмом, game_array_buff временный массив для новых битов
 {
     for (int i = 0; i < freq; i++) {
-       for (int i = 1 + width; i < width * height - width - 1; i += 8) {
-           uint64_t* sum = (uint64_t*)(game_array_buff + i);
-           *sum += *(uint64_t*)(game_array + i - width - 1);
-           *sum += *(uint64_t*)(game_array + i - width);
-           *sum += *(uint64_t*)(game_array + i - width + 1);
-           *sum += *(uint64_t*)(game_array + i - 1);
-           *sum += *(uint64_t*)(game_array + i + 1);
-           *sum += *(uint64_t*)(game_array + i + width - 1);
-           *sum += *(uint64_t*)(game_array + i + width);
-           *sum += *(uint64_t*)(game_array + i + width + 1);
-       }
-       
-       for (int h = 1; h < height - 1; h++) {
-           for (int w = 1; w < width - 1; w++) {
-                int t = h*width + w;
-                int live = game_array[t];
-                int cnt = game_array_buff[t];
-                game_array[t] = 0 || (live && (cnt == 2 || cnt == 3)) || (!live && cnt == 3);
-           }
+        for (int i = 1 + width; i < width * height - width - 1; i += 8) {
+            uint64_t* sum = (uint64_t*)(game_array_buff + i);
+            *sum += *(uint64_t*)(game_array + i - width - 1);
+            *sum += *(uint64_t*)(game_array + i - width);
+            *sum += *(uint64_t*)(game_array + i - width + 1);
+            *sum += *(uint64_t*)(game_array + i - 1);
+            *sum += *(uint64_t*)(game_array + i + 1);
+            *sum += *(uint64_t*)(game_array + i + width - 1);
+            *sum += *(uint64_t*)(game_array + i + width);
+            *sum += *(uint64_t*)(game_array + i + width + 1);
+        }
+
+        for (int i = width; i < width * height - width; i += 8) {
+            uint64_t cnt = *(uint64_t*)(game_array_buff+i);
+            uint64_t alive = *(uint64_t*)(game_array+i);
+            cnt &= 0b0000011100000111000001110000011100000111000001110000011100000111ULL;
+            //важны только последние 3 бита в количестве
+            uint64_t alive_cnt = cnt | (alive << 3);
+            //0011 - клетка мертва и 3 соседа = 1
+            //1010 - клетка жива и 2 соседа = 1
+            //1011 - клетка жива и 3 соседа = 1
+            //на остальных наборах 0
+            //x1 && ~x2 && x3 || ~x2 && x3 && x4 (сокращенная ДНФ, что дает 1 на этих наборах, можно найти по карте Карно)
+            //либо записать СДНФ и склеить
+            alive_cnt ^= 0b0000010000000100000001000000010000000100000001000000010000000100ULL;
+            //взяли отрицание второго бита (x2), оно нужно в обеих конъюнктах;
+            uint64_t keepAlive = alive_cnt & 0b0000111000001110000011100000111000001110000011100000111000001110ULL;
+            //взяли x1, x2, x3
+            keepAlive &= (keepAlive >> 1);
+            //теперь второй бит это x1 && x2, третий x2 && x3, осталось применить конъюнкию еще раз для x1 && x2 && x3
+            keepAlive &= (keepAlive >> 1);
+            keepAlive >>= 1;
+            //10 -> 1
+
+            uint64_t makeNewLife = alive_cnt & 0b0000011100000111000001110000011100000111000001110000011100000111ULL;
+            //взяли x2, x3, x4
+            makeNewLife &= (makeNewLife >> 1);
+            //теперь третий бит это x2 && x3, четвертый x3 && x4, применим И еще раз для x2 && x3 && x4
+            makeNewLife &= (makeNewLife >> 1);
+
+            //x1 && ~x2 && x3 || ~x2 && x3 && x4
+            *(uint64_t*)(game_array+i) = keepAlive | makeNewLife;
+        
        }
 
-       memset(game_array_buff, 0, width*height);
+        for (int i = 1; i < height - 1; i++) {
+            int t = i*width;
+            game_array[t] = 0;
+            game_array[t+width-1] = 0;
+        }
+
+        memset(game_array_buff, 0, width*height);
     }
 }
 
@@ -101,10 +131,10 @@ int bmp_to_arr(char* imgpath) //читаем 1-битовую bmp в масси�
     for (int h = height - 2; h >= 1; h--) {
         int t = h * width;
         for (int w = 1; w <= width-2; w++) {
-            int pos = (h-1) * line_size + (w-1) / 8; //возьмем байт
+            int pos = (h-1) * line_size + ((w-1) >> 3); //возьмем байт
             //x / 8 - восемь раз читаем один байт, перед тем, как перейти к следующему
             //y * line_size - скипаем паддинг байты
-            int bit = 1 << (7 - (w-1) % 8); //возьмем первый бит, потом второй, третий до 8
+            int bit = 1 << (7 - ((w-1) & 7)); //возьмем первый бит, потом второй, третий до 8
             game_array[t + w] = (data[pos] & bit) > 0; //если бит в нужной позиции в нашем байте равен 1, значение будет 1
         }
     }
@@ -133,15 +163,17 @@ void arr_to_bmp(char* folder_path, int count)
     free(buf);
 
     char* scan = calloc(line_size, 1); //строки байтов размера line_size что мы будем писать в файл
+    //char* final_bytes = calloc(line_size*(height-2), 1);
 
     for (int h = 1; h < height-1; h++) {
         int t = h*width;
         for (int w = 1; w < width-1; w++)
-            scan[(w-1)/8] |= (game_array[t+w] << (7 - (w-1) % 8)); //составляем сканлинию/байт
+            scan[(w-1) >> 3] |= (game_array[t+w] << (7 - (w-1) & 7)); //составляем сканлинию/байт
         fwrite(scan, 1, line_size, result_image); //записали сканлинию
+        //memcpy(final_bytes+(h-1)*line_size, scan, line_size);
         memset(scan, 0, line_size);
     }
-
+    //fwrite(final_bytes, 1, line_size*(height-2), result_image);
     free(scan);
     fclose(result_image);
 }
