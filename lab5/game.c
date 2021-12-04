@@ -230,9 +230,9 @@ void save_img(void){
 
             int val;
             if((data[cur] & bit) > 0)
-                val = 0;
+                val = 1;
             else
-                val = 1; //?
+                val = 0; //?
 
 
             XX[y * w + x] = val; 
