@@ -67,7 +67,7 @@ uint8_t* XX = NULL;
 uint8_t* XXnew = NULL;
 
 int max_iter = 5;
-int dump_freq = 3;
+int dump_freq = 1;
 
 int line_alig_4;
 
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]){
     save_img();
     if(CMD_PRINT_FLAG)
         print_matrix_CMD();
-    XXnew = calloc(1, w*h);
+    XXnew = calloc(1, w * h);
 
 
     // основной цикл
@@ -133,14 +133,14 @@ int main(int argc, char* argv[]){
         fill_headers();
 
         for(int y = 0; y < h; y++){
-            char* line = calloc(line_alig_4, sizeof(char)); 
-
+             
+            char* line = (char*)malloc(line_alig_4);
             for(int x = 0; x < w; x++){
                 int pos = x / 8;  
-                if (XX[y*w+x])
+                if (XX[y * w + x])
                     // little-endian only????
                     // если написать просто 1 << (x % 8), то выводит байты в обратном порядке
-                    line[pos] = line[pos] + (1 << (7 - x % 8));   
+                    line[pos] = line[pos] | (1 << (7 - x % 8));   
             }
 
             fwrite(line, 1, line_alig_4, output); 
@@ -198,7 +198,7 @@ void save_img(void){
     h = inf_header.Height;
     w = inf_header.Width;
 
-    XX = (uint8_t*)malloc(w*h); 
+    XX = (uint8_t*)malloc(w * h); 
     
 
     /* https://stackoverflow.com/questions/48957742/how-to-calculate-bitmap-size
@@ -245,8 +245,8 @@ void save_img(void){
 
 void GameOfLife(void){
 
-    int live = 0 ;
-    int matrix_size = w*h;
+    int live = 0;
+    int matrix_size = w * h;
     for(int x = 0; x < h; x++){
         for(int y = 0; y < w; y++){
 
@@ -255,14 +255,15 @@ void GameOfLife(void){
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++)
                     if (!(i == 0 && j == 0) // не считаем сам элемент
-                        && XX[(x+i)*w + y+j] // если элемент существует
                         && ((x+i) >= 0) && ((x+i) < h) // граница по высоте 
-                        && ((y+j) >= 0) && ((y+j) < w)){ // граница по ширине 
+                        && ((y+j) >= 0) && ((y+j) < w)
+                        && XX[(x+i)*w + y+j]){ // если элемент существует // граница по ширине 
 
                                 sum++;
                 }
 
-            
+            int live = 0;
+            int matrix_size = w * h;
             int coords_1dim = x*w + y; 
             if(XX[coords_1dim]) live = 1;
 
