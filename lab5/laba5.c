@@ -135,7 +135,7 @@ int bmp_to_arr(char* imgpath) //читаем 1-битовую bmp в масси�
             //x / 8 - восемь раз читаем один байт, перед тем, как перейти к следующему
             //y * line_size - скипаем паддинг байты
             int bit = 1 << (7 - ((w-1) & 7)); //возьмем первый бит, потом второй, третий до 8
-            game_array[t + w] = (data[pos] & bit) > 0; //если бит в нужной позиции в нашем байте равен 1, значение будет 1
+            game_array[t + w] = (data[pos] & bit) == 0; //если бит в нужной позиции в нашем байте равен 0, значение будет 1
         }
     }
 
@@ -162,18 +162,15 @@ void arr_to_bmp(char* folder_path, int count)
     free(path);
     free(buf);
 
-    char* scan = calloc(line_size, 1); //строки байтов размера line_size что мы будем писать в файл
-    //char* final_bytes = calloc(line_size*(height-2), 1);
+    char* scan = calloc(line_size, 1); 
 
     for (int h = 1; h < height-1; h++) {
         int t = h*width;
         for (int w = 1; w < width-1; w++)
             scan[(w-1) >> 3] |= (game_array[t+w] << (7 - (w-1) & 7)); //составляем сканлинию/байт
         fwrite(scan, 1, line_size, result_image); //записали сканлинию
-        //memcpy(final_bytes+(h-1)*line_size, scan, line_size);
         memset(scan, 0, line_size);
     }
-    //fwrite(final_bytes, 1, line_size*(height-2), result_image);
     free(scan);
     fclose(result_image);
 }
