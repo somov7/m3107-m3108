@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 {
     char* input_file;
     char* output_folder;
-    int max_iter = 1000; //ограничено 500 картинками, чтобы не убить SSD
+    int max_iter = 3000; //ограничено 500 картинками, чтобы не убить SSD
     int dump_freq = 1;
 
     if (argc <= 4) {

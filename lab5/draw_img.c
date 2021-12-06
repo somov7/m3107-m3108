@@ -23,12 +23,13 @@ int draw_img(int w, int h)
 	SDL_Texture* texture = NULL;	
 
 	SDL_CreateWindowAndRenderer(w, h, 0, &window, &renderer);
+	SDL_SetWindowResizable(window, SDL_TRUE);
 
 	SDL_Event e; 
 
 	while(!quit) {
 		current = SDL_GetTicks();
-        if (current > last + 50) {
+        if (current > last + 40) {
 			last = current;
             sprintf(file_str, "test\\%d.bmp", i++);
 			update_img(surface, renderer, texture, file_str);
