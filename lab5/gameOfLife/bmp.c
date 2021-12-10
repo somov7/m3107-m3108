@@ -33,8 +33,8 @@ int **bmp_to_arr(char *filepath, int *height, int *width, FILE **pImage, char **
     for (int i = *height - 1; i >= 0; i--){
         fread(scanLine, 1, scanLineSize, *pImage);
         for (int j = 0; j < *width; j++){
-            int curBytePos = x / 8;
-            int curBit = 1 << (7 - x % 8);
+            int curBytePos = j / 8;
+            int curBit = 1 << (7 - j % 8);
             int pixel = scanLine[curBytePos] & curBit;
             if (pixel == 0){
                 arr[i][j] = LIVE_CELL;
