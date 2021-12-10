@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     char *tipOutputPt2 = "\" near the program.\n\n";
     char *tipInputPt1 = "You can skip \"--input input.bmp\" section. This way picture \"";
     char *tipInputPt2 = "\" will be opened.\n\n";
-    char *tipMax_iter = "You can skip \"--max_iter (number)\" section. Is equal 100 by default.\n\n";
+    char *tipMax_iter = "You can skip \"--max_iter (number)\" section. Is equal to 100 by default.\n\n";
     char *tipDump_freq = "You can skip \"--dump_freq (number)\" section. This way picture will be saved every step.\n\n";
 
     if ((argc == 2) && (!strcmp(argv[1], "help"))) {
