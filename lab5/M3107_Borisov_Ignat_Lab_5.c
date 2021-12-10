@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +10,7 @@
 
 int main(int argc, char *argv[]) {
 
-    long iterationsNumber = 100;
+    long iterationsNumber = 200;
     long dumpFrequency = 1;
     ulong width = 0, height = 0;
     char *origOutputDir = "Steps\\";
@@ -30,7 +31,7 @@ int main(int argc, char *argv[]) {
     char *tipOutputPt2 = "\" near the program.\n\n";
     char *tipInputPt1 = "You can skip \"--input input.bmp\" section. This way picture \"";
     char *tipInputPt2 = "\" will be opened.\n\n";
-    char *tipMax_iter = "You can skip \"--max_iter (number)\" section. Is equal to 100 by default.\n\n";
+    char *tipMax_iter = "You can skip \"--max_iter (number)\" section. This way iterations may be infinite.\n\n";
     char *tipDump_freq = "You can skip \"--dump_freq (number)\" section. This way picture will be saved every step.\n\n";
 
     if ((argc == 2) && (!strcmp(argv[1], "help"))) {
@@ -224,8 +225,8 @@ int main(int argc, char *argv[]) {
 
     ulong alive[iterationsNumber];
     ulong stepCount = 0;
-    char copied_plan[width * height];
-    char neighbours = 0;
+    uchar copied_plan[width * height];
+    char neighbours = 0, flagOscillator = 0;
 
     for (ulong i = 0; i < width * height; i++) {
         copied_plan[i] = original_plan[i];
@@ -245,6 +246,95 @@ int main(int argc, char *argv[]) {
 
         if (alive[n] == 0) {
             printf("Game over: all cells are dead.");
+            break;
+        }
+
+
+
+        for (ulong i = 0; i < widthInBytes * height; i++) {
+            outputChar[i] = 0;
+
+            if ((i + 1) % widthInBytes != 0) {
+                for (char j = 7; j >= 0; j--) {
+                    if (original_plan[i * 8 + 7 - j - offsetBits * (i / widthInBytes)] == 0) {
+                        outputChar[i] += pow(2, j);
+                    }
+                }
+            } else {
+                for (char k = 0; k < 8 - offsetBits; k++) {
+                    if (original_plan[i * 8 + k - offsetBits * (i / widthInBytes)] == 0) {
+                        outputChar[i] += pow(2, 7 - k);
+                    }
+                }
+            }
+        }
+
+
+
+        for (ulong i = 0; i < n; i++) {
+            if (alive[i] == alive[n]) {
+                FILE *old;
+
+                char *nameFile;
+                char *temp;
+                temp = malloc(9);
+                sprintf(temp, "%d", i);
+                strcat(temp, ".bmp");
+                nameFile = malloc(strlen(temp));
+                strcpy(nameFile, temp);
+
+                if (strlen(nameFile) < 8)
+                    for (char m = strlen(nameFile); m < 8; m++) {
+                        temp = malloc(strlen(nameFile) + strlen("0"));
+                        strcpy(temp, "0");
+                        strcat(temp, nameFile);
+                        nameFile = malloc(strlen(temp));
+                        strcpy(nameFile, temp);
+                    }
+
+                temp = malloc(strlen(origOutputDir) + strlen("\\") + strlen(nameFile));
+                strcpy(temp, origOutputDir);
+
+                char *temp2 = malloc(strlen(temp) + strlen((nameFile)));
+                strcpy(temp2, temp);
+                strcat(temp2, nameFile);
+                nameFile = malloc(strlen(temp2));
+                strcpy(nameFile, temp2);
+
+                old = fopen(nameFile, "rb");
+
+                for (char m = 0; m < 62; m++) {
+                    char useless = fgetc(old);
+                }
+
+                for (ulong m = 0; m < widthInBytes * height; m++) {
+                    uchar oldChar = fgetc(old);
+                    if (oldChar != outputChar[m]) {
+                        break;
+                    }
+                    if ((m + 1) % widthInBytes == 0) {
+                        for (char k = 0; k < offsetBytes; k++) {
+                            uchar useless = fgetc(old);
+                        }
+                    }
+                    if ((m + 1) == widthInBytes * height) {
+                        printf("This life simulation became an oscillator with a period of %d, started on %d.\n", n - i, i);
+                        flagOscillator = 1;
+                        break;
+                    }
+                }
+
+                if (flagOscillator != 0) {
+                    break;
+                }
+
+                fclose(old);
+
+                // 62 + widthInBytes * height
+            }
+        }
+
+        if (flagOscillator != 0) {
             break;
         }
 
@@ -349,24 +439,6 @@ int main(int argc, char *argv[]) {
                 //here
 
                 do {
-                    for (ulong i = 0; i < widthInBytes * height; i++) {
-                        outputChar[i] = 0;
-
-                        if ((i + 1) % widthInBytes != 0) {
-                            for (char j = 7; j >= 0; j--) {
-                                if (original_plan[i * 8 + 7 - j - offsetBits * (i / widthInBytes)] == 0) {
-                                    outputChar[i] += pow(2, j);
-                                }
-                            }
-                        } else {
-                            for (char k = 0; k < 8 - offsetBits; k++) {
-                                if (original_plan[i * 8 + k - offsetBits * (i / widthInBytes)] == 0) {
-                                    outputChar[i] += pow(2, 7 - k);
-                                }
-                            }
-                        }
-                    }
-
                     for (ulong i = 0; i < widthInBytes * height; i++) {
 
                         if ((i + 1) % widthInBytes != 0) {
