@@ -17,8 +17,9 @@ int main(int argc, char *argv[]){
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--input")) {
             if (i + 1 < argc) {
-                input_file = (char*)malloc(strlen(argv[i+1]));
-                strcpy(input_file, argv[i+1]);
+//                input_file = (char*)malloc(strlen(argv[i+1]));
+//                strcpy(input_file, argv[i+1]);
+                input_file = argv[i + 1];
             }
             else {
                 printf("Wrong format");
@@ -28,8 +29,9 @@ int main(int argc, char *argv[]){
         }
         else if (!strcmp(argv[i], "--output")) {
             if (i + 1 < argc) {
-                output_dir = (char*)malloc(strlen(argv[i+1]));
-                strcpy(output_dir, argv[i+1]);
+//                output_dir = (char*)malloc(strlen(argv[i+1]));
+//                strcpy(output_dir, argv[i+1]);
+                output_dir = argv[i + 1];
             }
             else {
                 printf("Wrong format");
@@ -59,15 +61,17 @@ int main(int argc, char *argv[]){
 
     int height, width;
     FILE *pImage;
+    char *offset;
 
-    int **gameField = bmp_to_arr(input_file, &height, &width, &pImage, &bitmapFileHeader, &bitmapInfoHeader);
+    int **gameField = bmp_to_arr(input_file, &height, &width, &pImage, &offset, &bitmapFileHeader, &bitmapInfoHeader);
 
     for(int i = 0; i < max_iter; i++){
         gameField = gameOfLife(gameField, height, width);
         if (i % dump_freq == 0)
-            arr_to_bmp(gameField, height, width, i + 1, output_dir, &bitmapFileHeader, &pImage);
+            arr_to_bmp(gameField, height, width, i + 1, output_dir, offset, &bitmapFileHeader, &pImage);
     }
 
+    free(offset);
     fclose(pImage);
     free(input_file);
     free(output_dir);

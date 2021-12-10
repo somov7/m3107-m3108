@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <iso646.h>
 
 #pragma pack(push, 1)
 typedef struct BITMAPFILEHEADER {
@@ -32,9 +33,9 @@ typedef struct BITMAPINFOHEADER {
 } BitMapInfoHeader;
 #pragma pack(pop)
 
-int **bmp_to_arr(char *filepath, int *height, int *width, FILE **pImage, struct BITMAPFILEHEADER *bitmapFileHeader,
+int **bmp_to_arr(char *filepath, int *height, int *width, FILE **pImage, char **offset, struct BITMAPFILEHEADER *bitmapFileHeader,
                  struct BITMAPINFOHEADER *bitmapInfoHeader);
 
 void
-arr_to_bmp(int **arr, int height, int width, int iter_num, char *dir_name, struct BITMAPFILEHEADER *bitmapFileHeader,
-            FILE **pImage);
+arr_to_bmp(int **arr, int height, int width, int iter_num, char *dir_name, char *offset, struct BITMAPFILEHEADER *bitmapFileHeader,
+           FILE **pImage);
