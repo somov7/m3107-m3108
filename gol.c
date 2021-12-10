@@ -217,14 +217,12 @@ int main(int argc, char **argv)
     FILEHEADER fh;
     INFOHEADER ih;
 
-    // char filename[] = {"123.bmp"};
     char *filename = argv[2];
     grid universe = readBMP(&fh, &ih, filename);
 
     char *output_directory = argv[4];
     if (_mkdir(output_directory) != 0)
         printf("invalid path");
-    // char output_directory[] = {"C:/Users/mdcrt/.vscode/projects/CLAB"};
 
     char *help;
     long long max_iterations;
@@ -248,14 +246,11 @@ int main(int argc, char **argv)
 
     printf("%ld", dump_frequency);
 
-    for (long long i = 0; ((max_iterations!=LONG_LONG_MAX) ? (1) : (i < max_iterations)); i++)
+    for (long long i = 0; ((max_iterations != LONG_LONG_MAX) ? (1) : (i < max_iterations)); i++)
         if (i % dump_frequency == 0)
         {
             universe = newGeneration(&universe, fh, ih);
             writeBMP(universe, fh, ih, i, output_directory, filename);
         }
-
-    // printf("%ld %ld %s", max_iterations, dump_frequency, output_directory);
-    //gol.exe --input glider.bmp --output C:\Users\mdcrt\.vscode\projects\CLAB\output --max_iter 10 --dump_freq 1
     return 0;
 }
