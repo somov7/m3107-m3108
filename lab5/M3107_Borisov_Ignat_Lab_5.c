@@ -10,7 +10,7 @@
 
 int main(int argc, char *argv[]) {
 
-    long iterationsNumber = 200;
+    long iterationsNumber = 100000;
     long dumpFrequency = 1;
     ulong width = 0, height = 0;
     char *origOutputDir = "Steps\\";
