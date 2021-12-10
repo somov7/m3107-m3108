@@ -247,7 +247,7 @@ int main(int argc, char **argv)
     printf("%ld", dump_frequency);
 
     for (long long i = 0; ((max_iterations != LONG_LONG_MAX) ? (1) : (i < max_iterations)); i++)
-        if (i % dump_frequency == 0)
+        if ((dump_frequency == 1) ? (1) : (i % dump_frequency == 0))
         {
             universe = newGeneration(&universe, fh, ih);
             writeBMP(universe, fh, ih, i, output_directory, filename);
