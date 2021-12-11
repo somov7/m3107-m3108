@@ -3,6 +3,13 @@
 
 BitMapFileHeader bitmapFileHeader;
 BitMapInfoHeader bitmapInfoHeader;
+void printArr(int **arr, int h, int w){
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++)
+            printf("%d ", arr[i][j]);
+        printf("\n");
+    }
+}
 
 int main(int argc, char *argv[]){
     if (argc < 5){
@@ -67,6 +74,7 @@ int main(int argc, char *argv[]){
 
     for(int i = 0; i < max_iter; i++){
         gameField = gameOfLife(gameField, height, width);
+        //printArr(gameField, height, width);
         if (i % dump_freq == 0)
             arr_to_bmp(gameField, height, width, i + 1, output_dir, offset, &bitmapFileHeader, &pImage);
     }
