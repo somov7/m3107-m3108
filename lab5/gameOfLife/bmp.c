@@ -56,7 +56,7 @@ arr_to_bmp(int **arr, int height, int width, int iter_num, char *dir_name, char 
     itoa(iter_num, str, 10);
     char *path = calloc(1000, sizeof(char));
     strcat(path, dir_name);
-    strcat(path, "/");
+    strcat(path, "/generation_num_");
     strcat(path, str);
     strcat(path,".bmp");
 
