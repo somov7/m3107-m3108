@@ -212,7 +212,6 @@ void writeBMP(grid universe, FILEHEADER fh, INFOHEADER ih, int generation, char 
 }
 
 int main(int argc, char **argv)
-// int main()
 {
     FILEHEADER fh;
     INFOHEADER ih;
@@ -228,29 +227,25 @@ int main(int argc, char **argv)
     long long max_iterations;
     long long dump_frequency;
 
-    if (argc == 5)
+    if (argc >= 5)
     {
         max_iterations = strtoll(argv[6], &help, 10);
     }
     else
         max_iterations = LONG_LONG_MAX;
 
-    printf("%ld", max_iterations);
-
-    if (argc == 7)
+    if (argc >= 7)
     {
         dump_frequency = strtoll(argv[8], &help, 10);
     }
     else
         dump_frequency = 1;
 
-    printf("%ld", dump_frequency);
-
     for (long long i = 0; ((max_iterations != LONG_LONG_MAX) ? (1) : (i < max_iterations)); i++)
-        if ((dump_frequency == 1) ? (1) : (i % dump_frequency == 0))
+        if (i % dump_frequency == 0)
         {
             universe = newGeneration(&universe, fh, ih);
             writeBMP(universe, fh, ih, i, output_directory, filename);
         }
     return 0;
-}
+} 
