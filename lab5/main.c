@@ -3,10 +3,9 @@
 #include "argParse.h"
 
 
+int main(int argc, char **argv) {
 
-int main(int argc, char** argv) {
-
-    MAX_ITER = 500;
+    MAX_ITER = 500; // inf =)
     DUMP_FREQ = 1;
 
     argParse(argc, argv);
@@ -22,14 +21,14 @@ int main(int argc, char** argv) {
 
     int **pixelArr = bmpToPixelsArray(bmp.biHeight, bmp.biWidth, fin, bmp);
 
-    for (int i = 0; i < MAX_ITER; i++){
-        pixelArr = gameLife(pixelArr, bmp.biHeight, bmp.biWidth);
-        if (i % DUMP_FREQ == 0){
-            pixelArrayToBmp(pixelArr, bmp.biHeight, bmp.biWidth, offset, i + 1, (int)bmp.bfOffs, DIRECTORY_NAME);
+    for (int i = 0; i < MAX_ITER; i++) {
+        pixelArr = gameLife(&pixelArr, bmp.biHeight, bmp.biWidth);
+        if (i % DUMP_FREQ == 0) {
+            pixelArrayToBmp(pixelArr, bmp.biHeight, bmp.biWidth, offset, i + 1, (int) bmp.bfOffs, DIRECTORY_NAME);
         }
     }
 
-    freePixelArray(bmp.biHeight, pixelArr);
+    freePixelArray(bmp.biHeight, &pixelArr);
     fclose(fin);
     free(offset);
     free(INPUT_FILE_NAME);
