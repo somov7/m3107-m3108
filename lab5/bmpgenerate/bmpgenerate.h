@@ -3,6 +3,6 @@
 
 #include "../bmpparse/bmpparse.h"
 
-void bmpgenerate(Bmp bmp, char* output);
+void bmpgenerate(Bmp bmp, Matrix matrix, char* output);
 
 #endif

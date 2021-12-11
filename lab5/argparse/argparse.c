@@ -3,6 +3,8 @@
 #include <string.h>
 #include "argparse.h"
 
+#define INF 1000000
+
 Args argparse(int argc, char** argv) {
   if (argc < 5 || argc > 9 || argc % 2 == 0) {
     fprintf(stderr, "Wrong amount of arguments");
@@ -10,7 +12,7 @@ Args argparse(int argc, char** argv) {
   }
 
   Args returnValue;
-  returnValue.maxIter = -1; // infinity
+  returnValue.maxIter = INF;
   returnValue.dumpFreq = 1;
 
   for (int i = 1; i < argc; i += 2) {

@@ -17,18 +17,16 @@ void gameoflife(Matrix matrix) {
       int cell = matrix.arr[i][j];
       int neighbours = countAliveCellNeighbours(matrix, i, j);
 
-      if (cell == LIVE) {
-        if (neighbours == 2 || neighbours == 3) {
-          continue;
-        } else {
-          newarr[i][j] = DEAD;
-        }
+      if (cell > 1 && i == 0) {
+        printf("PIZDA");
+      }
+
+      if (cell == LIVE && (neighbours == 2 || neighbours == 3)) {
+        newarr[i][j] = LIVE;
+      } else if (cell == DEAD && neighbours == 3) {
+        newarr[i][j] = LIVE;
       } else {
-        if (neighbours == 3) {
-          newarr[i][j] = LIVE;
-        } else {
-          newarr[i][j] = DEAD;
-        }
+        newarr[i][j] = DEAD;
       }
     }
   }

@@ -8,7 +8,7 @@
 #define COLOR_TABLE_SIZE 4
 #define GAP_SIZE 4
 
-void bmpgenerate(Bmp bmp, char* output) {
+void bmpgenerate(Bmp bmp,Matrix matrix , char* output) {
   FILE* fp;
   fp = fopen(output, "w+");
 
@@ -37,7 +37,7 @@ void bmpgenerate(Bmp bmp, char* output) {
       bytesCount = 0;
 
     for (int j = 0; j < width; ++j) {
-      int pixel = bmp.matrix.arr[i][j];
+      int pixel = matrix.arr[i][j];
       pixel = pixel << (7 - counter);
       c = c | pixel;
 

@@ -21,14 +21,12 @@ int main(int argc, char** argv) {
   Bmp bmp = bmpparse(fp);
   Matrix matrix = generateMatrix(bmp, fp);
 
-  bmp.matrix = matrix;
-
-  printMatrix(bmp.matrix);
+  matrix = matrix;
 
   int counter = args.dumpFreq;
   for (int i = 1; i <= args.maxIter; ++i) {
-    gameoflife(bmp.matrix);
-    printMatrix(bmp.matrix);
+    gameoflife(matrix);
+//    printMatrix(bmp.matrix);
 
     if (counter == args.dumpFreq) {
       char* output;
@@ -41,7 +39,7 @@ int main(int argc, char** argv) {
       strcat(output, num);
       strcat(output, ".bmp");
 
-      bmpgenerate(bmp, output);
+      bmpgenerate(bmp, matrix, output);
 
       counter = 1;
       continue;

@@ -47,7 +47,6 @@ typedef struct Bmp {
     BmpInfoHeader infoHeader;
     BmpColorTable colorTable;
     BmpGap gap;
-    Matrix matrix;
     unsigned char* remainer;
 } Bmp;
 
