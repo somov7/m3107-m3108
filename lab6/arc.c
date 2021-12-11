@@ -35,7 +35,7 @@ int digits(uint64_t x){
 
 uint32_t getHeaderSize(char **str, int numberFiles) {
     uint32_t res = 2;
-    for (int i = 1; i < numberFiles; i++) {
+    for (int i = 0; i < numberFiles; i++) {
         res += (int) strlen(str[i]) + digits(getFileSize(str[i])) + 4; // четыре "|" + длина числа отвечающего за размер
     }
     return res;
@@ -53,7 +53,7 @@ void getInfo(char **str, int numberFiles) {
     fwrite("||", 1, 2, info);
 
 
-    for (int i = 1; i < numberFiles; i++) {
+    for (int i = 0; i < numberFiles; i++) {
 
         curFile = fopen(str[i], "rb");
         openCorrect(curFile);
@@ -101,7 +101,7 @@ void inCompress(char **str, int numberFiles, char *arcName) {
     fclose(info);
     remove(TEMP_FILE);
 
-    for (int i = 1; i < numberFiles; i++) {
+    for (int i = 0; i < numberFiles; i++) {
         curFile = fopen(str[i], "rb");
         openCorrect(curFile);
         while (!feof(curFile)) {

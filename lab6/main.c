@@ -1,9 +1,8 @@
 #include "arc.h"
 #include "list.h"
+#include "argParse.h"
 
 int main(int argc, char **argv) {
-    //inCompress(argv, argc, "test.arc");
-
-    outCompress("test.arc");
+    argParse(argc, argv);
     return 0;
 }

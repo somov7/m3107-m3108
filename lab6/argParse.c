@@ -49,8 +49,9 @@ void argParse(int argc, char** argv){
 
     for (int i = 1; i < argc; i++){
         if (!strcmp("--create", argv[i])){
-            for (int j = i + 1; j < argc; j++, filesCnt++){
+            for (int j = i + 1; j < argc; j++){
                 files[filesCnt] = argv[j];
+                filesCnt++;
             }
             inCompress(files, filesCnt, arcFileName);
         }
