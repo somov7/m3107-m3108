@@ -160,7 +160,7 @@ void saveBMP(BMPImage bmp, FILE *output) {
 void run(BMPImage bmp, int maxIter, int dumpFreq, int isShow, char outdir[255]) {
 
     for (int i = 1; i <= maxIter; i++) {
-        if (i % dumpFreq == 0) {
+        if (i - 1 % dumpFreq == 0) {
             if (isShow) {
                 usleep(100000);
                 show(bmp.image, bmp.width, bmp.height);
