@@ -2,9 +2,11 @@
 #define PROGA_LABA5_STRUCTS_H
 
 typedef struct Matrix {
-    int** arr;
-    int width;
-    int height;
+  int** arr;
+  int width;
+  int height;
+  int black;
+  int white;
 } Matrix;
 
 #pragma pack(push, 1)
@@ -43,11 +45,11 @@ typedef struct BmpGap {
 } BmpGap;
 
 typedef struct Bmp {
-    BmpFileHeader fileHeader;
-    BmpInfoHeader infoHeader;
-    BmpColorTable colorTable;
-    BmpGap gap;
-    unsigned char* remainer;
+  BmpFileHeader fileHeader;
+  BmpInfoHeader infoHeader;
+  BmpColorTable colorTable;
+  BmpGap gap;
+  unsigned char* remainer;
 } Bmp;
 
 #pragma pack(pop)

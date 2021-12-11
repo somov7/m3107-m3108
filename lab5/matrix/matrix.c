@@ -26,9 +26,12 @@ Matrix generateMatrix(Bmp bmp, FILE* fp) {
   unsigned char c;
   int counter = 0;
 
-  int liveSign = 1;
-  if (bmp.colorTable.red == 0x00 && bmp.colorTable.green == 0x00 && bmp.colorTable.blue == 0x00) {
-    liveSign = 0;
+  if (bmp.colorTable.red == 0xFF && bmp.colorTable.green == 0xFF && bmp.colorTable.blue == 0xFF) {
+    matrix.black = 1;
+    matrix.white = 0;
+  } else {
+    matrix.black = 0;
+    matrix.white = 1;
   }
 
   for (int i = matrix.height - 1; i > -1; --i) {
@@ -40,12 +43,7 @@ Matrix generateMatrix(Bmp bmp, FILE* fp) {
     bytesCount = 1;
 
     for (int j = 0; j < matrix.width; ++j) {
-      if (liveSign == 0) {
-        matrix.arr[i][j] = (c >> (7 - counter)) & 1;
-      } else {
-        matrix.arr[i][j] = ~(c >> (7 - counter)) & 1;
-      }
-
+      matrix.arr[i][j] = (c >> (7 - counter)) & 1;
 
       if (counter == 7) {
         fread(&c, sizeof(unsigned char), 1, fp);

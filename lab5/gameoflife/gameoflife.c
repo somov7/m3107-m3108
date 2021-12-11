@@ -2,10 +2,12 @@
 #include "gameoflife.h"
 #include "../matrix/matrix.h"
 
-#define DEAD 1
-#define LIVE 0
+int live, dead;
 
 void gameoflife(Matrix matrix) {
+  live = matrix.black;
+  dead = matrix.white;
+
   int** newarr = malloc(matrix.height * sizeof(int*));
   for (int i = 0; i < matrix.height; ++i) {
     newarr[i] = malloc(matrix.width * sizeof(int));
@@ -21,12 +23,12 @@ void gameoflife(Matrix matrix) {
         printf("PIZDA");
       }
 
-      if (cell == LIVE && (neighbours == 2 || neighbours == 3)) {
-        newarr[i][j] = LIVE;
-      } else if (cell == DEAD && neighbours == 3) {
-        newarr[i][j] = LIVE;
+      if (cell == live && (neighbours == 2 || neighbours == 3)) {
+        newarr[i][j] = live;
+      } else if (cell == dead && neighbours == 3) {
+        newarr[i][j] = live;
       } else {
-        newarr[i][j] = DEAD;
+        newarr[i][j] = dead;
       }
     }
   }
@@ -51,7 +53,7 @@ int countAliveCellNeighbours(Matrix matrix, int y, int x) {
       if ((i == y && j == x) || (i < 0) || (j < 0) || (i >= matrix.height) || (j >= matrix.width)) {
         continue;
       }
-      if (matrix.arr[i][j] == LIVE) {
+      if (matrix.arr[i][j] == live) {
         ++counter;
       }
     }
