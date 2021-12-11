@@ -7,10 +7,11 @@
 
 #define uchar unsigned char
 #define ulong unsigned long
+#define uint unsigned int
 
 int main(int argc, char *argv[]) {
 
-    long iterationsNumber = 100000;
+    uint iterationsNumber = 9999;
     long dumpFrequency = 1;
     ulong width = 0, height = 0;
     char *origOutputDir = "Steps\\";
@@ -86,6 +87,7 @@ int main(int argc, char *argv[]) {
                         }
                     }
                     iterationsNumber = atoi(argv[i + 1]);
+                    if (iterationsNumber > 9999) iterationsNumber = 9999;
                 } else {
                     printf("Error: Too many \"--max_iter\" arguments.\n");
                     return -1;
@@ -234,7 +236,7 @@ int main(int argc, char *argv[]) {
 
     iterationsNumber++;
 
-    for (ulong n = 0; n < iterationsNumber; n++) {
+    for (uint n = 0; n < iterationsNumber; n++) {
         dumpTimer++;
 
         alive[n] = 0;
