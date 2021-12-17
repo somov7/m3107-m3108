@@ -1,21 +1,38 @@
 #include "func.h"
 
 int main(int argc, char *argv[]) {
-    char *file_arc, *option;
+    char *option;
+    FILE *file_arc;
+
     if (argc < 4) {
         printf("Not enough arguments\n");
         return 1;
     }
-    file_arc = argv[2];
+
     option = argv[3];
     if (!strcmp(option, "--create")) {
-        create(file_arc, argc - 4, &argv[4]);
+        if ((file_arc = (fopen(argv[2], "wb"))) != NULL)
+            create(file_arc, argc - 4, &argv[4]);
+        else {
+            printf("Cannot create archive\n");
+            return 1;
+        }
     }
     else if (!strcmp(option, "--extract")) {
-        extract(file_arc);
+        if ((file_arc = (fopen(argv[2], "rb"))) != NULL)
+            extract(file_arc);
+        else {
+            printf("Cannot extract files\n");
+            return 1;
+        }
     }
     else if (!strcmp(option, "--list")) {
-        list(file_arc);
+        if ((file_arc = (fopen(argv[2], "rb"))) != NULL)
+            list(file_arc);
+        else {
+            printf("Cannot extract files\n");
+            return 1;
+        }
     }
     else {
         printf("Wrong format\n");

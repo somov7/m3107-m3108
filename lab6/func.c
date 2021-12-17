@@ -6,13 +6,8 @@ int end_of_file (FILE *file) {
     return size;
 }
 
-void create(char *arc_name, int num_of_files, char*files[]) {
-    FILE *arc_file = fopen(arc_name, "wb");
+void create(FILE *arc_file, int num_of_files, char*files[]) {
     FILE *file;
-    if (!arc_file) {
-        printf("Cannot create archive\n");
-        return;
-    }
     for (int i = 0; i < num_of_files; i++) {
         unsigned int fn_len = strlen(files[i]);
         fwrite(&fn_len, sizeof(unsigned int), 1, arc_file);
@@ -33,13 +28,8 @@ void create(char *arc_name, int num_of_files, char*files[]) {
     fclose(arc_file);
 }
 
-void extract(char *arc_name) {
-    FILE *arc_file = fopen(arc_name, "rb");
+void extract(FILE *arc_file) {
     FILE *new_file;
-    if (!arc_file) {
-        printf("Cannot extract files\n");
-        return;
-    }
     int eof = end_of_file(arc_file);
     while (ftell(arc_file) < eof) {
         unsigned int size, size2;
@@ -60,12 +50,7 @@ void extract(char *arc_name) {
     fclose(arc_file);
 }
 
-void list(char *arc_name) {
-    FILE *arc_file = fopen(arc_name, "rb");
-    if (!arc_file) {
-        printf("Cannot show files\n");
-        return;
-    }
+void list(FILE *arc_file) {
     int eof = end_of_file(arc_file);
 
     while (ftell(arc_file) < eof) {
