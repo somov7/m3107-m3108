@@ -6,7 +6,8 @@ void create(char* file_name, int number_of_files, char *files[])
     unsigned char file_name_size;
     unsigned int body_size;
     int i, j;
-    for (i = 0; i < number_of_files; i++) {
+    for (i = 0; i < number_of_files; i++) 
+    {
         file_name_size = strlen(files[i]);
         fputc(file_name_size, file);
         int file_name_size_int = (int) file_name_size;  
@@ -19,7 +20,8 @@ void create(char* file_name, int number_of_files, char *files[])
         fseek(archive, 0, SEEK_SET);
         fwrite(&body_size, sizeof(unsigned int), 1, file);
         for (j = 0; j < body_size; j++)
-            fputc(getc(archive), file);  }
+            fputc(getc(archive), file);  
+    }
 }
 void extract(char* file_name) {
     FILE *file;
@@ -58,12 +60,12 @@ void list(char* file_name) {
 }
 int main(int argc, char *argv[]) {
     char file_name[20];
-    strcpy(file_name, argv[3]);
-    if (!(strcmp(argv[4], "--create"))) {
-        int number_of_files = argc - 5;
-        create(file_name, number_of_files, &argv[5]);  
+    strcpy(file_name, argv[1]);
+    if (!(strcmp(argv[2], "--create"))) {
+        int number_of_files = argc - 3;
+        create(file_name, number_of_files, &argv[3]);  
     } 
-    else if (!(strcmp(argv[4], "--extract"))) 
+    else if (!(strcmp(argv[2], "--extract"))) 
     {  
         extract(file_name);
     } 
