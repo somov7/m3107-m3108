@@ -1,0 +1,7 @@
+# ninja log v5
+0	30	1639834535650949980	CMakeFiles/archiver.dir/main.c.o	eeaf89a479c48698
+1	31	1639834535652886937	CMakeFiles/archiver.dir/Map/bitsarray.c.o	680cb62d42c2ed2f
+37	76	1639834535698609933	archiver	5e2fb42d631a5b91
+1	31	1639834535653040222	CMakeFiles/archiver.dir/Map/prime.c.o	dd3863397cb671af
+0	36	1639834535656902553	CMakeFiles/archiver.dir/archiver.c.o	c41a53d4f89f8ea9
+1	37	1639834535658686350	CMakeFiles/archiver.dir/Map/Set.c.o	8841487e88520cdb
