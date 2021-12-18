@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+ 
 void itoaSize(unsigned int size, unsigned char *result)
 {
     for (int i = 0; i < 4; i++)
@@ -22,7 +23,7 @@ int myCreate(FILE *fout, char *file)
     FILE *fin = fopen(file, "rb");
     if (fin == NULL)
     {
-        fprintf(stderr, "% s", "ERROR: the file does not exist");
+        fprintf(stderr, "%s", "ERROR: the file does not exist");
         return 1;
     }
     fseek(fin, 0, SEEK_END);
@@ -44,7 +45,7 @@ int myCreate(FILE *fout, char *file)
     fread(buf, sizeof(char), sizeFile % 4096, fin);
     fwrite(buf, sizeof(char), sizeFile % 4096, fout);
     fclose(fin);
-    remove(file);
+    // remove(file);
     return 0;
 }
 int myList(char *arcFile)
@@ -52,7 +53,7 @@ int myList(char *arcFile)
     FILE *fout = fopen(arcFile, "rb");
     if (fout == NULL)
     {
-        fprintf(stderr, "% s", "ERROR: the file does not exist");
+        fprintf(stderr, "%s", "ERROR: the file does not exist");
         return 1;
     }
     fseek(fout, 0, SEEK_END);
@@ -84,7 +85,7 @@ int myExtract(char *arcFile)
     FILE *fin = fopen(arcFile, "rb");
     if (fin == NULL)
     {
-        fprintf(stderr, "% s", "ERROR: the file does not exist");
+        fprintf(stderr, "%s", "ERROR: the file does not exist");
         return 1;
     }
     fseek(fin, 0, SEEK_END);
@@ -117,7 +118,7 @@ int myExtract(char *arcFile)
         fclose(fout);
     }
     fclose(fin);
-    remove(arcFile);
+    // remove(arcFile);
     return 0;
 }
 int main(int argc, char **argv)
@@ -138,7 +139,7 @@ int main(int argc, char **argv)
             FILE *fout = fopen(arcFile, "ab");
             if (fout == NULL)
             {
-                fprintf(stderr, "% s", "ERROR: the file does not exist");
+                fprintf(stderr, "%s", "ERROR: the file does not exist");
                 return 1;
             }
             while (i < argc)
