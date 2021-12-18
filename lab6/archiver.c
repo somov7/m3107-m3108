@@ -138,11 +138,13 @@ long arc_add(Archive *arc, char* file_name) {
 }
 
 void write(FILE *in, FILE *out, long n) {
-    char buff[BUFFER_SIZE];
-    while (n > 0) {
-        fread(buff, 1, n % BUFFER_SIZE, in);
-        fwrite(buff, 1, n % BUFFER_SIZE, out);
-        n -= BUFFER_SIZE;
+    long  buffer_size = 4096;
+    char buff[buffer_size];
+    while (n > 0 && !feof(in) && !feof(out)) {
+        long k = n < buffer_size ? n : buffer_size;
+        int read = fread(buff, 1, k, in);
+        int write = fwrite(buff, 1, k, out);
+        n -= buffer_size;
     }
 }
 
@@ -171,6 +173,7 @@ int arc_extract(char *arc_name) {
         read += size + name_size + sizeof(char) + sizeof(long);
     }
     fclose(in);
+    return 0;
 FATAL:
     errn = 3;
     fclose(in);
