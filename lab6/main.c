@@ -52,7 +52,7 @@ void archive_add (char *adding_file, unsigned char *archive, ul filename_size) {
         }
     }
     fclose(add_file);
-    remove(adding_file);
+//    remove(adding_file);
     fclose(arc_file);
 }
 
@@ -102,7 +102,7 @@ void extract (unsigned char *archive_file) {
         unsigned char output_filename[filename_size + 1];
         fread(output_filename, sizeof(char), filename_size, arc_file);
         output_filename[filename_size] = '\0';
-        temp_file = fopen(output_filename, "ab");
+        temp_file = fopen(output_filename, "w+b");
         
         fread(file_size_arr, sizeof(char), 4, arc_file);
         ul file_size_ul = back_bitwise_shift(file_size_arr);
@@ -121,7 +121,7 @@ void extract (unsigned char *archive_file) {
         }
         fclose(temp_file);
     }
-    remove(archive_file);
+//    remove(archive_file);
 }
 int main(int argc, const char * argv[]) {
     FILE *fin;
