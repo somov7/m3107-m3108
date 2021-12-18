@@ -4,7 +4,6 @@
 
 #include "bitsarray.h"
 #include "bitsarray.h"
-#include <bitstring.h>
 
 void set(Bool *arr, char a, uint64_t i) {
     arr[i / 8] |=  a << (i % 8);

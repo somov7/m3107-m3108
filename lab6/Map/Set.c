@@ -50,6 +50,7 @@ void set_rehashing(Set **set) {
         set_add(&new, s->table[i].key);
         i = s->table[i].next;
     }
+    free(s->table);
     free(s);
     *set = new;
 }
@@ -101,6 +102,7 @@ void set_delete(Set *s, char *k) {
         if (table[x].key == NULL) return;
         if (strcmp(table[x].key, k) == 0) {
             free(table[x].key);
+            table[x].key = NULL;
             if (table[x].prev > s->m) {
                 s->first_add = table[x].next;
             } else {

@@ -5,6 +5,7 @@
 #ifndef ARCHIVER_SET_H
 #define ARCHIVER_SET_H
 #include <stdlib.h>
+#include <stdint.h>
 
 typedef struct {
     uint64_t k;
