@@ -60,12 +60,12 @@ void list(char* file_name) {
 }
 int main(int argc, char *argv[]) {
     char file_name[20];
-    strcpy(file_name, argv[1]);
-    if (!(strcmp(argv[2], "--create"))) {
-        int number_of_files = argc - 3;
-        create(file_name, number_of_files, &argv[3]);  
+    strcpy(file_name, argv[2]);
+    if (!(strcmp(argv[3], "--create"))) {
+        int number_of_files = argc - 4;
+        create(file_name, number_of_files, &argv[4]);  
     } 
-    else if (!(strcmp(argv[2], "--extract"))) 
+    else if (!(strcmp(argv[3], "--extract"))) 
     {  
         extract(file_name);
     } 
