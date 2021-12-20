@@ -2,8 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <math.h>
-#include <direct.h>
 #include <stdint.h>
 
 #pragma pack(push, 1)
@@ -17,14 +15,14 @@ typedef struct {
 
 typedef struct {
     uint32_t  biSize;
-    uint32_t   biWidth;
-    uint32_t   biHeight;
+    int32_t   biWidth;
+    int32_t   biHeight;
     uint16_t  biPlanes;
     uint16_t  biBitCount;
     uint32_t  biCompression;
     uint32_t  biSizeImage;
-    uint32_t   biXPelsPerMeter;
-    uint32_t   biYPelsPerMeter;
+    int32_t   biXPelsPerMeter;
+    int32_t   biYPelsPerMeter;
     uint32_t  biClrUsed;
     uint32_t  biClrImportant;
 } bitmapInfoHeader;
@@ -91,7 +89,6 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "Error opening directory");
                 return 1;
             };
-            mkdir(outputDir);
             getOutput = true;
         }
         if(!strcmp("--max_iter", argv[i])) {
@@ -144,7 +141,7 @@ int main(int argc, char **argv) {
             for (int j = infoHeader.biHeight - 1; j >= 0; --j) {
                 for (int l = 0; l < infoHeader.biWidth; ++l) {
                     for (k = 0; k < 3; k++) {
-                        if (img[i][j] == 1){
+                        if (img[j][l] == 1){
                             imageBytes[pixel] = 0;
                         } else {
                             imageBytes[pixel] = 255;
@@ -161,4 +158,5 @@ int main(int argc, char **argv) {
             fclose(outputPic);
         }
     }
+    free(img);
 }
