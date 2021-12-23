@@ -26,6 +26,13 @@ typedef struct {
     uint32_t  biClrUsed;
     uint32_t  biClrImportant;
 } bitmapInfoHeader;
+
+typedef struct {
+    unsigned char    rgbBlue;
+    unsigned char    rgbGreen;
+    unsigned char    rgbRed;
+    unsigned char    rgbReserved;
+} RGBQUAD;
 #pragma pack(pop)
 
 int countLiveNeighbors(int** field, int row, int column, int height, int width){
@@ -44,8 +51,10 @@ int countLiveNeighbors(int** field, int row, int column, int height, int width){
 }
 
 void gameOfLife(int** field, int height, int width){
-    int neighbors = 0;
-    int nextIterField[height][width];
+    int neighbors;
+    int** nextIterField = (int**)calloc(height, sizeof(int*));
+    for(int i = 0; i < height; i++)
+        nextIterField[i] = (int*)calloc(width, sizeof(int));
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
             neighbors = countLiveNeighbors(field, i, j, height, width);
@@ -61,16 +70,18 @@ void gameOfLife(int** field, int height, int width){
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
             field[i][j] = nextIterField[i][j];
+            int x = 1;
         }
     }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv){
     bitmapFileHeader fileHeader;
     bitmapInfoHeader infoHeader;
+    RGBQUAD palette;
     FILE* inputFile;
     char* outputDir;
-    int maxIter = 1, dumpFreq = 1;
+    int maxIter = 3, dumpFreq = 1;
     bool getInput, getOutput;
 
 
@@ -105,13 +116,16 @@ int main(int argc, char **argv) {
     fread(&fileHeader, 1, 14, inputFile);
     fread(&infoHeader, 1, 40, inputFile);
 
-    unsigned char imageBytes[fileHeader.bfSize - 54];
+    fread(&palette, 1, fileHeader.bfOffBits - 54, inputFile);
+
+    unsigned char* imageBytes = (unsigned char*)malloc((fileHeader.bfSize - fileHeader.bfOffBits) * sizeof(unsigned char));
     fread(imageBytes, 1, fileHeader.bfSize, inputFile);
 
-    int** img = (int**)malloc(infoHeader.biHeight * sizeof(int*));
+    int** img = (int**)calloc(infoHeader.biHeight, sizeof(int*));
     for(int i = 0; i < infoHeader.biHeight; i++)
-        img[i] = (int*)malloc(infoHeader.biWidth * sizeof(int));
-    int k = infoHeader.biWidth % 4;
+        img[i] = (int*)calloc(infoHeader.biWidth, sizeof(int));
+
+    int k = 1;
     for(int i = infoHeader.biHeight - 1; i >= 0; i--){
         for(int j = 0; j < infoHeader.biWidth; j++){
             if(imageBytes[k] == 255)
@@ -120,16 +134,38 @@ int main(int argc, char **argv) {
                 img[i][j] = 1;
             k += 3;
         }
+        k += infoHeader.biWidth % 4;
     }
+
+    /*for (int i = 0; i < infoHeader.biHeight; i++) {
+        for (int j = 0; j < infoHeader.biWidth; j++) {
+            //img[i][j] = '.';
+            printf(" %d ", img[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");*/
+
     char resultName[strlen(outputDir) + 20];
     memset(resultName, 0, sizeof resultName);
     for (int i = 1; i <= maxIter; ++i) {
         gameOfLife(img, infoHeader.biHeight, infoHeader.biWidth);
+
+        //print array matrix
+        /*printf("Initial Stage:");
+        printf("\n");
+        for(int k=0; k<infoHeader.biHeight; k++){
+            for(int j=0;j<infoHeader.biWidth;j++){
+                printf(" %d ",img[k][j]);
+            }
+            printf("\n");
+        }*/
+
         if (i % dumpFreq == 0){
             char newname[100];
             strcat(newname, outputDir);
             strcat(newname, "\\");
-            sprintf(newname, "%d", i);
+            sprintf(newname, "iter%d", i);
             strcat(newname, ".bmp");
 
             FILE *outputPic;
@@ -137,6 +173,7 @@ int main(int argc, char **argv) {
 
             fwrite(&fileHeader, 1, 14, outputPic);
             fwrite(&infoHeader, 1, 40, outputPic);
+            fwrite(&palette, 1, fileHeader.bfOffBits - 54, outputPic);
             int pixel = 0;
             for (int j = infoHeader.biHeight - 1; j >= 0; --j) {
                 for (int l = 0; l < infoHeader.biWidth; ++l) {
@@ -159,4 +196,5 @@ int main(int argc, char **argv) {
         }
     }
     free(img);
+    return 0;
 }
