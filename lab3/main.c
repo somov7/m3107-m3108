@@ -96,7 +96,6 @@ void print_5xx(FILE *file)
             count++;
         }
     }
-    printf("=======\n");
     printf("count 5XX: %d\n", count);
 }
 
@@ -214,15 +213,27 @@ void find_max(FILE *file, int w)
 
     list_clean();
 
-    printf("=======\n");
-    printf("max count %d\n%s\n", max_count, ctime(&max_time));
-    printf("%s", ctime(&last_time));
+    printf("max count: %d\n", max_count);
+    char ch_max[100];
+    char ch_last[100];
+
+    strftime(ch_max, sizeof(ch_max), "%d/%b/%Y:%H:%M:%S", localtime(&max_time));
+    strftime(ch_last, sizeof(ch_last), "%d/%b/%Y:%H:%M:%S", localtime(&last_time));
+
+    printf("[%s]\n[%s]\n", ch_max, ch_last);
+    //printf("%s%s", ctime(&max_time), ctime(&last_time));
 }
 
 // $remote_addr - - [$local_time] "$request" $status $bytes_send
 
 int main(int argc, char *argv[])
 {
+    if(argc == 1)
+    {
+        printf("file needed");
+        return -1;
+    }
+
     FILE *file = fopen(argv[1], "r");
 
     if (argc == 2)
