@@ -8,16 +8,6 @@ void push(node** head, char* data){
     (*head) = tmp;
 }
 
-char* pop(node** head){
-    if (*head == NULL){
-        printf("Error: list is empty");
-        exit(-1);
-    }
-    char* res = (**head).value;
-    *head = (*head)->next;
-    return res;
-}
-
 node* getSecondLast(node*head){
     if (head == NULL)
         exit(-2);

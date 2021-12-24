@@ -9,6 +9,5 @@ typedef struct node{
 }node;
 
 void push(node** head, char* data);
-char* pop(node** head);
 node* getSecondLast(node*head);
 char* popBack(node** head);

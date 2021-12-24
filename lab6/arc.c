@@ -2,14 +2,14 @@
 #include "list.h"
 #include "argParse.h"
 
-char *getFileName(char *filePath) {
-    if (strrchr(filePath, '\\') == NULL) {
-        char *res = calloc(strlen(filePath), sizeof(char));
-        strcpy(res, filePath);
+char *getFileName(char **filePath) {
+    if (strrchr(*filePath, '\\') == NULL) {
+        char *res = calloc(strlen(*filePath), sizeof(char));
+        strcpy(res, *filePath);
         return res;
     } else {
-        char *res = calloc(strlen(filePath), sizeof(char));
-        strcpy(res, strrchr(filePath, '\\'));
+        char *res = calloc(strlen(*filePath), sizeof(char));
+        strcpy(res, strrchr(*filePath, '\\'));
         return res + 1;
     }
 }
@@ -54,12 +54,10 @@ void getInfo(char **str, int numberFiles) {
 
 
     for (int i = 0; i < numberFiles; i++) {
-
+        uint64_t fileSize = getFileSize(str[i]);
         curFile = fopen(str[i], "rb");
         openCorrect(curFile);
 
-        fseek(curFile, 0, SEEK_END);    // записываем размер архивируемого файла
-        uint64_t fileSize = ftell(curFile);
         int d = digits(fileSize);
         char *fileSizeStr = calloc(d, sizeof(char));
         sprintf(fileSizeStr, "%lld", fileSize);
@@ -68,18 +66,18 @@ void getInfo(char **str, int numberFiles) {
 
         fclose(curFile);
 
-        char *curFileName = getFileName(str[i]); // записываем путь до архивируемого файла
+        char *curFileName = getFileName(&(str[i]));
         fputs(curFileName, info);
         fwrite("||", 1, 2, info);
 
-        free(curFileName);
+        //free(curFileName);
 
     }
 
     fclose(info);
 }
 
-
+//1 1.txt 123.txt
 void inCompress(char **str, int numberFiles, char *arcName) {
 
     FILE *arc = fopen(arcName, "wb");
@@ -101,14 +99,18 @@ void inCompress(char **str, int numberFiles, char *arcName) {
     fclose(info);
     remove(TEMP_FILE);
 
+    char buf[BUFFER_SIZE];
+
     for (int i = 0; i < numberFiles; i++) {
+        int64_t fileSize = (int64_t)getFileSize(str[i]);
         curFile = fopen(str[i], "rb");
         openCorrect(curFile);
-        while (!feof(curFile)) {
-            if (fread(&byte, 1, 1, curFile) == 1) {
-                fwrite(&byte, 1, 1, arc);
-            }
+        for (int64_t j = 0; j < (fileSize/BUFFER_SIZE); j++) {
+            fread(&buf, 1, BUFFER_SIZE, curFile);
+            fwrite(&buf, 1, BUFFER_SIZE, arc);
         }
+        fread(&buf, 1, fileSize % BUFFER_SIZE, curFile);
+        fwrite(&buf, 1, fileSize % BUFFER_SIZE, arc);
         fclose(curFile);
         remove(str[i]);
     }
@@ -146,7 +148,7 @@ void outCompress(char* arcName){
     free(infoBlock);
     int filesCnt = tokenCnt / 2;
 
-    char byte;
+    char buf[BUFFER_SIZE];
 
     for (int i = 0; i < filesCnt; i++){
 
@@ -155,13 +157,15 @@ void outCompress(char* arcName){
         FILE *curFile = fopen(name, "wb");
         openCorrect(curFile);
 
-        uint64_t intSize = atoll(size);
+        int64_t fileSize = atoll(size);
 
-        for (uint64_t j = 0; j < intSize; j++){
-            if (fread(&byte, 1, 1, arc) == 1){
-                fwrite(&byte, 1, 1, curFile);
-            }
+        for (int64_t j = 0; j < (fileSize/BUFFER_SIZE); j++) {
+            fread(&buf, 1, BUFFER_SIZE, arc);
+            fwrite(&buf, 1, BUFFER_SIZE, curFile);
         }
+        fread(&buf, 1, fileSize % BUFFER_SIZE, arc);
+        fwrite(&buf, 1, fileSize % BUFFER_SIZE, curFile);
+
         fclose(curFile);
         free(size);
         free(name);
