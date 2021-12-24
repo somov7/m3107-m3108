@@ -1,6 +1,6 @@
 #include "utils.h"
 
-const int BYTES_NUMBER = 4;
+const int BYTES_NUMBER = 8;
 
 long int getSize(FILE *filePointer) {
     fseek(filePointer, 0L, SEEK_END);
