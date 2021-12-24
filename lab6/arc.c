@@ -70,7 +70,7 @@ void getInfo(char **str, int numberFiles) {
         fputs(curFileName, info);
         fwrite("||", 1, 2, info);
 
-        //free(curFileName);
+        free(curFileName);
 
     }
 
