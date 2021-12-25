@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <direct.h>
 
 #pragma pack(push, 1)
 typedef struct {
@@ -81,7 +82,7 @@ int main(int argc, char **argv){
     RGBQUAD palette;
     FILE* inputFile;
     char* outputDir;
-    int maxIter = 3, dumpFreq = 1;
+    int maxIter = 100, dumpFreq = 11;
     bool getInput, getOutput;
 
 
@@ -96,10 +97,9 @@ int main(int argc, char **argv){
         }
         if(!strcmp("--output", argv[i])){
             outputDir = argv[i + 1];
-            if (outputDir == NULL){
-                fprintf(stderr, "Error opening directory");
-                return 1;
-            };
+            if (_mkdir(outputDir) != 0){
+                printf ("%s", "Destination directory already exists\n");
+            }
             getOutput = true;
         }
         if(!strcmp("--max_iter", argv[i])) {
@@ -151,8 +151,8 @@ int main(int argc, char **argv){
     for (int i = 1; i <= maxIter; ++i) {
         gameOfLife(img, infoHeader.biHeight, infoHeader.biWidth);
 
-        //print array matrix
-        /*printf("Initial Stage:");
+        /*print array matrix
+        printf("Initial Stage:");
         printf("\n");
         for(int k=0; k<infoHeader.biHeight; k++){
             for(int j=0;j<infoHeader.biWidth;j++){
@@ -162,11 +162,8 @@ int main(int argc, char **argv){
         }*/
 
         if (i % dumpFreq == 0){
-            char newname[100];
-            strcat(newname, outputDir);
-            strcat(newname, "\\");
-            sprintf(newname, "iter%d", i);
-            strcat(newname, ".bmp");
+            char newname[100] = {0};
+            sprintf(newname, "%s\\iter%d.bmp", outputDir, i);
 
             FILE *outputPic;
             outputPic = fopen(newname, "w");
@@ -191,10 +188,11 @@ int main(int argc, char **argv){
                     pixel++;
                 }
             }
-            fwrite(imageBytes, 1, fileHeader.bfSize - 54, outputPic);
+            fwrite(imageBytes, 1, fileHeader.bfSize - fileHeader.bfOffBits, outputPic);
             fclose(outputPic);
         }
     }
+    free(imageBytes);
     free(img);
     return 0;
 }
