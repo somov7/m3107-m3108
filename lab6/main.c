@@ -31,9 +31,9 @@ void arcCreate(FILE *archive, char *filename) {
         char codedFilesize[4];
         encodeData(filesize, codedFilesize);
 
-        fwrite(codedFilenameSize, sizeof(char), sizeof(codedFilenameSize), archive);
-        fwrite(filename, sizeof(char), filenameSize, archive);
-        fwrite(codedFilesize, sizeof(char), sizeof(codedFilesize), archive);
+        fwrite(codedFilenameSize, 1, sizeof(codedFilenameSize), archive);
+        fwrite(filename, 1, filenameSize, archive);
+        fwrite(codedFilesize, 1, sizeof(codedFilesize), archive);
         for (int i = 0; i < filesize; i++) {
             byte = fgetc(file);
             fputc(byte, archive);
@@ -54,14 +54,14 @@ void arcList(FILE *archive) {
             break;
 
         char codedFilenameSize[4];
-        fread(codedFilenameSize, sizeof(char), sizeof(codedFilenameSize), archive);
+        fread(codedFilenameSize, 1, sizeof(codedFilenameSize), archive);
         unsigned filenameSize = decodeData(codedFilenameSize);
 
         char filename[filenameSize];
-        fread(filename, sizeof(char), filenameSize, archive);
+        fread(filename, 1, filenameSize, archive);
 
         char codedFilesize[4];
-        fread(codedFilesize, sizeof(char), sizeof(codedFilesize), archive);
+        fread(codedFilesize, 1, sizeof(codedFilesize), archive);
         unsigned long long fileSize = decodeData(codedFilesize);
         fseek(archive, fileSize, SEEK_CUR);
         counter++;
@@ -83,16 +83,16 @@ void arcExtract(FILE *archive) {
             break;
 
         char codedFilenameSize[4];
-        fread(codedFilenameSize, sizeof(char), sizeof(codedFilenameSize), archive);
+        fread(codedFilenameSize, 1, sizeof(codedFilenameSize), archive);
         int filenameSize = decodeData(codedFilenameSize);
 
         char filename[filenameSize + 1];
-        fread(filename, sizeof(char), filenameSize, archive);
+        fread(filename, 1, filenameSize, archive);
         filename[filenameSize] = '\0';
         file = fopen(filename, "wb");
 
         char codedFilesize[4];
-        fread(codedFilesize, sizeof(char), sizeof(codedFilesize), archive);
+        fread(codedFilesize, 1, sizeof(codedFilesize), archive);
         unsigned long long filesize = decodeData(codedFilesize);
 
         for (int i = 0; i < filesize; i++) {
