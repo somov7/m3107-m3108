@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
 
     if (argc < 4){
         printUsage("Invalid number of arguments");
-        exit(-2);
+        return -2;
     }
 
     for (int i = 1; i < argc; i++){
@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 
     if (strlen(arcFileName) == 0){
         printUsage("Archive name not found");
-        exit(-3);
+        return -3;
     }
 
     for (int i = 1; i < argc; i++){
