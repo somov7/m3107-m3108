@@ -1,6 +1,7 @@
 #include "utils.h"
 
 const int BYTES_NUMBER = 8;
+const int BUFFER_SIZE = 4096;
 
 long int getSize(FILE *filePointer) {
     fseek(filePointer, 0L, SEEK_END);
@@ -21,16 +22,19 @@ void create(int filesCount, FILE **files, char **filenames, char *filename) {
 
         fputc((int) strlen(filenames[i]), resultFile);
 
-        for (int j = 0; j < strlen(filenames[i]); j++) {
-            fputc(filenames[i][j], resultFile);
-        }
+        fwrite(filenames[i], strlen(filenames[i]), 1, resultFile);
 
         fwrite(&size, BYTES_NUMBER, 1, resultFile);
 
-        for (int j = 0, ch = fgetc(files[i]); j < size && ch != EOF; j++) {
-            fputc(ch, resultFile);
-            ch = fgetc(files[i]);
+        char buf[BUFFER_SIZE];
+
+        for (int j = 0; j < size / BUFFER_SIZE; j++) {
+            fread(buf, BUFFER_SIZE, 1, files[i]);
+            fwrite(buf, BUFFER_SIZE, 1, resultFile);
         }
+
+        fread(buf, size % BUFFER_SIZE, 1, files[i]);
+        fwrite(buf, size % BUFFER_SIZE, 1, resultFile);
 
         fclose(files[i]);
     }
@@ -57,9 +61,15 @@ void extract(FILE *filePointer) {
             fileSize += fgetc(filePointer) << (8 * j);
         }
 
-        for (int j = 0; j < fileSize; j++) {
-            fputc(fgetc(filePointer), extractingFile);
+        char buf[BUFFER_SIZE];
+
+        for (int j = 0; j < fileSize / BUFFER_SIZE; j++) {
+            fread(buf, BUFFER_SIZE, 1, filePointer);
+            fwrite(buf, BUFFER_SIZE, 1, extractingFile);
         }
+
+        fread(buf, fileSize % BUFFER_SIZE, 1, filePointer);
+        fwrite(buf, fileSize % BUFFER_SIZE, 1, extractingFile);
 
         fclose(extractingFile);
     }
@@ -79,16 +89,19 @@ void add(FILE *filePointer, FILE *addFile, char *filename) {
 
     fputc((int) strlen(filename), filePointer);
 
-    for (int i = 0; i < strlen(filename); i++) {
-        fputc(filename[i], filePointer);
-    }
+    fwrite(filename, strlen(filename), 1, filePointer);
 
     fwrite(&size, BYTES_NUMBER, 1, filePointer);
 
-    for (int i = 0, ch = fgetc(addFile); i < size && ch != EOF; i++) {
-        fputc(ch, filePointer);
-        ch = fgetc(addFile);
+    char buf[BUFFER_SIZE];
+
+    for (int j = 0; j < size / BUFFER_SIZE; j++) {
+        fread(buf, BUFFER_SIZE, 1, addFile);
+        fwrite(buf, BUFFER_SIZE, 1, filePointer);
     }
+
+    fread(buf, size % BUFFER_SIZE, 1, addFile);
+    fwrite(buf, size % BUFFER_SIZE, 1, filePointer);
 
     fclose(addFile);
     fclose(filePointer);
