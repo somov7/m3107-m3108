@@ -113,9 +113,7 @@ void printList(FILE *filePointer) {
             fileSize += fgetc(filePointer) << (8 * j);
         }
 
-        for (int j = 0; j < fileSize; j++) {
-            fgetc(filePointer);
-        }
+        fseek(filePointer, fileSize, SEEK_CUR);
 
         printf("%s\t%d bytes\n", filename, fileSize);
     }
