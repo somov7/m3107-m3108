@@ -128,17 +128,25 @@ int main(int argc, char **argv) {
             fclose(archive);
         }
         if (!strcmp(argv[i], "--list")) {
-            printf("Showing files in %s\n", archiveName);
             archive = fopen(archiveName, "rb");
-            arcList(archive);
-            fclose(archive);
+            if (archive == NULL) {
+                fprintf(stderr, "Error opening archive");
+            } else {
+                printf("Showing files in %s\n", archiveName);
+                arcList(archive);
+                fclose(archive);
+            }
         }
         if (!strcmp(argv[i], "--extract")) {
-            printf("Extracting files from %s\n", archiveName);
             archive = fopen(archiveName, "rb");
-            arcExtract(archive);
-            fclose(archive);
-            remove(archiveName);
+            if (archive == NULL) {
+                fprintf(stderr, "Error opening archive");
+            } else {
+                printf("Extracting files from %s\n", archiveName);
+                arcExtract(archive);
+                fclose(archive);
+                remove(archiveName);
+            }
         }
     }
     return 0;
