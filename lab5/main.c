@@ -82,7 +82,7 @@ int main(int argc, char **argv){
     RGBQUAD palette;
     FILE* inputFile;
     char* outputDir;
-    int maxIter = 100, dumpFreq = 11;
+    int maxIter = 100, dumpFreq = 1;
     bool getInput, getOutput;
 
 
