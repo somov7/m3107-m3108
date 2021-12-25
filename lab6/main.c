@@ -28,11 +28,11 @@ void arcCreate(FILE *arhive, char *filename) {
         encodeData(filesize, codedFilesize);
 
         char codedFilenameSize[4];
-        int size_fileName_int = strlen(filename);
-        encodeData(size_fileName_int, codedFilenameSize);
+        int filenameSize = strlen(filename);
+        encodeData(filenameSize, codedFilenameSize);
 
         fwrite(codedFilenameSize, sizeof(char), sizeof(codedFilenameSize), arhive);
-        fwrite(filename, sizeof(char), size_fileName_int, arhive);
+        fwrite(filename, sizeof(char), filenameSize, arhive);
         fwrite(codedFilesize, sizeof(char), sizeof(codedFilesize), arhive);
         for (int i = 0; i < filesize; i++) {
             byte = fgetc(file);
