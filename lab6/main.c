@@ -8,11 +8,14 @@
 char *get_filename(FILE *fp) {
     // получаем размер названия файла
     int filename_size = fgetc(fp);
-    char *filename = malloc(filename_size);
+    char *filename = malloc(filename_size + 1);
+
     // считываем название файла
     for (int j = 0; j < filename_size; j++) {
         filename[j] = (char) fgetc(fp);
     }
+
+    filename[filename_size] = 0;
 
     return filename;
 }
@@ -63,6 +66,7 @@ void print_files(FILE *fp) {
         }
 
         printf("%s\n", filename);
+        free(filename);
     }
 
     fclose(fp);
@@ -114,10 +118,11 @@ void arg_parse(int argc, char *argv[]) {
     char *arc_file;
 
     for (int i = 1; i < argc; i++) {
-        char *arg = malloc(sizeof(char) * strlen(argv[i]));
+        char *arg = malloc(sizeof(char) * strlen(argv[i]) + 1);
         sprintf(arg, "%s", argv[i]);
 
         if (strcmp(arg, "--file") == 0) {
+            free(arg);
             arc_file = argv[i + 1];
             i++;
         } else if (strcmp(arg, "--create") == 0) {
@@ -130,9 +135,11 @@ void arg_parse(int argc, char *argv[]) {
             }
 
             create_arc_file(files_count, filenames, arc_file);
+            free(arg);
             exit(0);
         } else if (strcmp(arg, "--extract") == 0) {
             FILE *fp = fopen(arc_file, "rb");
+            free(arg);
 
             if (fp == NULL) {
                 printf("Файл %s не найден\n", arc_file);
@@ -143,6 +150,7 @@ void arg_parse(int argc, char *argv[]) {
             exit(0);
         } else if (strcmp(arg, "--list") == 0) {
             FILE *fp = fopen(arc_file, "rb");
+            free(arg);
 
             if (fp == NULL) {
                 printf("Файл %s не найден\n", arc_file);
