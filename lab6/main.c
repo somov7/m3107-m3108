@@ -60,6 +60,24 @@ int main(int argc, char *argv[]) {
 
             printList(fptr);
             exit(EXIT_SUCCESS);
+        } if (!strcmp(argv[i], "--add")) {
+            char *addFilename = argv[i + 1];
+
+            FILE *fptr = fopen(filename, "r+");
+            FILE *addFile = fopen(addFilename, "rb");
+
+            if (fptr == NULL) {
+                printf("File %s not found\n", filename);
+                exit(EXIT_FAILURE);
+            }
+
+            if (addFile == NULL) {
+                printf("File %s not found\n", addFilename);
+                exit(EXIT_FAILURE);
+            }
+
+            add(fptr, addFile, addFilename);
+            exit(EXIT_SUCCESS);
         }
     }
 }

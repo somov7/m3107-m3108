@@ -11,6 +11,8 @@ void create(int filesCount, FILE **files, char **filenames, char *filename);
 
 void extract(FILE *filePointer);
 
+void add(FILE *filePointer, FILE *addFile, char *filename);
+
 void printList(FILE *filePointer);
 
 #endif

@@ -67,6 +67,33 @@ void extract(FILE *filePointer) {
     fclose(filePointer);
 }
 
+void add(FILE *filePointer, FILE *addFile, char *filename) {
+    int filesCount = fgetc(filePointer);
+
+    fseek(filePointer, 0, SEEK_SET);
+    fprintf(filePointer, "%c", filesCount + 1);
+
+    fseek(filePointer, 0, SEEK_END);
+
+    long size = getSize(addFile);
+
+    fputc((int) strlen(filename), filePointer);
+
+    for (int i = 0; i < strlen(filename); i++) {
+        fputc(filename[i], filePointer);
+    }
+
+    fwrite(&size, BYTES_NUMBER, 1, filePointer);
+
+    for (int i = 0, ch = fgetc(addFile); i < size && ch != EOF; i++) {
+        fputc(ch, filePointer);
+        ch = fgetc(addFile);
+    }
+
+    fclose(addFile);
+    fclose(filePointer);
+}
+
 void printList(FILE *filePointer) {
     int filesCount = fgetc(filePointer);
 
