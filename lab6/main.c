@@ -14,32 +14,32 @@ void encodeData(unsigned int size, unsigned char *res) {
     }
 }
 
-void arcCreate(FILE *arhive, char *filename) {
+void arcCreate(FILE *archive, char *filename) {
     char byte;
     FILE *file;
     file = fopen(filename, "rb");
     if (file == NULL) {
-        fprintf(stderr, "\nerror opening file: %s", filename);
+        fprintf(stderr, "\nError opening file: %s", filename);
     } else {
+        char codedFilenameSize[4];
+        int filenameSize = strlen(filename);
+        encodeData(filenameSize, codedFilenameSize);
+
         fseek(file, 0, SEEK_END);
         unsigned long long filesize = ftell(file);
         fseek(file, 0, SEEK_SET);
         char codedFilesize[4];
         encodeData(filesize, codedFilesize);
 
-        char codedFilenameSize[4];
-        int filenameSize = strlen(filename);
-        encodeData(filenameSize, codedFilenameSize);
-
-        fwrite(codedFilenameSize, sizeof(char), sizeof(codedFilenameSize), arhive);
-        fwrite(filename, sizeof(char), filenameSize, arhive);
-        fwrite(codedFilesize, sizeof(char), sizeof(codedFilesize), arhive);
+        fwrite(codedFilenameSize, sizeof(char), sizeof(codedFilenameSize), archive);
+        fwrite(filename, sizeof(char), filenameSize, archive);
+        fwrite(codedFilesize, sizeof(char), sizeof(codedFilesize), archive);
         for (int i = 0; i < filesize; i++) {
             byte = fgetc(file);
-            fputc(byte, arhive);
+            fputc(byte, archive);
         }
 
-        printf("\nsuccessfully added: %s", filename);
+        printf("\nSuccessfully added: %s", filename);
         fclose(file);
         remove(filename);
     }
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
         }
 
         if (!strcmp(argv[i], "--create")) {
-            printf("\nCreating archive %s\n", archiveName);
+            printf("Creating archive %s\n", archiveName);
             archive = fopen(archiveName, "ab");
             for (int i = 4; i < argc; i++) {
                 arcCreate(archive, argv[i]);
