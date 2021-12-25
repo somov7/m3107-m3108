@@ -14,17 +14,13 @@ void create(char *archive, char **filenamesArr, int num) {
         fwrite(filenamesArr[i], sizeof(char), len, fout);
         FILE *fin = fopen(filenamesArr[i], "rb");
         fseek(fin, 0L, SEEK_END);
-        long fileSize = (long) ftell(fin);
-        fwrite(&fileSize, sizeof(long), 1, fout);
+        long long fileSize = (long long) ftell(fin);
+        fwrite(&fileSize, sizeof(long long), 1, fout);
         rewind(fin);
-        char symbol;
-        while (!feof(fin)) {
-            symbol = (char)fgetc(fin);
-            fputc((int) symbol, fout);
-
-        }
+        char *buf = malloc(fileSize);
+        fread(buf, fileSize, 1, fin);
+        fwrite(buf, fileSize, 1, fout);
         fclose(fin);
-        remove(filenamesArr[i]);
     }
 
     fclose(fout);
@@ -37,24 +33,18 @@ void extract(char *archive, int argc) {
     fread(&num, sizeof(int), 1, fin);
 
     for (int i = 0; i < num; i++) {
-        printf("%d \n", num);
         int len;
         int trash;
         char filename[argc];
         fread(&len, sizeof(int), 1, fin);
-        fread(filename, sizeof(char), len, fin);
-        printf("len %d ", len);
+        fread(&filename, sizeof(char), len, fin);
         FILE *fout = fopen(filename, "wb");
-        long fileSize = 0;
-        fread(&fileSize, sizeof(long), 1, fin);
+        long long fileSize = 0;
+        fread(&fileSize, sizeof(long long), 1, fin);
 
-        int count = 0;
-        while (count < fileSize) {
-            char symbol;
-            symbol = (char)fgetc(fin);
-            fputc((int) symbol, fout);
-            count++;
-        }
+        char *buf = malloc(fileSize);
+        fread(buf, fileSize, 1, fin);
+        fwrite(buf, fileSize, 1, fout);
         fread(&trash, 1, 1, fin);
         fclose(fout);
 
@@ -71,27 +61,16 @@ void showFiles(char *archive, int argc) {
 
     for (int i = 0; i < num; i++) {
         int len;
-        int trash;
         char filename[argc];
         fread(&len, sizeof(int), 1, fin);
-        fread(filename, sizeof(char), len, fin);
+        fread(&filename, sizeof(char), len, fin);
+        filename[len] = '\0';
         FILE *fout = fopen(filename, "wb");
-        long fileSize = 0;
-        fread(&fileSize, sizeof(long), 1, fin);
-
+        long long fileSize = 0;
+        fread(&fileSize, sizeof(long long), 1, fin);
         printf("File name : %s \n", filename);
-
-        int count = 0;
-
-        while (count < fileSize) {
-            char symbol;
-            symbol = (char)fgetc(fin);
-            fputc((int) symbol, fout);
-            count++;
-        }
-        fread(&trash, 1, 1, fin);
+        fseek(fin, (long)fileSize, SEEK_CUR);
         fclose(fout);
-        remove(&filename[i]);
     }
     fclose(fin);
 }
