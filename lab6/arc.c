@@ -3,12 +3,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <limits.h>
 #include "arc.h"
 
 #ifdef __linux__
 #include <sys/stat.h>
+#define PATH_DELIMETER '/'
 #else
 #include <direct.h>
+#define PATH_DELIMETER '\\'
 #endif
 
 #define ERROR(msg, code, ...) fprintf(stderr, "%s: " msg "\n", prog_name, __VA_ARGS__); \
@@ -16,7 +19,6 @@
 
 #define ARC_SIGNATURE "LOL123"
 #define LEN(arr) sizeof(arr)/sizeof(arr[0])
-#define MAX_FILENAME 128
 
 static const char* prog_name; 
 
@@ -27,7 +29,6 @@ void set_prog_name(const char *name) {
 void write_file_to_arc(FILE *arc, const char *filename) {
     unsigned size;
     int c;
-    fputc(0, arc);
     
     FILE *file = fopen(filename, "rb");
     if (file == NULL) {
@@ -39,6 +40,7 @@ void write_file_to_arc(FILE *arc, const char *filename) {
     rewind(file);
 
     fwrite(filename, 1, strlen(filename), arc);
+    fputc(0, arc);
     fwrite(&size, sizeof size, 1, arc);
     while ((c = fgetc(file)) != EOF) {
         fputc(c, arc);
@@ -82,40 +84,7 @@ FILE *open_arc_for_read_and_check(const char *arcname) {
     return arc;
 }
 
-void create_archive(const char *arcname, int count, char **files) {
-    FILE *arc = open_arc(arcname, "wb");
-    if (arc == NULL) {
-        ERROR("Could not open file '%s'", 1, arcname);
-    }
-    fwrite(ARC_SIGNATURE, LEN(ARC_SIGNATURE), 1, arc);
-    for (int i = 0; i < count; ++i) {
-        write_file_to_arc(arc, files[i]);
-    }
-    fclose(arc);
-}
-
-void list_files(const char *arcname) {
-    FILE *arc = open_arc_for_read_and_check(arcname);
-    while (!feof(arc)) {
-        char filename[MAX_FILENAME];
-        int i = 0;
-        unsigned size;
-        if (read_filename(arc, filename) != 0) {
-            break;
-        }
-        fread(&size, sizeof size, 1, arc);
-        printf("%s\t\t%d\n", filename, size);
-        fseek(arc, size, SEEK_CUR);
-    }
-    fclose(arc);
-}
-
-void extract_files(const char *arcname) {
-    FILE *arc = open_arc_for_read_and_check(arcname);
-    char *dirname = strdup(arcname);
-    if (strstr(dirname, ".arc") != NULL) {
-        *strrchr(dirname, '.') = '\0';
-    }
+void create_dir(char *dirname) {
     errno = 0;
     int dircode =
     #ifdef __linux__
@@ -134,16 +103,50 @@ void extract_files(const char *arcname) {
                 ERROR("%s: No such file or directory", 4, dirname);
         }
     }
+}
 
-    char filename[MAX_FILENAME], *name;
+void create_archive(const char *arcname, int count, char **files) {
+    FILE *arc = open_arc(arcname, "wb");
+    if (arc == NULL) {
+        ERROR("Could not open file '%s'", 1, arcname);
+    }
+    fwrite(ARC_SIGNATURE, LEN(ARC_SIGNATURE), 1, arc);
+    for (int i = 0; i < count; ++i) {
+        write_file_to_arc(arc, files[i]);
+    }
+    fclose(arc);
+}
+
+void list_files(const char *arcname) {
+    FILE *arc = open_arc_for_read_and_check(arcname);
+    while (!feof(arc)) {
+        char filename[PATH_MAX];
+        int i = 0;
+        unsigned size;
+        if (read_filename(arc, filename) != 0) {
+            break;
+        }
+        fread(&size, sizeof size, 1, arc);
+        printf("%s\t\t%d\n", filename, size);
+        fseek(arc, size, SEEK_CUR);
+    }
+    fclose(arc);
+}
+
+void extract_files(const char *arcname) {
+    FILE *arc = open_arc_for_read_and_check(arcname);
+    char *dirname = strdup(arcname);
+    if (strstr(dirname, ".arc") != NULL) {
+        *strrchr(dirname, '.') = '\0';
+    }
+
+    create_dir(dirname);
+
+    char filename[PATH_MAX], *name;
     strcpy(filename, dirname);
-    filename[strlen(dirname)] =
-    #ifdef __linux__
-        '/';
-    #else
-        '\\';
-    #endif    
+    filename[strlen(dirname)] = PATH_DELIMETER;
     name = filename + strlen(dirname) + 1;
+    free(dirname);
     while (!feof(arc)) {
         int i = 0;
         FILE *file;
@@ -152,6 +155,15 @@ void extract_files(const char *arcname) {
             break;
         }
         fread(&size, sizeof size, 1, arc);
+
+        if (strchr(filename, PATH_DELIMETER) != NULL) {
+            char *filepath = strdup(filename);
+            *strrchr(filepath, PATH_DELIMETER) = '\0';
+            create_dir(filepath);
+            free(filepath);
+        }
+
+
         file = fopen(filename, "wb");
         
         for (int i = 0; i < size; ++i) {
