@@ -38,6 +38,7 @@ void extract(char *archive, int argc) {
         char filename[argc];
         fread(&len, sizeof(int), 1, fin);
         fread(&filename, sizeof(char), len, fin);
+        filename[len] = '\0';
         FILE *fout = fopen(filename, "wb");
         long long fileSize = 0;
         fread(&fileSize, sizeof(long long), 1, fin);
