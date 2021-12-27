@@ -88,10 +88,11 @@ void add(FILE *filePointer, FILE *addFile, char *filename) {
     fseek(filePointer, 0, SEEK_END);
 
     long size = getSize(addFile);
+    unsigned long filenameSize = strlen(filename);
 
-    fputc((int) strlen(filename), filePointer);
+    fputc((int) filenameSize, filePointer);
 
-    fwrite(filename, strlen(filename), 1, filePointer);
+    fwrite(filename, filenameSize, 1, filePointer);
 
     fwrite(&size, BYTES_NUMBER, 1, filePointer);
 
