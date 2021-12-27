@@ -14,15 +14,17 @@ long int getSize(FILE *filePointer) {
 void create(int filesCount, FILE **files, char **filenames, char *filename) {
     FILE *resultFile = fopen(filename, "wb");
     long size;
+    unsigned long filenameSize;
 
     fputc(filesCount, resultFile);
 
     for (int i = 0; i < filesCount; i++) {
         size = getSize(files[i]);
+        filenameSize = strlen(filenames[i]);
 
-        fputc((int) strlen(filenames[i]), resultFile);
+        fputc((int) filenameSize, resultFile);
 
-        fwrite(filenames[i], strlen(filenames[i]), 1, resultFile);
+        fwrite(filenames[i], filenameSize, 1, resultFile);
 
         fwrite(&size, BYTES_NUMBER, 1, resultFile);
 
