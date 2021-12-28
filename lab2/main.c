@@ -7,7 +7,7 @@ const unsigned int base_digits = 9;
 const unsigned int max_cnt = 35; // 309/9
 
 typedef struct {
-    unsigned int numbers[34];
+    unsigned int numbers[35];
 } uint1024_t;
 
 void init(uint1024_t *x)
