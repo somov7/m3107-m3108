@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <heap.h>
+#include "heap.h"
 
 
 Node* Build_Huffman(Vector* v)
@@ -25,7 +25,7 @@ int isLeaf(Node* x)
 }
 
 int arr[500];
-unsigned char* bytetobit[256]; //коды для каждого байта
+char* bytetobit[256]; //коды для каждого байта
 char** FILE_NAMES = NULL; //файлы что нужно запаковать
 char* ARC_NAME = NULL; //название архива
 int FILE_COUNT = 0; //количество файлов для архивации
@@ -61,31 +61,23 @@ void ReadAndWrite(FILE* r, long long filesize, FILE* w, Node* x, int padding)
 {
     int c;
     Node* t = x;
-    unsigned char ch = 0;
-    int k = 0;
     long long bits = 0;
-    while(k < filesize)
+    for (int i = 0; i < filesize; i++)
     {
         c = fgetc(r);
         for (int count = 0; count < 8; count++)
         {
-            bits++;
-            if (bits > 8 * filesize - padding) //прочитали все биты
-            {
-                fwrite(&ch, 1, 1, w);
+            if (++bits > 8 * filesize - padding) //прочитали все биты
                 break;
-            }
             int bit = (c & (1 << 7-count));
             if (bit) t = t->right;
             else t = t->left;
             if (isLeaf(t))
             {
-                ch = t->byte;
-                fwrite(&ch, 1, 1, w);
+                fwrite(&t->byte, 1, 1, w);
                 t = x;
             }
         }
-        k++;
     }
 }
 
@@ -114,7 +106,7 @@ void BuildHeapAndHuffmanAndWrite(char* filename, int ind, FILE* wr)
     printHuff(huff,arr,top); //получим коды для символов
     fwrite(freq, sizeof(long long), 256, wr); //запишем частоты, чтобы при декодировании построить дерево Хаффмена
     int bit_count = 0;
-    unsigned char write_byte = 0;
+    char write_byte = 0;
     fseek(f, 0, 0);
     while((c = fgetc(f)) != EOF)
     {
@@ -132,11 +124,12 @@ void BuildHeapAndHuffmanAndWrite(char* filename, int ind, FILE* wr)
             }
         }
     }
+    
     if (bit_count) //не записали последний байт
     {
         fwrite(&write_byte, 1, 1, wr);
         FILE_SIZES[ind]++;
-        PADDING_BITS[ind] = 7 - bit_count;
+        PADDING_BITS[ind] = 8 - bit_count;
     }
 
     fclose(f);

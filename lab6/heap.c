@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
-#include <heap.h>
+#include <stdio.h>
+#include "heap.h"
 
 Node* Node_new(unsigned char byte, int freq)
 {
