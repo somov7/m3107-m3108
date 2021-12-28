@@ -4,7 +4,7 @@
 
 const unsigned int base = 1000000000; // 10^9
 const unsigned int base_digits = 9;
-const unsigned int max_cnt = 34; // 309/9
+const unsigned int max_cnt = 35; // 309/9
 
 typedef struct {
     unsigned int numbers[34];
