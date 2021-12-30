@@ -66,36 +66,35 @@ void List(char* arcname){
 }
 //============================================== extract_files_in_direct
 void Extract(char* arcname){
-    FILE* archive = fopen(arcname, "rb+wb");
-    unsigned long long int  cur_pos = 0;
-    unsigned long long int  first_pos = 0;
+    FILE* arch = fopen(arcname, "rb+wb");
+    unsigned long long int  now_pos = 0;
+    unsigned long long int  start_pos = 0;
     int c;
-    while ((c = getc(archive)) != EOF) {
-        first_pos++;
+    while ((c = getc(arch)) != EOF) {
+        start_pos++;
         if (c == '\n')
             break;
     }
-    fseek(archive, 0, SEEK_SET);
+    fseek(arch, 0, SEEK_SET);
     char name_of_file[Max_filename_size] = {0};
     unsigned long long int  size_of_file;
     FILE *file;
-    while (fscanf(archive, "< %s : %llu >", name_of_file, size_of_file) != 0) {
+    while (fscanf(arch, "< %s : %llu >", name_of_file, &size_of_file) != 0) {
         file = fopen(name_of_file, "wb");
         if (file == NULL){
             printf("You are using a shitty file");
             break;
         }
-        cur_pos = ftell(archive);
-        fseek(archive, first_pos, SEEK_SET);
-        first_pos += size_of_file;
+        now_pos = ftell(arch);
+        fseek(arch, start_pos, SEEK_SET);
+        start_pos += size_of_file;
         while (size_of_file-- > 0)
-            putc((c = getc(archive)), file);
-        fseek(archive, cur_pos, SEEK_SET);
+            putc((c = getc(arch)), file);
+        fseek(arch, now_pos, SEEK_SET);
         fclose(file);
     }
     printf("\t\n Unzip done! \n");
 }
-
 //============================================= main_program(parse_arg)
 int main(int argc, char *argv[]) {
 
