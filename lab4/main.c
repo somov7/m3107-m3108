@@ -10,6 +10,7 @@ typedef struct {
     // flags (1 byte)
     // size (4 bytes 7-bit values)
     unsigned char data[10];
+    // unpacked header goes into these fields
     unsigned char signature[4];
     unsigned char version[2];
     unsigned char flags;
@@ -22,6 +23,7 @@ typedef struct {
     // size (4 bytes)
     // flags (2 bytes)
     unsigned char data[10];
+    // unpacked header goes into these fields
     unsigned char ident[5];
     unsigned int size;
     unsigned char flags[2];
@@ -33,7 +35,7 @@ void print_id3_header(ID3Header *h)
     printf("ID3 header data:");
     for(int i = 0; i < 10; i++)
         printf("%02x ", h->data[i]);
-    printf(" signature=%s version=%d.%d flags=%02x size=0x%08x=%u\n", h->signature, h->version[0], h->version[1], h->flags, h->size, h->size);
+    printf(" signature=%s version=%d.%d flags=%02x size=%u\n", h->signature, h->version[0], h->version[1], h->flags, h->size);
 }
 
 void print_frame_header(FrameHeader *fh)
@@ -41,11 +43,11 @@ void print_frame_header(FrameHeader *fh)
     printf("Frame header data:");
     for(int i = 0; i < 10; i++)
         printf("%02x ", fh->data[i]);
-    printf(" ident=%s size=0x%08x=%u flags=%02x-%02x\n", fh->ident, fh->size, fh->size, fh->flags[0], fh->flags[1]);
+    printf(" ident=%s size=%u flags=%02x-%02x\n", fh->ident, fh->size, fh->flags[0], fh->flags[1]);
 }
 
 int read_id3_header(FILE *file, ID3Header *h)
-{ 
+{
     memset(h, 0, sizeof(ID3Header));
 
     if (fread(h->data, 10, 1, file) != 1)
@@ -61,7 +63,8 @@ int read_id3_header(FILE *file, ID3Header *h)
     h->version[0] = h->data[3];
     h->version[1] = h->data[4];
     h->flags = h->data[5];
-    h->size = ((h->data[6] & 0x7f) << 21) | ((h->data[7] & 0x7f) << 14) | ((h->data[8] & 0x7f) << 7) | (h->data[9] & 0x7f);
+    //h->size = ((h->data[6] & 0x7f) << 21) | ((h->data[7] & 0x7f) << 14) | ((h->data[8] & 0x7f) << 7) | (h->data[9] & 0x7f);
+    h->size = (h->data[6] << 21) | (h->data[7] << 14) | (h->data[8] << 7) | h->data[9];
 
     if ((h->data[0] != 'I') || (h->data[1] != 'D') || (h->data[2] != '3'))
     {
@@ -76,10 +79,11 @@ int read_id3_header(FILE *file, ID3Header *h)
 void set_id3_size(ID3Header *h, int size)
 {
     h->size = size;
-    h->data[4] = (unsigned char)((h->size >> 21) & 0x0000007f);
-    h->data[5] = (unsigned char)((h->size >> 14) & 0x0000007f);
-    h->data[6] = (unsigned char)((h->size >> 7) & 0x0000007f);
-    h->data[7] = (unsigned char)(h->size & 0x0000007f);
+
+    h->data[6] = ((unsigned char)(h->size >> 21)) & 0x7f;
+    h->data[7] = ((unsigned char)(h->size >> 14)) & 0x7f;
+    h->data[8] = ((unsigned char)(h->size >> 7)) & 0x7f;
+    h->data[9] = ((unsigned char)(h->size)) & 0x7f;
 }
 
 void set_frame_value(FrameHeader *fh, char *value)
@@ -95,26 +99,33 @@ void set_frame_value(FrameHeader *fh, char *value)
         return;
 
     // set size
-    fh->size = strlen(value)+1;
-    fh->data[4] = (unsigned char)((fh->size >> 21) & 0x0000007f);
-    fh->data[5] = (unsigned char)((fh->size >> 14) & 0x0000007f);
-    fh->data[6] = (unsigned char)((fh->size >> 7) & 0x0000007f);
-    fh->data[7] = (unsigned char)(fh->size & 0x0000007f);
+    fh->size = strlen(value) + 1;
+
+    fh->data[4] = ((unsigned char)(fh->size >> 21)) & 0x7f;
+    fh->data[5] = ((unsigned char)(fh->size >> 14)) & 0x7f;
+    fh->data[6] = ((unsigned char)(fh->size >> 7)) & 0x7f;
+    fh->data[7] = ((unsigned char)(fh->size)) & 0x7f;
 
     // copy value
     fh->value = malloc(fh->size);
     fh->value[0] = 0;
-    memcpy(fh->value+1, value, fh->size-1);
+    memcpy(&(fh->value[1]), value, fh->size-1);
 }
 
 int read_frame(FILE *file, FrameHeader *fh, int version)
 {
-    memset(fh, 0, sizeof(FrameHeader));  
+    memset(fh, 0, sizeof(FrameHeader));
 
     if (fread(fh->data, 10, 1, file) != 1)
     {
-        printf("can't read file");
+        printf("can't read file\n");
         return -1;
+    }
+
+    if(fh->data[0] == 0)
+    {
+        //printf("the frame is empty\n");
+        return 0;
     }
 
     fh->ident[0] = fh->data[0];
@@ -122,14 +133,14 @@ int read_frame(FILE *file, FrameHeader *fh, int version)
     fh->ident[2] = fh->data[2];
     if (version == 2)
     {
-        fh->ident[3] = 0;        
+        fh->ident[3] = 0;
     }
     else if ((version == 3) || (version == 4))
-    {       
+    {
         fh->ident[3] = fh->data[3];
         fh->ident[4] = 0;
     }
-    fh->size = ((fh->data[4] & 0x7f) << 21) | ((fh->data[5] & 0x7f) << 14) | ((fh->data[6] & 0x7f) << 7) | (fh->data[7] & 0x7f);
+    fh->size = (fh->data[4] << 21) | (fh->data[5] << 14) | (fh->data[6] << 7) | fh->data[7];
     fh->flags[0] = fh->data[8];
     fh->flags[1] = fh->data[9];
     fh->value = NULL;
@@ -157,7 +168,7 @@ int read_frame(FILE *file, FrameHeader *fh, int version)
 
 int create_frame(FrameHeader *fh, int version, char *prop_name, char *value)
 {
-    memset(fh, 0, sizeof(FrameHeader));  
+    memset(fh, 0, sizeof(FrameHeader));
 
     fh->data[0] = prop_name[0];
     fh->data[1] = prop_name[1];
@@ -170,10 +181,10 @@ int create_frame(FrameHeader *fh, int version, char *prop_name, char *value)
     fh->ident[2] = fh->data[2];
     if (version == 2)
     {
-        fh->ident[3] = 0;        
+        fh->ident[3] = 0;
     }
     else if ((version == 3) || (version == 4))
-    {       
+    {
         fh->ident[3] = fh->data[3];
         fh->ident[4] = 0;
     }
@@ -196,29 +207,22 @@ void print_frame(FrameHeader *fh)
     printf("\n");
 }
 
-int get_file_size(char* file_name, long* file_size)
+void print_frame_table(FrameHeader *fh)
 {
-    FILE *f = fopen(file_name, "rb");
+    if(strlen(fh->ident) == 3)
+        printf("%s |", fh->ident);
+    else
+        printf("%s|", fh->ident);
 
-    if(f == NULL)
+    for(int i = 0; i < fh->size; i++)
     {
-        printf("can't open file %s\n", file_name);
-        return -1;
+        if (isprint(fh->value[i]))
+            printf("%c", fh->value[i]);
+        else
+            printf("[%02x]", fh->value[i]);
     }
 
-    // go to end of file
-    if (fseek(f, 0, SEEK_END) != 0)
-    {
-        printf("read error\n");
-        fclose(f);
-        return -1;
-    }
-
-    // get file size
-    *file_size = ftell(f);
-
-    fclose(f);
-    return 0;
+    printf("\n");
 }
 
 typedef struct List {
@@ -275,17 +279,16 @@ void list_clean()
 
 int set_prop(char *filepath, char *prop_name, char *value)
 {
-    printf("filepath=%s prop_name=%s value=%s\n", filepath, prop_name, value);
+    //printf("filepath=%s prop_name=%s value=%s\n", filepath, prop_name, value);
+
+    FILE* tmp = NULL;
+    int err = 0;
+    char* data = NULL;
 
     ID3Header h;
     FrameHeader fh;
-    long file_size = 0;
-
-    if (get_file_size(filepath, &file_size) != 0)
-        return -1;
-
     FILE *file = fopen(filepath, "r+b");
- 
+
     if (read_id3_header(file, &h) != 0)
     {
         fclose(file);
@@ -294,7 +297,7 @@ int set_prop(char *filepath, char *prop_name, char *value)
 
     // read all frames
     long end_frames = ftell(file) + h.size;
-    while(ftell(file) < end_frames)
+    while((ftell(file) + 10) < end_frames)
     {
         if (read_frame(file, &fh, h.version[0]) != 0)
         {
@@ -308,28 +311,28 @@ int set_prop(char *filepath, char *prop_name, char *value)
         add_last(fh);
     }
 
-    int found = 0;
+    int found_frame = 0;
     List *p = first;
     while (p != NULL)
     {
         // prop_name is found, change value
         if (strcmp(p->fh.ident, prop_name) == 0)
         {
-            printf("### found: ");
+            printf("found: ");
             print_frame(&p->fh);
             printf("\n");
 
             set_frame_value(&p->fh, value);
-            found = 1;
+            found_frame = 1;
 
-            printf("### changed: ");
+            printf("changed: ");
             print_frame(&p->fh);
             printf("\n");
             break;
         }
         p = p->next;
     }
-    if (found == 0)
+    if (!found_frame)
     {
         // prop_name if not found, add new frame
         printf("creating new frame\n");
@@ -349,21 +352,11 @@ int set_prop(char *filepath, char *prop_name, char *value)
     // check that frames size fits to id3 header body size
     if (h.size < new_size)
     {
-        printf("new value does not fit frames size=%d new=%d\n", h.size, new_size);
-
-        // go to file data start
-        if (fseek(file, 10+h.size, SEEK_SET) != 0)
-        {
-            printf("fseek error\n");
-            list_clean();
-            fclose(file);
-            return -1;
-        }
-
         // allocate memory for file data
-        long data_size = file_size-10-h.size;
-        char *data = malloc(data_size);
-        if (data != NULL)
+        int data_size = 100000;
+        data = malloc(data_size);
+
+        if (data == NULL)
         {
             printf("can't allocate memory size=%ld\n", data_size);
             list_clean();
@@ -371,71 +364,70 @@ int set_prop(char *filepath, char *prop_name, char *value)
             return -1;
         }
 
-        // read file data
-        if (fread(data, data_size, 1, file) != 1)
-        {
-            printf("data read error\n");
-            free(data);
-            list_clean();
-            fclose(file);
-            return -1;
-        }
-
-        // go to file start
-        if (fseek(file, 0, SEEK_SET) != 0)
+        // go to file data start
+        if (fseek(file, 10+h.size, SEEK_SET) != 0)
         {
             printf("fseek error\n");
-            free(data);
             list_clean();
             fclose(file);
+            free(data);
             return -1;
         }
 
-        // write id3 header
-        set_id3_size(&h, new_size); // change frames size
-        if (fwrite(h.data, 10, 1, file) != 1)
+        tmp = fopen("tmp.mp3", "wb");
+        if(tmp == NULL)
         {
-            printf("id3 header write error\n");
-            free(data);
+            printf("can't open tmp file\n");
+            err = -1;
+            goto exit;
+        }
+
+        set_id3_size(&h, new_size);
+
+        if (fwrite(h.data, 10, 1, tmp) != 1)
+        {
+            printf("fwrite error\n");
             list_clean();
             fclose(file);
+            free(data);
+            free(tmp);
             return -1;
         }
-    
-        // write all frames
+
+        //print_id3_header(&h);
+
+        //write all frames
         p = first;
         while (p != NULL)
         {
-            if (fwrite(p->fh.data, 10, 1, file) != 1)
+            print_frame(&p->fh);
+            if(fwrite(p->fh.data, 10, 1, tmp) != 1)
             {
-                printf("frame header write error\n");
-                free(data);
-                list_clean();
-                fclose(file);
-                return -1;
+                printf("fwrite error\n");
+                err = -1;
+                goto exit;
             }
-            if(fwrite(p->fh.value, p->fh.size, 1, file) != 1)
+            if(fwrite(p->fh.value, p->fh.size, 1, tmp) != 1)
             {
-                printf("frame value write error\n");
-                free(data);
-                list_clean();
-                fclose(file);
-                return -1;
+                printf("fwrite error\n");
+                err = -1;
+                goto exit;
             }
             p = p->next;
         }
 
-        // write file data
-        if (fwrite(data, data_size, 1, file) != 1)
+        size_t n = 0;
+
+        while(n = fread(data, 1, data_size, file))
         {
-            printf("data write error\n");
-            free(data);
-            list_clean();
-            fclose(file);
-            return -1;
+            if(fwrite(data, n, 1, tmp) != 1)
+            {
+                printf("fwrite error\n");
+                err = -1;
+                goto exit;
+            }
         }
 
-        free(data);
     }
     else
     {
@@ -448,42 +440,78 @@ int set_prop(char *filepath, char *prop_name, char *value)
             return -1;
         }
 
+        print_id3_header(&h);
+
         // clean frames
-        char *x = malloc(h.size);
-        memset(x, 0, h.size);
-        fwrite(x, h.size, 1, file);
+        char *x = calloc(h.size, 1);
+
+        if(fwrite(x, h.size, 1, file) != 1)
+        {
+            free(x);
+            printf("fwrite error\n");
+            err = -1;
+            goto exit;
+        }
+
+        free(x);
+        x = NULL;
 
         // go to frames start
         if (fseek(file, 10, SEEK_SET) != 0)
         {
             printf("fseek error\n");
-            list_clean();
-            fclose(file);
-            return -1;
+            err = -1;
+            goto exit;
         }
 
         // write all frames
         p = first;
         while (p != NULL)
         {
-            fwrite(p->fh.data, 10, 1, file);
-            fwrite(p->fh.value, p->fh.size, 1, file);
+            print_frame(&p->fh);
+            if(fwrite(p->fh.data, 10, 1, file) != 1)
+            {
+                printf("fwrite error\n");
+                err = -1;
+                goto exit;
+            }
+            if(fwrite(p->fh.value, p->fh.size, 1, file) != 1)
+            {
+                printf("fwrite error\n");
+                err = -1;
+                goto exit;
+            }
+
             p = p->next;
         }
     }
+exit:
+    if(data != NULL)
+        free(data);
 
     list_clean();
     fclose(file);
-    return 0;
+    if(tmp != NULL)
+    {
+        fclose(tmp);
+        if(err == 0)
+        {
+            remove(filepath);
+            rename("tmp.mp3", filepath);
+        }
+    }
+
+    return err;
 }
 
 int get_prop(char *filepath, char *prop_name)
 {
     ID3Header h;
     FrameHeader fh;
+    int found_frame = 0;
 
     FILE *file = fopen(filepath, "rb");
- 
+
     if (read_id3_header(file, &h) != 0)
     {
         fclose(file);
@@ -491,7 +519,8 @@ int get_prop(char *filepath, char *prop_name)
     }
 
     long end_frames = ftell(file) + h.size;
-    while(ftell(file) < end_frames)
+
+    while((ftell(file) + 10) < end_frames)
     {
         if (read_frame(file, &fh, h.version[0]) != 0)
             break;
@@ -499,12 +528,16 @@ int get_prop(char *filepath, char *prop_name)
             break;
         if (strcmp(fh.ident, prop_name) == 0)
         {
+            found_frame = 1;
             print_frame(&fh);
             set_frame_value(&fh, NULL);
             break;
         }
         set_frame_value(&fh, NULL);
     }
+
+    if(!found_frame)
+        printf("can't find this frame");
 
     fclose(file);
     return 0;
@@ -516,23 +549,26 @@ int show(char *filepath)
     FrameHeader fh;
 
     FILE *file = fopen(filepath, "rb");
- 
+
     if (read_id3_header(file, &h) != 0)
     {
         fclose(file);
         return -1;
     }
 
+    printf("\n--------------------------\nNAME|VALUE\n----+---------------------\n");
+
     long end_frames = ftell(file) + h.size;
-    while(ftell(file) < end_frames)
+    while((ftell(file) + 10) < end_frames)
     {
         if (read_frame(file, &fh, h.version[0]) != 0)
             break;
         if (fh.ident[0] == 0)
             break;
-        print_frame(&fh);
+        print_frame_table(&fh);
         set_frame_value(&fh, NULL);
     }
+    printf("--------------------------\n");
 
     fclose(file);
     return 0;
