@@ -14,13 +14,7 @@
 #define BMP_CORE_HEADER_S 12
 #define BMP_CORE_COLORTab_S 6
 
-/**
- * задаем выравниевание структур
- * про выравние почитай подробнее в гугле
- * https://habr.com/ru/post/142662/
- * делаем мы это чтобы можно было сразу
- * считывать из файла в структуру минуя промежуточный буффер
- */
+
 #pragma pack(push, 1)
 
 /**
@@ -35,10 +29,7 @@ typedef struct {
     uint32_t bfOffBits; // смешение пиксильных данных от начала файла в байтах (2 байта)
 }bmp_file_header;
 
-/**
- * информационный залоговок bmp версии CORE
- * разпологается после основного заголовка и занием 12 байт
- */
+
 typedef struct {
     uint32_t bcSize; // размер заголовка, он же и указатель версии bmp файла всегда 12 байт для CORE типа
     uint16_t bcWidth; // ширина изображения
@@ -47,17 +38,11 @@ typedef struct {
     uint16_t bcBitCount; // глубина цвета в нашем случае всегда равна 1 так как файл монохромный, только два цвета
 }bmp_core_header;
 
-/**
- * информационный залоговок bmp версии 3, 4, 5
- * размер и версию заголовка указывает первые 4 байта
- * для нашей задачи нужно знать только высоту, ширину, глубину цвета
- * так как 5 включает 4 включает 3 версии (см Вики)
- *  мы можем для 3, 4, 5 создать одну структуру и обрабатывать их одинаково
- */
+
 typedef struct {
     uint32_t biSize;
-    uint32_t biWidth;
-    uint32_t biHeight;
+    int32_t biWidth;
+    int32_t biHeight;
     uint16_t biPlanes;
     uint16_t biBitCount;
 } bmp_info_header;
@@ -65,27 +50,20 @@ typedef struct {
 #pragma pack(pop)
 
 
-/**
- * структура хранящая все распасеный bmp файл
- */
 typedef struct {
     bmp_file_header *header; // заголовок
-    /**
-     * какой-то из информационных заголовков
-     * один из них всегда будет NULL
-     */
     bmp_core_header *info_core_header;
     bmp_info_header *info_header;
-    char *bitmap; // сжатые пиксильные данные
+    char *bitmap;
 }BMP;
-/**
- * 1 0 1 1 0 1 0 1
- */
+
+
 int creat_from_bmp(const BMP *bmp, const char *file_name);
 int creat_from_data(uint16_t width, uint16_t height, char *bitmap, size_t bitmap_size, const char *file_name);
 BMP *open(const char *file_name);
-uint32_t get_BMP_width(BMP *bmp);
-uint32_t get_BMP_height(BMP *bmp);
-void delete(BMP *bmp);
+int32_t get_BMP_width(BMP *bmp);
+int32_t get_BMP_height(BMP *bmp);
 uint32_t get_data_size(BMP *bmp);
+int32_t get_actual_width(BMP *bmp);
+void delete(BMP *bmp);
 #endif //LAB5_BMP_H

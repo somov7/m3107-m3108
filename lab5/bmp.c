@@ -4,6 +4,7 @@
 #include "bmp.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 int creat_from_bmp(const BMP *bmp, const char *file_name) {
@@ -45,19 +46,14 @@ int creat_from_data(uint16_t width, uint16_t height,
             0,
             BMP_HEADER_S + BMP_CORE_HEADER_S + BMP_CORE_COLORTab_S
     };
-    /**
-     * черный/белый цевета
-     * в creat_from_bmp будет переполение буффера
-     * мы копируем 18 байт, а размер bmp_core_header 12
-     * поэтому мы захватим первые 6 байт color
-     */
+
     uint64_t color = 0xffffff000000;
     bmp_core_header info_core_header = {
-        BMP_CORE_HEADER_S,
-        width,
-        height,
-        1,
-        1
+            BMP_CORE_HEADER_S,
+            width,
+            height,
+            1,
+            1
     };
     BMP bmp = {
             &header,
@@ -68,10 +64,7 @@ int creat_from_data(uint16_t width, uint16_t height,
     return creat_from_bmp(&bmp, file_name);
 }
 
-/**
- * функция парсит bmp файл
- *
- */
+
 BMP *open(const char *file_name) {
     FILE *bmp_file = fopen(file_name, "rb");
     if (bmp_file == NULL) {
@@ -85,24 +78,19 @@ BMP *open(const char *file_name) {
     uint32_t file_size = ftell(bmp_file); // возвращаем количество байт с текущей позиции указателя до начала файла
     rewind(bmp_file); // возвращаем указатель в начала файла
 
-    /**
-     * читаем заголовок сразу в структуру
-     * можем так делать потому что указали выравнивание в 1 байт
-     */
+
     size_t readed = fread(header, BMP_HEADER_S, 1, bmp_file);
-    /**
-     * выдкляем помять под буфер для информационного заголовка + таблицы цветов
-     */
-    size_t buff_size = header->bfOffBits - BMP_HEADER_S; // начало пикисильных данных - 14 (размер заголовка)
+
+    size_t buff_size = header->bfOffBits - BMP_HEADER_S;
     char *buffer = malloc(buff_size);
 
     if (readed != 1 ||
         header->bfType != BMP_TYPE ||
-        header->bfSize != file_size) // проверяем корректно или мы считали заголовк и bmp ли это
+        header->bfSize != file_size)
     {
         goto failed;
     }
-    // читаем  информационный заголовока + таблица цветов
+
     readed = fread(buffer, 1, buff_size, bmp_file);
 
     if (readed != buff_size) {
@@ -112,17 +100,7 @@ BMP *open(const char *file_name) {
     bmp_core_header *info_core_header = NULL;
     bmp_info_header  *info_header = NULL;
     uint32_t version = *(uint32_t *)buffer; // определяем версию заголовка (первые 4 байта)
-    /**
-     * что такое info_**_header
-     * по сути это участок памяти хранящий
-     * информационный заголовок + таблицу цветов
-     * к первым х бацтам мы можем обращатся через структуру
-     * так как они нужны для реализации игры жизнь
-     * остальный мы просто храним, чтобы потом без
-     * лишней вознь создать новый bmp файл с такими же
-     * заголовками но с другими пискильными данными, так как игра жизнь меняет
-     * только значение пиксельных данных, а не размер глубину цвета и тд
-     */
+
     if (version == 12) {
         info_core_header = (bmp_core_header* )buffer;
         if (info_core_header->bcBitCount != 1 ||
@@ -134,18 +112,12 @@ BMP *open(const char *file_name) {
     } else {
         info_header = (bmp_info_header *)buffer;
         if (info_header->biBitCount != 1 ||
-                !info_header->biWidth ||
-                !info_header->biHeight)
+            !info_header->biWidth ||
+            !info_header->biHeight)
         {
             goto failed;
         }
     }
-    /**
-     * данные в мнохоромном bmp файле хранятся в виде друмерного массива БИТ
-     * так как процессор не умеет оперировать битами по отдельности
-     * в дальшем этот массив нужно будет "распокавать"
-     * я представлял его в виде массива байт, где каждый БАЙТ либо 0 либо 1
-     */
     buff_size = file_size - header->bfOffBits; // размер массива данных
     char *bitmap = malloc(buff_size);
     readed = fread(bitmap, 1, buff_size, bmp_file);
@@ -164,10 +136,10 @@ BMP *open(const char *file_name) {
     return bmp;
 
     failed:
-        free(header);
-        free(buffer);
-        fclose(bmp_file);
-        return NULL;
+    free(header);
+    free(buffer);
+    fclose(bmp_file);
+    return NULL;
 }
 
 
@@ -182,7 +154,7 @@ void delete(BMP *bmp) {
     free(bmp);
 }
 
-uint32_t get_BMP_width(BMP *bmp) {
+int32_t get_BMP_width(BMP *bmp) {
     if (bmp->info_header != NULL) {
         return bmp->info_header->biWidth;
     } else {
@@ -190,7 +162,7 @@ uint32_t get_BMP_width(BMP *bmp) {
     }
 }
 
-uint32_t get_BMP_height(BMP *bmp) {
+int32_t get_BMP_height(BMP *bmp) {
     if (bmp->info_header != NULL) {
         return bmp->info_header->biHeight;
     } else {
@@ -200,6 +172,13 @@ uint32_t get_BMP_height(BMP *bmp) {
 
 uint32_t get_data_size(BMP *bmp) {
     return bmp->header->bfSize - bmp->header->bfOffBits;
+}
+
+int32_t get_actual_width(BMP *bmp) {
+    int32_t h = get_BMP_height(bmp);
+    uint32_t size = get_data_size(bmp);
+    return (size / h) * 8;
+
 }
 
 

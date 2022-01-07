@@ -4,30 +4,27 @@
 
 #include "gamelive.h"
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 
-char next(uint16_t w, uint16_t h, char *bitmap) {
-    char *tmp = malloc((w + 2)*(h + 2));
-    int w1 = w+2;
-    for (int i = 1; i < h; i++) {
-        for (int j = 1; j < w; ++j) {
-            int p = i*w1 + j;
-            tmp[p] = bitmap[p - 1] + bitmap[p + 1] +
-                    bitmap[p - w1] + bitmap[p + w1] +
-                    bitmap[p - w1 - 1] + bitmap[p - w1 + 1] +
-                    bitmap[p + w1 + 1] + bitmap[p + w1 -1];
+char next(uint32_t w, uint32_t h, char *bitmap) {
+    char *tmp = malloc(w * h);
+    for (int i = 1; i < h -1; ++i) {
+        for (int j = 1; j < w -1; ++j) {
+            int p = i * w + j;
+            tmp[p] = bitmap[p-1] + bitmap[p + 1] +
+                     bitmap[p + w] + bitmap[p - w] +
+                     bitmap[p + w -1] + bitmap[p + w + 1] +
+                     bitmap[p - w -1] + bitmap[p - w + 1];
         }
     }
-    for (int i = 1; i < h; ++i) {
-        for (int j = 1; j < w; ++j) {
-            int p = j*w1 + i;
-            if (!bitmap[p] && tmp[p] == 3) {
+    for (int i = 1; i < h -1; ++i) {
+        for (int j = 1; j < w - 1; ++j) {
+            int p = i * w + j;
+            if (tmp[p] == 3 && !bitmap[p]) {
                 bitmap[p] = 1;
-            } else {
-                if (tmp[p] > 3 || tmp[p] < 2) {
-                    bitmap[p] = 0;
-                }
+            }
+            if ((tmp[p] < 2 || tmp[p] > 3) && bitmap[p]) {
+                bitmap[p] = 0;
             }
         }
     }

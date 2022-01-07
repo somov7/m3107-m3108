@@ -6,27 +6,50 @@
 #include "bmp.h"
 #include "gamelive.h"
 
-char *extract_bits(char *bitmap, uint32_t size, uint16_t w, uint16_t h) {
-    uint32_t bit_size = w*h;
-    char *bits = malloc(bit_size);
-    for (int i = 0; i < size; ++i) {
-        for (int j = 0; j < 8; j++) {
-            bits[8*i + j] = (char)((bitmap[i] & (1 << j)) >> j);
+char *extract_bits(char *bitmap, uint32_t w, uint32_t h, uint32_t actual_w) {
+    uint32_t bit_size = (w + 2)*(h + 2);
+    char *bits = calloc(bit_size, 1);
+    char str[actual_w * 8];
+    for (int i = 1; i < h+1; ++i) {
+        for (int j = 0; j < actual_w; j++) {
+            for (int k = 0; k < 8; ++k) {
+                str[j * 8 + k] = (char)((bitmap[(i-1)*actual_w + j] & (1 << (7 - k))) >> (7 - k));
+            }
+        }
+        for (int j = 1; j < w+1; j++) {
+            bits[i * (w+2)  + j] = str[j - 1];
         }
     }
+
     return bits;
 }
 
-char *zip_bits(char *bits, uint32_t size) {
-    char *bitmap = malloc(size);
-    for (int i = 0; i < size; ++i) {
-        char zip = 0;
-        for (int j = 0; j < 8; ++j) {
-            zip |= bits[8*i + j] << j;
-        }
-        bitmap[i] = zip;
+char long_to_char(uint64_t bits) {
+    char ans = 0;
+    for (int i = 7; i <= 0; i--) {
+        ans |= (bits & (1 << i)) >> i;
     }
-    return bitmap;
+    return ans;
+}
+
+void zip_bits(char *bits, char *bitmap, uint32_t w, uint32_t h, uint32_t actual_w) {
+    char *tmp = calloc(actual_w, 1);
+    printf("%d\n", actual_w);
+    for (int i = 1; i < h; ++i) {
+        int p = -1;
+        for (int j = 1; j < w; j++) {
+            int sh = (j - 1) % 8;
+            if (sh == 0){
+                p++;
+                tmp[p] = 0;
+            }
+            tmp[p] += bits[i*h + j] << (7 - sh);
+        }
+        //printf("%d\n", p);
+        for (int j = 0; j < actual_w; j++) {
+            bitmap[(i-1) * actual_w + j] = tmp[j];
+        }
+    }
 }
 
 void reverse(char s[])
@@ -57,8 +80,17 @@ void itoa(int n, char s[])
     reverse(s);
 }
 
-// /Users/anton/Desktop/image4.bmp
-// /Users/anton/Desktop/
+void print_bits(const char* bits, int h, int w) {
+    int k = 1;
+    for (int i = 0; i < h; ++i) {
+        for (int j = 0; j < w; j++) {
+            printf("%d", bits[i*(w) + j]);
+        }
+        printf(" %d\n", k++);
+    }
+    printf("\n\n");
+}
+
 int main(int argc, char **argv) {
     BMP *bmp = NULL;
     char *out_dir = NULL;
@@ -93,26 +125,28 @@ int main(int argc, char **argv) {
         perror("not bmp");
         exit(EXIT_FAILURE);
     }
-    uint16_t w = get_BMP_width(bmp);
-    uint16_t h = get_BMP_height(bmp);
+
+    int32_t w = get_BMP_width(bmp);
+    int32_t h = get_BMP_height(bmp);
     uint32_t size = get_data_size(bmp);
-    char *bits = extract_bits(bmp->bitmap, size, w, h);
+    int realW = get_actual_width(bmp);
+    printf("%d size: %d\n", realW, size);
+    char *bits = extract_bits(bmp->bitmap, w, h, realW/8);
     char num[10];
-    for (int i = 0; i < gener_cnt; i++) {
-       if (i % frec) {
-           free(bmp->bitmap);
-           bmp->bitmap = zip_bits(bits, size);
-           for (int i = 0; i < size; ++i) {
-               bmp->bitmap[i] = ~bmp->bitmap[i];
-           }
-           itoa(i, num);
-           strcat(out_dir, num);
-           strcat(out_dir, ".bmp");
-           creat_from_bmp(bmp, out_dir);
-           out_dir[str_size] = 0;
-       }
-        next(w, h, bits);
+    for (int i = 1; i <= gener_cnt; i++) {
+        if (i % frec == 0) {
+            //print_bits(bits, h+2, w+2);
+            zip_bits(bits, bmp->bitmap,  w+2, h+2, realW/8);
+            itoa(i, num);
+            strcat(out_dir, num);
+            strcat(out_dir, ".bmp");
+            creat_from_bmp(bmp, out_dir);
+            out_dir[str_size] = 0;
+        }
+        //printf("acadcad\n");
+        next(w+2, h+2, bits);
     }
+
     free(out_dir);
     delete(bmp);
 }
