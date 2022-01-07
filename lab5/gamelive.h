@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-char next(uint32_t w, uint32_t h, char *bitmap);
+void next(uint32_t w, uint32_t h, char *bitmap);
 char is_over(uint16_t w, uint16_t h, char *bitmap);
 
 #endif //LAB5_GAMELIVE_H
