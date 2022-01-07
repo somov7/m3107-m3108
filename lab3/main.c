@@ -69,8 +69,8 @@ int main(int argc, char *argv[]) {
         }
         if (counter > maxRequest) {
             maxRequest = counter;
-            first = i;
-            last = j;
+            first = j;
+            last = i;
         }
     }
 
@@ -81,5 +81,6 @@ int main(int argc, char *argv[]) {
     ctime_s(endTime, sizeof endTime, &convertedTime[last]);
     free(convertedTime);
     printf("\n\nThere are %d 5xx errors in %s", countErrors, argv[2]);
-    printf("\nThere are %d requests max in %d seconds, since %.24s to %.24s", maxRequest, timeWindow + 1, endTime, startTime);
+    printf("\nThere are %d requests max in %d seconds, since %.24s to %.24s", maxRequest, timeWindow + 1, startTime, endTime);
+    fclose(log);
 }
