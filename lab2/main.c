@@ -113,5 +113,4 @@ int main()
     uint1024_t multiplcation = mult_op(x, y);
     printf_value(multiplcation);
 
-
 }
