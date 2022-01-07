@@ -3,7 +3,6 @@
 #include <math.h>
 #include <string.h>
 
-
 #define SIZE 300//размер строки запроса
 long timestamp[1891714]; int n = 0;
 
@@ -16,14 +15,14 @@ void get_window(int);
 
 int main (int argc, char* argv[]) {
 
-    FILE* f = fopen("access_log_Jul95.txt", "r");
-
+    //FILE* f = fopen("access_log_Jul95.txt", "r");
+    
+    FILE* f = fopen(argv[1], "r");
     int errorCount = 0;
-    int wsize = atoi(argv[1]);
-
+    int wsize = atoi(argv[2]);
     char str[SIZE];
 
-    if (argc != 2) {
+    if (argc != 3) {
         printf("ERROR: not enough arguments");
         return -1;
     }
