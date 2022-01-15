@@ -28,7 +28,7 @@ void show(FILE *data){
     strcpy(nextframe.name, "     \0");
     nextframe.size = 0;
     int n = 1;
-    while(!feof(data)){
+    while(n < 7){
 
         fread(nextframe.info, 1, 10, data);
 
@@ -65,7 +65,7 @@ int get(FILE *data, Frame frame){
     nextframe.size = 0;
 
     int n = 1;
-    while(!feof(data)){
+    while(n < 7){
         frame.size = 0;
         nextframe.size = 0;
 
@@ -102,19 +102,20 @@ int get(FILE *data, Frame frame){
 }
 
 
-void set(FILE *data, Frame frame, char *content){
-
+void set(char *dataname, Frame frame, char *content){
+    FILE* data = fopen(dataname, "rb+");
     frame.name[4] = '\0';
 
-    fseek(data, 10, SEEK_SET);
+    fseek(data, 0, SEEK_SET);
     FILE *newfile;
-    newfile = fopen("changed.mp3", "wb");
+    newfile = fopen("temp.mp3", "wb+");
+    Frame nextframe;
+    nextframe.size = 0;
     for (int i = 0; i < 10; i++){
         fputc(fgetc(data), newfile);
     }
-
-    while(!feof(data)){
-        Frame nextframe;
+    int n = 1;
+    while(n < 7){
         fread(nextframe.info, 1, 10, data);
 
         for (int i = 0; i < 4; i++){
@@ -124,33 +125,65 @@ void set(FILE *data, Frame frame, char *content){
 
         int k = 3;
         for (int i = 0; i < 4; i++, k--){
+            printf("%c", nextframe.info[i + 4]);
             nextframe.size += (int) nextframe.info[i + 4] * (int) pow(256, k);
         }
+        printf("\n");
+        printf("size %d\n", nextframe.size);
 
-        if (memcmp(frame.name, nextframe.name, 4) == 0){
+        printf("%s %s\n", frame.name, nextframe.name);
 
-            for (int i = 0; i < 2; i ++){
+        if (strcmp(frame.name, nextframe.name) == 0){
+            printf("found it!!!\n");
+
+            for (int i = 0; i < 2; i ++){ //flags
                 frame.info[i + 8] = nextframe.info[i + 8];
             }
 
             for (int i = 0; i < 10; i++){
                 fputc(frame.info[i], newfile);
             }
-            for (int i = 0; i < frame.size; i++){
+
+            fputc(fgetc(data), newfile);
+
+            for (int i = 0; i < frame.size - 1; i++){
                 fputc(content[i], newfile);
             }
-            fseek(data, (long) nextframe.size, SEEK_CUR);
+            fseek(data, (long) nextframe.size - 1, SEEK_CUR);
 
         } else {
             for (int i = 0; i < 10; i++){
                 fputc(nextframe.info[i], newfile);
             }
-            for (int i = 0; i < frame.size; i++){
-                fputc(fgetc(data), newfile);
+            for (int i = 0; i < nextframe.size; i++){
+                char nextchar = fgetc(data);
+                fputc(nextchar, newfile);
             }
         }
+        strcpy(nextframe.info, "");
+        strcpy(nextframe.name, "");
+        nextframe.size = 0;
+        n++;
+        printf("\n");
     }
+
+    char nextchar;
+    nextchar = getc(data);
+
+    while(!feof(data)){
+        putc(nextchar, newfile);
+        nextchar = getc(data);
+    }
+    fclose(data);
     fclose(newfile);
+    FILE *input = fopen("temp.mp3", "rb+");
+    FILE *output = fopen(dataname, "wb+");
+
+    nextchar = getc(input);
+    while(!feof(input)){
+        putc(nextchar, output);
+        nextchar = getc(input);
+    }
 }
 
 
@@ -174,7 +207,7 @@ int main(int argc, char* argv[]){
             strcpy(dataname, argv[i]);
             memmove(dataname, dataname+11, strlen(dataname));
 
-            data = fopen(dataname, "r");
+            data = fopen(dataname, "rb+");
             printf("%s\n", dataname);
 
             if (data == NULL) {
@@ -217,26 +250,30 @@ int main(int argc, char* argv[]){
         } else if (strstr(argv[i], "--set=")){
 
             Frame changframe;
-            char frname[4];
+            char frname[12];
             char content[strlen(argv[i])];
-            for (int j = 6; j < strlen(argv[i]); j++){
-                strcat(content, &argv[i][j]);
-            }
-            for (int j = 8; j < strlen(argv[i + 1]); j++){
-                strcat(frname, &argv[i + 1][j]);
-            }
+
+            strcpy(content, argv[i]);
+            memmove(content, content+6, strlen(content));
+            strcpy(frname, argv[i + 1]);
+            memmove(frname, frname+8, strlen(frname));
+
             for (int j = 0; j < 4; j++){
                 changframe.name[j] = frname[j];
                 changframe.info[j] = frname[j];
             }
-            changframe.size = strlen(content);
+
+            changframe.size = strlen(content) + 1;
 
             int k = 3;
             for (int j = 0; j < 4; j++, k--){
                 changframe.info[j + 4] = changframe.size / (int) pow (256, k);
             }
 
-            set(data, changframe, content);
+            printf("frame to change %s\n", changframe.name);
+            printf("to content %s\n", content);
+            printf("its size %d\n\n", changframe.size);
+            set(dataname, changframe, content);
 
         }
 
