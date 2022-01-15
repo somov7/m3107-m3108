@@ -3,32 +3,16 @@
 #include <string.h>
 #include <locale.h>
 #include "id3v2.h"
+#include "utility.h"
 
-#pragma pack(push, 1)
-
-long int get_file_size(FILE* file)
+unsigned int calcSize(struct ID3v2_header id)
 {
-    long int fileSize = 0;
-    fseek(file, 0, SEEK_END);
-    fileSize = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    if (fileSize <= 0)
+    unsigned int res = 0;
+    for (int i = 0; i < 4; i++)
     {
-        return -1;
+        res += id.size[3-i] << (7 * i);
     }
-
-    return fileSize;
-}
-void isFile(FILE *file)
-{
-    if (file == NULL)
-    {
-        perror("Can't find that file in such directory");
-        exit(EXIT_FAILURE);
-    }
-    else
-        return;
+    return res;
 }
 
 long int get_tag_size(FILE* file)
@@ -127,7 +111,6 @@ long int read_frame_id(FILE* file, int isSet, char frameName[])
     free(data);
     return frameSize;
 }
-
 
 void show(FILE* file)
 {

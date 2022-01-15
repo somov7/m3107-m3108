@@ -3,22 +3,27 @@
 #include <stdio.h>
 
 #pragma pack(push, 1)
-typedef struct {
-    char sig[3];
-    size_t file_size;
-    size_t files;
-}Header;
+//структура файла для лучшего хранения информации о нём
+typedef struct
+{
+    char expansion[3]; //расширение
+    size_t fileSize;
+    size_t fileCounter;
+} fileHeader;
+
 #pragma pack(pop)
 
-typedef struct {
-    Header header;
+// структура архива
+typedef struct
+{
+    fileHeader header;
     FILE *file;
-}Arc;
+} Arch;
 
-Arc arc_create(char *arc_name);
-Arc arc_open(const char *arc_name);
-void arc_close(Arc *arc);
-int arc_extract(Arc *arc);
-char **get_list(Arc *arc);
-long arc_add(Arc *arc, char* file_name);
+Arch open(const char *archName);
+Arch init(char *archName);
+long create(Arch *arch, char* fileName);
+char **list(Arch *arch);
+int extract(Arch *arch);
+void close(Arch *arch);
 #endif //ARV_ARC_H

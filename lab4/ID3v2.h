@@ -1,3 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
+
 #ifndef ID3V2_H_INCLUDED
 #define ID3V2_H_INCLUDED
 
@@ -18,14 +23,4 @@ struct ID3v2_frame_header
     char flags[2];
 };
 
-
-unsigned int calcSize(struct ID3v2_header id)
-{
-    unsigned int res = 0;
-    for (int i = 0; i < 4; i++)
-    {
-        res += id.size[3-i] << (7 * i);
-    }
-    return res;
-}
 #endif // ID3V2_H_INCLUDED

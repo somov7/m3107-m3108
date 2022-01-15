@@ -1,41 +1,62 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include "arc.h"
 
-int main(int argc, char **argv) {
-    if (argc < 2) {
-        puts("too few args given");
+
+int main(int argc, char **argv)
+{
+    setlocale(LC_ALL, "Rus");
+
+    if (argc < 2)
+    {
+        puts("Too few arguments for this program");
         exit(EXIT_FAILURE);
     }
-    Arc arc;
-    char *arc_name = NULL;
-    int i = 1;
-    while (i < argc) {
-        if (argv[i][2] == 'f') {
-            arc_name = argv[++i];
-        } else if (argv[i][2] == 'c') {
-            arc = arc_create(arc_name);
+
+    Arch arch;
+    char *archName;
+
+    for (int i = 1; i < argc;)
+    {
+        if (strcmp("--file", argv[i]) == 0)
+        {
+            archName = argv[++i];
+        }
+
+        else if (strcmp("--create", argv[i]) == 0)
+        {
             i++;
-            while (i < argc) {
-                if (arc_add(&arc, argv[i++]) == -1) {
-                    arc_close(&arc);
-                    exit(EXIT_FAILURE);
-                }
+            arch = init(archName);
+            for (i; i < argc;)
+            {
+                create(&arch, argv[i++]);
             }
-            arc_close(&arc);
-        } else if (argv[i][2] == 'e') {
-            Arc arc = arc_open(arc_name);
-            arc_extract(&arc);
-            arc_close(&arc);
-        } else if (argv[i][2] == 'l') {
-            arc = arc_open(arc_name);
-            char **names = get_list(&arc);
-            for (int i = 0; i < arc.header.files; i++) {
-                printf("%d: %s\n", i + 1, names[i]);
+            close(&arch);
+        }
+
+        else if (strcmp("--list", argv[i]) == 0)
+        {
+            arch = open(archName);
+            char **files = list(&arch);
+
+            for (int j = 0; j < arch.header.fileCounter; j++)
+            {
+                printf("%d: %s\n", j + 1, files[j]);
             }
-            arc_close(&arc);
+            close(&arch);
+        }
+
+        else if (strcmp("--extract", argv[i]) == 0)
+        {
+            Arch arch = open(archName);
+            extract(&arch);
+            close(&arch);
         }
         i++;
     }
+
+    return 0;
 }
+

@@ -1,126 +1,140 @@
-#include "arc.h"
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "arc.h"
+#include "utility.h"
 
-
-
-Arc arc_create(char *arc_name) {
-    FILE *file = fopen(arc_name, "wb");
-    Header h = {"arc", sizeof(Header), 0};
-    Arc arc = {h, file};
-    fseek(file, sizeof(Header), SEEK_CUR);
-    return arc;
-}
-
-long get_file_size(FILE *file) {
-    fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
-    rewind(file);
-    return file_size;
-}
-
-char *read_file_name(FILE *in, char size) {
-    char *file_name = malloc(size + 1);
-    fread(file_name, 1, size, in);
-    file_name[size] = 0;
-    return file_name;
-}
-
-Arc arc_open(const char *arc_name) {
-    FILE *file = fopen(arc_name, "rb");
+Arch open(const char *archName)
+{
+    FILE *file = fopen(archName, "rb");
+    fileHeader header;
     size_t arc_size = get_file_size(file);
-    Header h;
-    fread(&h, sizeof(Header), 1, file);
-    Arc arc = {h, file};
-    return arc;
+
+    fread(&header, sizeof(fileHeader), 1, file);
+    Arch arch = {header, file};
+
+    return arch;
 }
 
+//создаём сам архив
+Arch init(char *archName)
+{
+    FILE *file = fopen(archName, "wb");
 
+    fileHeader header = {"arc", sizeof(fileHeader), 0};
+    Arch arch = {header, file};
+    fseek(file, sizeof(fileHeader), SEEK_CUR);
 
-void write(FILE *in, FILE *out, long n) {
-    long  buffer_size = 4096;
-    char buff[buffer_size];
-    while (n > 0 && !feof(in) && !feof(out)) {
-        long k = n < buffer_size ? n : buffer_size;
-        fread(buff, 1, k, in);
-        fwrite(buff, 1, k, out);
-        n -= buffer_size;
-    }
+    return arch;
 }
 
-int arc_extract(Arc *arc) {
-    FILE *in = arc->file;
-    char name_size;
-    long file_size = arc->header.file_size;
-    long read = 0;
-    printf("%d\n", ftell(in));
-    while (!feof(in) && read < file_size) {
-        long size;
-        fread(&size, sizeof(long), 1, in);
-        fread(&name_size, 1, 1, in);
+long create(Arch *arch, char* fileName)
+{
+    FILE *fileIn = fopen(fileName, "rb"); //файл, который помещаем в архив
+    FILE *fileOut = arch->file; //это наш архив
 
-        char *name = read_file_name(in, name_size);
-        FILE *out = fopen(name, "wb");
-
-        write(in, out, size);
-        fclose(out);
-        read += size + name_size + sizeof(char) + sizeof(long);
-    }
-    fclose(in);
-}
-
-long arc_add(Arc *arc, char* file_name) {
-    FILE *in = fopen(file_name, "rb");
-    FILE *out = arc->file;
-    if (in == NULL) {
-        perror(file_name);
+    if (fileIn == NULL)
+    {
+        perror(fileName);
         return -1;
     }
 
-    long file_size = get_file_size(in);
-    fwrite(&file_size, sizeof(long), 1, out);
-    size_t file_name_len = strlen(file_name);
-    if (file_name_len > 255) {
-        fclose(out);
+    long fileSize = get_file_size(fileIn);
+    fwrite(&fileSize, sizeof(long), 1, fileOut);
+
+    size_t fileNameSize = strlen(fileName);
+    if (fileNameSize >= 256)
+    {
+        fclose(fileOut);
         return -1;
     }
-    arc->header.file_size += file_size + file_name_len + sizeof(char) + sizeof(long);
-    fwrite(&file_name_len, 1, 1, out);
-    fwrite(file_name, sizeof(char), file_name_len, out);
-    //write(in, out, file_size);
-    unsigned long read;
-    const int bsize = 4096;
-    char buff[4096];
-    while (!feof(in) && (read = fread(buff, 1, bsize, in)) > 0) {
-        fwrite(buff, 1, read, out);
+
+    arch->header.fileSize += fileSize + fileNameSize + 5;
+    fwrite(&fileNameSize, sizeof(char), 1, fileOut);
+    fwrite(fileName, sizeof(char), fileNameSize, fileOut);
+
+    unsigned long isReading;
+    int partition = 1024;
+    char dataBuffer[partition];
+    while (!feof(fileIn) && (isReading = fread(dataBuffer, 1, partition, fileIn)) > 0)
+    {
+        fwrite(dataBuffer, 1, isReading, fileOut);
     }
-    arc->header.files++;
-    return file_size;
+    arch->header.fileCounter++;
+
+    return fileSize;
 }
 
-char **get_list(Arc *arc) {
-    char **names = malloc(arc->header.files);
-    FILE *in = arc->file;
-    char name_size;
-    long file_size = arc->header.file_size;
-    long read = 0;
-    long i = 0;
-    while (!feof(in) && read < file_size && i < arc->header.files) {
+char **list(Arch *arch)
+{
+    FILE *file = arch->file;
+    char **files = malloc(arch->header.fileCounter);
+    char nameSize;
+    long fileSize = arch->header.fileSize;
+    long isReading = 0, i = 0;
+
+    while (!feof(file) && isReading < fileSize && i < arch->header.fileCounter)
+    {
         long size;
-        fread(&size, sizeof(long), 1, in);
-        fread(&name_size, 1, 1, in);
+        fread(&size, sizeof(long), 1, file);
+        fread(&nameSize, 1, 1, file);
 
-        names[i++] = read_file_name(in, name_size);
-        fseek(in, size, SEEK_CUR);
-        read += size + name_size + sizeof(char) + sizeof(long);
+        files[i++] = read_file_name(file, nameSize);
+        fseek(file, size, SEEK_CUR);
+        isReading += size + nameSize + 5;
     }
-    return names;
+
+    return files;
 }
 
-void arc_close(Arc *arc) {
-    rewind(arc->file);
-    fwrite(&arc->header, sizeof(Header), 1, arc->file);
-    fclose(arc->file);
+int extract(Arch *arch)
+{
+    FILE *fileIn = arch->file; //указатель на содержимое архива ес что
+    char nameSize;
+    long isReading = 0, fileSize = arch->header.fileSize;
+
+    while (!feof(fileIn) && isReading < fileSize)
+    {
+        long size;
+        fread(&size, sizeof(long), 1, fileIn);
+        fread(&nameSize, 1, 1, fileIn);
+
+        char *fileName = read_file_name(fileIn, nameSize);
+        FILE *fileOut = fopen(fileName, "wb");
+
+        //write(fileIn, fileOut, size);
+        long container = size;
+        long partition = 1024;
+        char dataBuffer[partition];
+        while (container > 0 && !feof(fileIn) && !feof(fileOut))
+        {
+            long buffContainer;
+            if (container < partition)
+            {
+                buffContainer = container;
+            }
+            else
+            {
+                buffContainer = partition;
+            }
+            fread(dataBuffer, 1, buffContainer, fileIn);
+            fwrite(dataBuffer, 1, buffContainer, fileOut);
+            container -= partition;
+        }
+
+
+        isReading += size + nameSize + 5;
+
+        fclose(fileOut);
+    }
+    fclose(fileIn);
 }
+
+void close(Arch *arch)
+{
+    fseek(arch->file, 0, SEEK_SET);
+    fwrite(&arch->header, sizeof(fileHeader), 1, arch->file);
+    fclose(arch->file);
+}
+
