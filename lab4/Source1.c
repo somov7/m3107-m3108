@@ -24,8 +24,8 @@ typedef struct FRAME
     char unicode;
 } FRAME;
 
-TAG TagHeader;
-FRAME FrameHeader;
+TAG tag_header;
+FRAME frame_header;
 
 int str_cnt(char* str) 
 {
@@ -59,8 +59,7 @@ char* int_to_byte(int val)
     return byte;
 }
 
-int int_header(char byte[4]) 
-{
+int int_header(char byte[4]) {
     return byte[0] << 21 | byte[1] << 14 | byte[2] << 7 | byte[3];
 }
 
@@ -89,11 +88,11 @@ void show(char* file_name)
         exit(1);
     }
 
-    fread(&TagHeader, 1, 10, file);
-    printf("%sv%d.%d\n", TagHeader.ver, TagHeader.v[0], TagHeader.v[1]);
+    fread(&tag_header, 1, 10, file);
+    printf("%sv%d.%d\n", tag_header.ver, tag_header.v[0], tag_header.v[1]);
 
 
-    int tag_size = int_header(TagHeader.size);
+    int tag_size = int_header(tag_header.size);
 
     printf("tag_size = %d\n", tag_size);
 
@@ -104,25 +103,25 @@ void show(char* file_name)
     while (ftell(file) < tag_size) 
     {
 
-        fread(&FrameHeader, 1, 11, file);
+        fread(&frame_header, 1, 11, file);
 
-        if (FrameHeader.name[0] == 0) 
+        if (frame_header.name[0] == 0) 
             break;
 
-        int frame_size = byte_to_int(FrameHeader.size);
+        int frame_size = byte_to_int(frame_header.size);
 
-        if (FrameHeader.name[0] == 'A') 
+        if (frame_header.name[0] == 'A') 
         {
             fseek(file, frame_size, SEEK_CUR);
             continue;
         }
-        char* frame_cont = calloc(frame_size, 1);
+        char* content = calloc(frame_size, 1);
 
-        fgets(frame_cont, frame_size, file);
-        printf("id: %5s || size: %5d || value: ", FrameHeader.name, frame_size);
-        printf("%s\n", frame_cont);
+        fgets(content, frame_size, file);
+        printf("id: %5s || size: %5d || value: ", frame_header.name, frame_size);
+        printf("%s\n", content);
 
-        free(frame_cont);
+        free(content);
     }
     fclose(file);
 }
@@ -138,31 +137,31 @@ void get(char* file_name, char* frame)
         exit(1);
     }
 
-    fread(&TagHeader, 1, 10, file);
-    printf("%sv%d.%d\n", TagHeader.ver, TagHeader.v[0], TagHeader.v[1]);
+    fread(&tag_header, 1, 10, file);
+    printf("%sv%d.%d\n", tag_header.ver, tag_header.v[0], tag_header.v[1]);
 
-    int tag_size = int_header(TagHeader.size);
+    int tag_size = int_header(tag_header.size);
 
     printf("tag size = %d\n", tag_size);
 
     while (ftell(file) < tag_size) 
     {
 
-        fread(&FrameHeader, 1, 11, file);
+        fread(&frame_header, 1, 11, file);
 
-        int frame_size = byte_to_int(FrameHeader.size);
+        int frame_size = byte_to_int(frame_header.size);
 
-        if (strcmp(frame, FrameHeader.name) == 0) 
+        if (strcmp(frame, frame_header.name) == 0) 
         {
 
-            int frame_size = byte_to_int(FrameHeader.size);
-            char* frame_cont = calloc(frame_size, 1);
+            int frame_size = byte_to_int(frame_header.size);
+            char* content = calloc(frame_size, 1);
 
-            fgets(frame_cont, frame_size, file);
-            printf("id: %5s || size: %5d || value: ", FrameHeader.name, frame_size);
-            printf("%s\n", frame_cont);
+            fgets(content, frame_size, file);
+            printf("id: %5s || size: %5d || value: ", frame_header.name, frame_size);
+            printf("%s\n", content);
 
-            free(frame_cont);
+            free(content);
             break;
         }
         fseek(file, frame_size - 1, SEEK_CUR);
@@ -183,21 +182,21 @@ void set_value(char* file_name, char* frame, char* val)
 
     int file_size = size_of_file(file_name);
 
-    fread(&TagHeader, 1, 10, file);
-    printf("%sv%d.%d  ", TagHeader.ver, TagHeader.v[0], TagHeader.v[1]);
+    fread(&tag_header, 1, 10, file);
+    printf("%sv%d.%d  ", tag_header.ver, tag_header.v[0], tag_header.v[1]);
 
-    int tag_size = int_header(TagHeader.size);
+    int tag_size = int_header(tag_header.size);
 
     printf("tag size = %d\n", tag_size);
 
     while (ftell(file) < tag_size) 
     {
 
-        fread(&FrameHeader, 1, 11, file);
+        fread(&frame_header, 1, 11, file);
 
-        if (strcmp(frame, FrameHeader.name) == 0) 
+        if (strcmp(frame, frame_header.name) == 0) 
         {
-            int frame_size = byte_to_int(FrameHeader.size);
+            int frame_size = byte_to_int(frame_header.size);
             int left_ptr = ftell(file) - 7;
             int right_ptr = left_ptr + frame_size + 6;
             int val_size = str_cnt(val);
@@ -223,9 +222,9 @@ void set_value(char* file_name, char* frame, char* val)
             info_buf[1] = x.byte[2];
             info_buf[2] = x.byte[1];
             info_buf[3] = x.byte[0];
-            info_buf[4] = FrameHeader.flag[0];
-            info_buf[5] = FrameHeader.flag[1];
-            info_buf[6] = FrameHeader.unicode;
+            info_buf[4] = frame_header.flag[0];
+            info_buf[5] = frame_header.flag[1];
+            info_buf[6] = frame_header.unicode;
 
             fwrite(info_buf, 1, 7, new);
 
