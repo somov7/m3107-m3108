@@ -39,6 +39,11 @@ uint1024_t mult_op(uint1024_t x, uint1024_t y) {
             z.array[j] = value % overflow;
             carry = value / overflow;
         }
+        if (carry > 0) {
+            printf("overflow!\n");
+            return mlt;
+        }
+        
         mlt = add_op(mlt, z);
     }
     return mlt;
@@ -54,6 +59,9 @@ for (int i = 0; i <= 31; i++) {
     }
    int count = sizeof(x.array)/sizeof(x.array[0]);
    for (size_t i=0; i<count || carry; ++i) {
+       if (i == count){
+           break;
+       }
 	x.array[i] -= carry + (i < count ? y.array[i] : 0);
 	carry = x.array[i] < 0;
 	if (carry != 0) {
