@@ -17,13 +17,13 @@ uint1024_t from_uint(unsigned int x) {
 }
 
 uint1024_t add_op(uint1024_t x, uint1024_t y) {
-    int carry = 0;
+    int trans_reg = 0;
     uint64_t overflow = MAX_UNSIGNED_INT;
     uint1024_t z = from_uint(0);
     for (int i = 0; i <= 31; i++) {
-        uint64_t value = ((uint64_t) x.array[i] + (uint64_t) y.array[i] + carry);
+        uint64_t value = ((uint64_t) x.array[i] + (uint64_t) y.array[i] + trans_reg);
         z.array[i] = value % overflow;
-        carry = value / overflow;
+        trans_reg = value / overflow;
     }
     return z;
 }
@@ -43,7 +43,14 @@ uint1024_t mult_op(uint1024_t x, uint1024_t y) {
             printf("overflow!\n");
             return mlt;
         }
-        
+
+        for (int j = 0; j < i; j++) {
+            for (int l = 31; l > 0; l--) {
+                z.array[l] = z.array[l - 1];
+            }
+            z.array[0] = 0;
+        }
+
         mlt = add_op(mlt, z);
     }
     return mlt;
@@ -59,9 +66,6 @@ for (int i = 0; i <= 31; i++) {
     }
    int count = sizeof(x.array)/sizeof(x.array[0]);
    for (size_t i=0; i<count || carry; ++i) {
-       if (i == count){
-           break;
-       }
 	x.array[i] -= carry + (i < count ? y.array[i] : 0);
 	carry = x.array[i] < 0;
 	if (carry != 0) {
@@ -110,13 +114,13 @@ void printf_value(uint1024_t x) {
     char line[310];
     memset(line, '\0', 310);
     do {
-        uint64_t carry = 0;
+        uint64_t trans_reg = 0;
         for (int i = 31; i >= 0; i--) {
-            uint64_t value = (x.array[i] + carry * overflow);
+            uint64_t value = (x.array[i] + trans_reg * overflow);
             z.array[i] = value / 10;
-            carry = value % 10;
+            trans_reg = value % 10;
         }
-        line[strlen(line)] = carry + '0';
+        line[strlen(line)] = trans_reg + '0';
         x = z;
     } while (memcmp(&x, &zero, sizeof(int) * 32) != 0);
     for (int i = strlen(line); i >= 0; i--) {
