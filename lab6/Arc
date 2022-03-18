@@ -1,0 +1,323 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <malloc.h>
+#include <stdbool.h>
+struct Node {
+    unsigned char ch;
+    unsigned long long int freq;
+    char code[256];
+    struct Node *left;
+    struct Node *right;
+};
+struct Node *buildTree(struct Node *psym[], int n);
+
+void bubbleSort(struct Node *psym[], int n);
+
+void makeDictionary(struct Node *psym[256], char *dataFileName);
+
+int sortDictionary(struct Node *psym[256]);
+
+void makeCodes(struct Node *root);
+
+void Extract(char *archiveName);
+
+void List(char *archiveName);
+
+int main(int argc, char *argv[]) {
+    char *archiveName;
+    for (int i = 0; i < argc; i++) {
+        if (!strcmp("--file", argv[i])) {
+            archiveName = argv[i + 1];
+        }
+        if (!strcmp("--create", argv[i])) {
+            Create(archiveName, argc, argv);
+            break;
+        }
+        if (!strcmp("--extract", argv[i])) {
+            Extract(archiveName);
+        }
+        if (!strcmp("--list", argv[i])) {
+            List(archiveName);
+        }
+    }
+    return 0;
+}
+
+unsigned char clrByte(unsigned char value, int index) {
+    return ((value) &= (~(1 << ((index) ^ 7))));
+}
+unsigned char setByte(unsigned char value, int index) {
+    return ((value) |= (1 << ((index) ^ 7)));
+}
+unsigned char getByte(unsigned char value, int index) {
+    return (((value) & (1 << ((index) ^ 7))) != 0);
+}
+void Create(char *archiveName, int filecount, char *files[]) {
+    FILE *archive = fopen(archiveName, "wb");
+    char *dataFileName = "data.temp";
+    FILE *data = fopen(dataFileName, "wb");
+    for (int i = 5; i < filecount; i++) {
+        FILE *file = fopen(files[i], "rb");
+        if (file == NULL) {
+            printf("File %s not found\n", files[i]);
+            continue;
+        } else {
+            int temp;
+            while ((temp = getc(file)) != EOF) {
+                putc(temp, data);
+            }
+            fprintf(archive, "<%s %lu>", files[i], ftell(file));
+            fclose(file);
+            printf("File %s added\n", files[i]);
+        }
+    }
+    fprintf(archive, "\n");
+    fclose(data);
+
+    struct Node *psym[256] = {NULL};
+    makeDictionary(psym, dataFileName);
+    struct Node *copyPsym[256];
+    for (int i = 0; i < 256; i++) {
+        copyPsym[i] = psym[i];
+    }
+    int n = sortDictionary(copyPsym);
+    struct Node *root = buildTree(copyPsym, n);
+    makeCodes(root);
+    for (int i = 0; i < n; i++) {
+        fprintf(archive, "[%c %llu]", copyPsym[i]->ch, copyPsym[i]->freq);
+    }
+    fprintf(archive, "\n");
+
+    data = fopen(dataFileName, "rb");
+    unsigned char buffer = 0;
+    int index = 0;
+    int temp;
+    while ((temp = getc(data)) != EOF) {
+        char *hufCode = psym[temp]->code;
+        for (int i = 0; hufCode[i]; i++) {
+            if (hufCode[i] == '0') {
+                buffer = clrByte(buffer, index);
+            } else {
+                buffer = setByte(buffer, index);
+            }
+            if (++index >= 8) {
+                index = 0;
+                putc(buffer, archive);
+            }
+        }
+    }
+    if (index) {
+        putc(buffer, archive);
+    }
+    fclose(archive);
+    fclose(data);
+    remove(dataFileName);
+    printf("Packing complete\n");
+}
+
+void Extract(char *archiveName) {
+    FILE *archive = fopen(archiveName, "rb");
+    char *dataFileName = "data.temp";
+    FILE *data = fopen(dataFileName, "wb");
+    if (archive == NULL) {
+        printf("Archive is not found");
+        return;
+    }
+    long int countChars = 0;
+    long int fileSize;
+    int check = fscanf(archive, "<%*s %lu>", &fileSize);
+    while (check != 0) {
+        if (check == EOF) {
+            printf("Archive is empty");
+            return;
+        }
+        countChars += fileSize;
+        check = fscanf(archive, "<%*s %lu>", &fileSize);
+    }
+    getc(archive);
+    struct Node *psym[256] = {NULL};
+    int i = 0;
+    char temp;
+    long int freq;
+    int addr = ftell(archive);
+    while (fscanf(archive, "[%c %lu]", &temp, &freq) != 0) {
+        psym[i] = (struct Node *) malloc(sizeof(struct Node));
+        psym[i]->ch = temp;
+        psym[i]->freq = freq;
+        psym[i]->left = NULL;
+        psym[i]->right = NULL;
+        psym[i]->code[0] = 0;
+        i++;
+    }
+    getc(archive);
+    int n = sortDictionary(psym);
+    struct Node *root = buildTree(psym, n);
+    makeCodes(root);
+
+    int index = 0;
+    long int readedChars = 0;
+    int buffer = fgetc(archive);
+    struct Node *node = root;
+    while (readedChars < countChars) {
+        if(getByte(buffer, index) == 0) {
+            node = node->left;
+    } else {
+            node = node->right;
+        }
+        if (node->right == NULL && node->left == NULL) {
+            fputc(node->ch,data);
+            readedChars++;
+            node = root;
+        }
+        if (++index >= 8) {
+            buffer = getc(archive);
+            if(buffer == EOF) {
+                break;
+            }
+            index = 0;
+        }
+    }
+    fclose(data);
+
+    data = fopen(dataFileName, "rb");
+    fseek(archive, 0, SEEK_SET);
+    char fileName[256] = {0};
+    FILE *file;
+    while (fscanf(archive, "<%s %lu>", fileName, &fileSize) != 0) {
+        file = fopen(fileName, "wb");
+        if (file == NULL) {
+            printf("Writing error");
+            break;
+        }
+        while (fileSize-- > 0)
+            putc(getc(data), file);
+        fclose(file);
+    }
+    fclose(data);
+    fclose(archive);
+    remove(dataFileName);
+    printf("Unpacking completed\n");
+}
+
+void List(char *archiveName) {
+    FILE *archive = fopen(archiveName, "rb");
+    if (archive == NULL) {
+        printf("Archive not found");
+        return;
+    }
+    char fileName[256] = {0};
+    printf("File list:\n");
+    while (fscanf(archive, "<%s %lu>", fileName) > 0) {
+        printf("%s\n", fileName);
+    }
+    fclose(archive);
+}
+
+struct Node *buildTree(struct Node *psym[], int n) {
+    struct Node *copyPsym[256];
+    for (int i = 0; i < 256; i++) {
+        copyPsym[i] = psym[i];
+    }
+    while (true) {
+        struct Node *temp = (struct Node *) malloc(sizeof(struct Node));
+        temp->freq = copyPsym[n - 2]->freq + copyPsym[n - 1]->freq;
+        temp->left = copyPsym[n - 1];
+        temp->right = copyPsym[n - 2];
+        temp->code[0] = 0;
+        if (n == 2) {
+            return temp;
+        }
+        bool tempIsMax = true;
+        for (int i = n - 3; i >= 0; i--) {
+            if (copyPsym[i]->freq >=  temp->freq){
+                for (int j = n - 3; j >= i + 1; j--) {
+                    copyPsym[j + 1] = copyPsym[j];
+                }
+                copyPsym[i + 1] = temp;
+                tempIsMax = false;
+                break;
+            }
+        }
+        if (tempIsMax) {
+            for (int i = n - 3; i >= 0; i--) {
+                copyPsym[i + 1] = copyPsym[i];
+            }
+            copyPsym[0] = temp;
+        }
+        n--;
+    }
+}
+
+void bubbleSort(struct Node *psym[], int n) {
+    bool isSorted = false;
+    while (!isSorted) {
+        isSorted = true;
+        for (int i = 0; i < n - 1; i++) {
+            if (psym[i] == NULL) {
+                if (psym[i + 1] != NULL) {
+                    struct Node *temp = psym[i];
+                    psym[i] = psym[i + 1];
+                    psym[i + 1] = temp;
+                    isSorted = false;
+                }
+            } else {
+                if (psym[i + 1] != NULL) {
+                    if (psym[i]->freq < psym[i + 1]->freq) {
+                        struct Node *temp = psym[i];
+                        psym[i] = psym[i + 1];
+                        psym[i + 1] = temp;
+                        isSorted = false;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void makeDictionary(struct Node *psym[256], char *dataFileName) {
+    FILE *data = fopen(dataFileName, "rb");
+    if (data == NULL) {
+        printf("Error: archive not found");
+        return;
+    }
+    int temp;
+    while ((temp = getc(data)) != EOF) {
+        if (psym[temp] == NULL) {
+            psym[temp] = (struct Node *) malloc(sizeof(struct Node));
+            psym[temp]->ch = temp;
+            psym[temp]->freq = 1;
+            psym[temp]->left = NULL;
+            psym[temp]->right = NULL;
+            psym[temp]->code[0] = 0;
+        } else {
+            psym[temp]->freq++;
+        }
+    }
+    fclose(data);
+}
+
+int sortDictionary(struct Node *psym[256]) {
+    bubbleSort(psym, 256);
+    int n = 256;
+    for (int i = 0; i < 256; i++) {
+        if (psym[i] == NULL) {
+            n = i;
+            break;
+        }
+    }
+    return n;
+}
+
+void makeCodes(struct Node *root) {
+    if (root->left) {
+        strcpy(root->left->code, root->code);
+        strcat(root->left->code, "0");
+        makeCodes(root->left);
+    }
+    if (root->right) {
+        strcpy(root->right->code, root->code);
+        strcat(root->right->code, "1");
+        makeCodes(root->right);
+    }
+}
