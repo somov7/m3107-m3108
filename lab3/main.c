@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include <conio.h>
 
 int main()
 {
@@ -20,12 +19,12 @@ int main()
     char time_of_request[27];
     char data[2049];
     int result;
-    char data_weight[4];
+    int data_weight;
     int ErrorCount = 0;
     char month[3];
     char months[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Dec"};
 
-    long window;
+    long long window;
 
     FILE *foe = fopen(filename, "r");
 
@@ -33,12 +32,10 @@ int main()
 
         printf("%s", "File did not open.");
 
-        return 1;
+        return -1;
     }
 
     while (fgets(entire_line, 4150, foe) != NULL) line_count++;
-
-    //printf("line_count = %d\n", line_count);
 
     printf("Enter time window\n");
     scanf("%lld", &window);
@@ -48,8 +45,6 @@ int main()
     int line = 0;
 
     line_time = malloc(sizeof(long) * line_count);
-
-    //for (int i = 0; i < line_count; i++) line_time[line_count] = 0;
 
     fseek(foe, 0, SEEK_SET);
 
@@ -66,11 +61,6 @@ int main()
 
         sscanf(time_of_request,"%d/%3s/%d:%d:%d:%d", &time.tm_mday, month, &time.tm_year, &time.tm_hour, &time.tm_min, &time.tm_sec);
 
-        //printf("%d/%3s/%d:%d:%d:%d\n", time.tm_mday, month, time.tm_year, time.tm_hour, time.tm_min, time.tm_sec);
-        //getch();
-
-        time.tm_year -= 1900;
-
         int cur_month = 0;
 
         for (cur_month = 0; cur_month < 12; cur_month++) {
@@ -78,49 +68,47 @@ int main()
         }
 
         time.tm_mon = cur_month;
-
-        //printf("%d/%3s/%d:%d:%d:%d\n", time.tm_mday, month, time.tm_year, time.tm_hour, time.tm_min, time.tm_sec);
-        //getch();
+        time.tm_year -= 1900;
 
         line_time[line] = (long)mktime(&time);
-
-        //printf("%lld\n%lld\n", mktime(&time), line_time[line]);
-        //getch();
 
         line++;
     }
 
-    long long left_bound = 0, right_bound = 0, maximum = 0, current_length = 0, left_bound_final = 0, right_bound_final = 0;
+    int difference = 0, current_length = 1, maximum = 0, j = 1, left_bound_final, right_bound_final;
 
-    while (1) {
-        if (line_time[right_bound] - line_time[left_bound] > window) {
-            left_bound++;
-            current_length = 0;
-        } else {
-            current_length++;
+    for (int i = 1; i < line_count; i++) {
 
-            if (current_length > maximum) {
-                left_bound_final = left_bound;
-                right_bound_final = right_bound;
-                maximum = current_length;
-            }
+        current_length++;
+        difference += line_time[i] - line_time[i - 1];
 
-            right_bound++;
+        while ((difference > window) && (j + 1 < line_count)) {
+            difference -= (line_time[j] - line_time[j - 1]);
+            j++;
+            current_length--;
         }
-        if (right_bound > line_count) break;
+
+        if (current_length > maximum) {
+            maximum = current_length;
+            left_bound_final = j;
+            right_bound_final = i;
+        }
     }
 
     struct tm *time_start;
     struct tm *time_end;
 
-    time_t left_bound_final_ll = line_time[left_bound_final];
-    time_t right_bound_final_ll = line_time[right_bound_final];
-
-    time_start = localtime (&left_bound_final_ll);
-    time_end = localtime (&right_bound_final_ll);
-
     printf("\nQuantity of requests with 5xx error (server errors): %d\n", ErrorCount);
-    printf("\nMaximum quantity of requests in %ld second(s) window: %lld\nFrom %s  to %s", window, maximum, asctime(time_start), asctime(time_end));
+
+    time_t left_bound_final_ll = line_time[left_bound_final];
+    time_start = localtime(&left_bound_final_ll);
+
+    printf("\nMaximum quantity of requests in %ld second(s) window: %d\nFrom %s", window, maximum, asctime(time_start));
+
+    time_t right_bound_final_ll = line_time[right_bound_final];
+    time_end = localtime(&right_bound_final_ll);
+
+    printf("  to %s", asctime(time_end));
 
     fclose(foe);
     return 0;
